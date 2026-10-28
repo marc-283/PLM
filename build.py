@@ -2,7 +2,7 @@
 """Builds the deployable app (index.html, sw.js, manifest.webmanifest) from src/."""
 import hashlib, json, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.2.0"
+VERSION = "1.3.1"
 def read(p): return open(os.path.join(ROOT, p), encoding="utf-8").read()
 def js_dir(d): return "\n".join(read(os.path.join(d, f)) for f in sorted(os.listdir(os.path.join(ROOT, d))) if f.endswith(".js"))
 html = read("src/shell.html")
@@ -10,14 +10,31 @@ for k, v in {"{{CSS}}": read("src/app.css"), "{{CORE}}": read("src/core.js"), "{
     html = html.replace(k, v)
 open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(html)
 manifest = {
-  "name": "Personal Language Management", "short_name": "PLM", "description": "Flashcards für Englisch, Italienisch und mehr – mit Wiederholungsplan, Aussprache, Konjugation, Sätzebauen und Import aus Fotos und PDFs.",
+  "name": "Personal Language Management", "short_name": "PLM", "description": "Sprachen lernen mit Kurs A1–B2, Flashcards und Wiederholungsplan – Italienisch, Englisch, Spanisch, Französisch und mehr; mit Aussprache, Gesprächen, Konjugation und Import aus Fotos und PDFs.",
   "lang": "de", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "any", "background_color": "#000000", "theme_color": "#000000",
   "icons": [{"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
             {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}],
-  "shortcuts": [{"name": "Lernen", "url": "./#learn"}, {"name": "Neue Karte", "url": "./#add"}, {"name": "Suche", "url": "./#search"}]
+  "shortcuts": [{"name": "Lernen", "url": "./#learn"}, {"name": "Kurs", "url": "./#course"}, {"name": "Neue Karte", "url": "./#add"}, {"name": "Suche", "url": "./#search"}]
 }
 open(os.path.join(ROOT, "manifest.webmanifest"), "w", encoding="utf-8").write(json.dumps(manifest, ensure_ascii=False, indent=2))
-files = ["index.html", "manifest.webmanifest"] + sorted("icons/" + f for f in os.listdir(os.path.join(ROOT, "icons"))) + sorted("fonts/" + f for f in os.listdir(os.path.join(ROOT, "fonts")))
+# courses: src/course/<code>/*.js (lesson("A1", {…}) calls) → course/<code>.js
+os.makedirs(os.path.join(ROOT, "course"), exist_ok=True)
+for code in sorted(os.listdir(os.path.join(ROOT, "src/course"))):
+    d = os.path.join("src/course", code)
+    if not os.path.isdir(os.path.join(ROOT, d)): continue
+    parts = js_dir(d)
+    out = f"""/* PLM course: {code} (generated from src/course/{code}/ by build.py) */
+(() => {{
+const C = {{ levels: ["A1", "A2", "B1", "B2"].map((id) => ({{ id, lessons: [] }})) }};
+const lesson = (lv, o) => C.levels.find((l) => l.id === lv).lessons.push(o);
+{parts}
+courseReg("{code}", C);
+}})();
+"""
+    open(os.path.join(ROOT, "course", code + ".js"), "w", encoding="utf-8").write(out)
+# course files are loaded when a course is opened, but cached right away so they work offline
+course = sorted("course/" + f for f in os.listdir(os.path.join(ROOT, "course")) if f.endswith(".js")) if os.path.isdir(os.path.join(ROOT, "course")) else []
+files = ["index.html", "manifest.webmanifest"] + sorted("icons/" + f for f in os.listdir(os.path.join(ROOT, "icons"))) + sorted("fonts/" + f for f in os.listdir(os.path.join(ROOT, "fonts"))) + course
 h = hashlib.sha256()
 for f in files: h.update(open(os.path.join(ROOT, f), "rb").read())
 cache = f"plm-{VERSION}-{h.hexdigest()[:8]}"

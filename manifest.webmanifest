@@ -1,7 +1,7 @@
 {
   "name": "Personal Language Management",
   "short_name": "PLM",
-  "description": "Flashcards für Englisch, Italienisch und mehr – mit Wiederholungsplan, Aussprache, Konjugation, Sätzebauen und Import aus Fotos und PDFs.",
+  "description": "Sprachen lernen mit Kurs A1–B2, Flashcards und Wiederholungsplan – Italienisch, Englisch, Spanisch, Französisch und mehr; mit Aussprache, Gesprächen, Konjugation und Import aus Fotos und PDFs.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
@@ -31,6 +31,10 @@
     {
       "name": "Lernen",
       "url": "./#learn"
+    },
+    {
+      "name": "Kurs",
+      "url": "./#course"
     },
     {
       "name": "Neue Karte",
