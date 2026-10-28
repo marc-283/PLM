@@ -1,10 +1,10 @@
 /* ================= KI-Assistent (Claude API, user's own key) ================= */
 /* Streams the answer (server-sent events): keeps the connection busy, so Safari never cuts long PDF jobs off, and shows progress */
-async function aiCall({ system, content, schema, maxTokens, effort, model, onText }) {
+async function aiCall({ system, content, messages, schema, maxTokens, effort, model, onText }) {
   const cfg = aiCfg();
   if (!cfg.key) throw new Error(T("Kein KI-Schlüssel hinterlegt (Einstellungen › KI-Assistent)"));
   if (navigator.onLine === false) throw new Error(T("Offline – die KI braucht eine Internetverbindung"));
-  const body = { model: model || cfg.model, max_tokens: maxTokens || 16000, stream: true, system, messages: [{ role: "user", content }], output_config: { effort: effort || "low", ...(schema ? { format: { type: "json_schema", schema } } : {}) } };
+  const body = { model: model || cfg.model, max_tokens: maxTokens || 16000, stream: true, system, messages: messages || [{ role: "user", content }], output_config: { effort: effort || "low", ...(schema ? { format: { type: "json_schema", schema } } : {}) } };
   let r;
   try {
     r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": cfg.key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" }, body: JSON.stringify(body) });

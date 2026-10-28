@@ -1,7 +1,7 @@
 /* Starter packs. One pack = one project (deck).
    Word lines: target | Deutsch | type | example | example (DE) | note
    type: nm/nf/n = noun, v verb, adj, adv, ph phrase, s sentence, x other. "# Topic" starts a topic. */
-const STARTER = { it: [], en: [] };
+const STARTER = { it: [], en: [], es: [], fr: [], pt: [], nl: [], sv: [] };
 
 STARTER.it.push({ id: "it-basis", name: "Grundwortschatz", desc: "Die wichtigsten Wörter für Alltag, Essen, Reisen, Uni und Arbeit – jedes mit Beispielsatz", parts: [{ kind: "words", data: `
 # Begrüßung & Floskeln

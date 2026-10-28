@@ -93,11 +93,11 @@ const PRESETS = {
   it: { code: "it", name: "Italienisch", tts: "it-IT", color: "#2EE6D6", persons: ["io", "tu", "lui/lei", "noi", "voi", "loro"],
     tenses: IT_TENSES.map((n) => (n === "Imperativo" ? { n, labels: ["tu", "Lei", "noi", "voi", "Loro"] } : { n })),
     active: ["Presente", "Passato prossimo"], articles: ["il", "lo", "la", "l'", "i", "gli", "le", "un", "uno", "una", "un'"] },
-  es: { code: "es", name: "Spanisch", tts: "es-ES", color: "#FF8A3D", persons: ["yo", "tú", "él/ella/usted", "nosotros", "vosotros", "ellos/ustedes"],
-    tenses: ["Presente", "Pretérito perfecto", "Pretérito indefinido", "Pretérito imperfecto", "Futuro simple", "Condicional", "Subjuntivo presente"].map((n) => ({ n })),
+  es: { code: "es", name: "Spanisch", tts: "es-ES", color: "#FF8A3D", persons: ["yo", "tú", "él/ella/usted", "nosotros", "vosotros", "ellos/ellas/ustedes"],
+    tenses: ["Presente", "Pretérito perfecto", "Pretérito indefinido", "Pretérito imperfecto", "Futuro simple", "Condicional", "Subjuntivo presente", "Subjuntivo imperfecto"].map((n) => ({ n })).concat([{ n: "Imperativo", labels: ["tú", "usted", "nosotros", "vosotros", "ustedes"] }]),
     active: ["Presente"], articles: ["el", "la", "los", "las", "un", "una", "unos", "unas", "lo"] },
   fr: { code: "fr", name: "Französisch", tts: "fr-FR", color: "#C77DFF", persons: ["je", "tu", "il/elle", "nous", "vous", "ils/elles"],
-    tenses: ["Présent", "Passé composé", "Imparfait", "Futur simple", "Conditionnel présent", "Subjonctif présent"].map((n) => ({ n })),
+    tenses: ["Présent", "Passé composé", "Imparfait", "Futur simple", "Conditionnel présent", "Subjonctif présent"].map((n) => ({ n })).concat([{ n: "Impératif", labels: ["(tu)", "(nous)", "(vous)"] }]),
     active: ["Présent"], articles: ["le", "la", "l'", "les", "un", "une", "des", "du", "de la"] },
   pt: { code: "pt", name: "Portugiesisch", tts: "pt-PT", color: "#30D97F", persons: ["eu", "tu", "ele/ela/você", "nós", "vós", "eles/elas/vocês"],
     tenses: ["Presente", "Pretérito perfeito", "Pretérito imperfeito", "Futuro", "Condicional"].map((n) => ({ n })),
@@ -218,12 +218,15 @@ const IT_E = {
 const IT_AUX = { avere: ["ho", "hai", "ha", "abbiamo", "avete", "hanno"], essere: ["sono", "sei", "è", "siamo", "siete", "sono"] };
 const IT_REFL = ["mi", "ti", "si", "ci", "vi", "si"];
 const IT_KEYS = { P: "Presente", PP: "Passato prossimo", I: "Imperfetto", F: "Futuro semplice", C: "Condizionale presente", CP: "Congiuntivo presente", CI: "Congiuntivo imperfetto", PR: "Passato remoto", IMP: "Imperativo" };
+const IT_CI_IRR = { essere: "fossi, fossi, fosse, fossimo, foste, fossero", fare: "facessi, facessi, facesse, facessimo, faceste, facessero", dare: "dessi, dessi, desse, dessimo, deste, dessero", stare: "stessi, stessi, stesse, stessimo, steste, stessero", dire: "dicessi, dicessi, dicesse, dicessimo, diceste, dicessero", bere: "bevessi, bevessi, bevesse, bevessimo, beveste, bevessero" };
 const splitForms = (s) => (Array.isArray(s) ? s : String(s || "").split(",")).map((x) => x.trim());
 /* o: { isc, aux, pp, irr, P, I, F, CP, ... (overrides as "a, b, c" strings) } → { "Presente": [...], ... } */
 function itConj(inf0, o) {
   o = o || {};
   let inf = normAns(inf0), refl = false;
   if (/rsi$/.test(inf)) { refl = true; inf = inf.slice(0, -2) + "e"; }
+  /* porre, tradurre, trarre: the old long infinitive gives the regular stem (ponere, traducere, traere) */
+  if (/rre$/.test(inf)) inf = inf.replace(/durre$/, "ducere").replace(/porre$/, "ponere").replace(/trarre$/, "traere");
   const m = /^(.+?)(are|ere|ire)$/.exec(inf);
   if (!m) return null;
   const st = m[1], cl = m[2], isc = cl === "ire" && !!o.isc;
@@ -244,17 +247,20 @@ function itConj(inf0, o) {
   out.F = ov("F") || tab("F");
   out.C = ov("C") || (o.F ? ["ei", "esti", "ebbe", "emmo", "este", "ebbero"].map((e) => out.F[0].slice(0, -1) + e) : tab("C"));
   out.CP = ov("CP") || (o.irr ? null : tab("CP"));
-  if (!o.irr) {
-    out.CI = ov("CI") || tab("CI");
-    if (!o.pp || cl !== "ere") out.PR = ov("PR") || tab("PR");
-    out.IMP = ov("IMP") || tab("IMP");
-  }
+  /* congiuntivo imperfetto is regular for almost every verb (andassi, venissi, potessi) */
+  out.CI = ov("CI") || (IT_CI_IRR[normAns(inf0)] ? splitForms(IT_CI_IRR[normAns(inf0)]) : tab("CI"));
+  if (!o.irr && (!o.pp || cl !== "ere")) out.PR = ov("PR") || tab("PR");
+  /* imperative: tu from the present (parla / prendi), Lei and Loro from the subjunctive */
+  if (ov("IMP")) out.IMP = ov("IMP");
+  else if (!o.irr && !o.P && !o.CP) out.IMP = tab("IMP");
+  else if (out.P && out.CP) { const tu = cl === "are" ? out.P[2] : out.P[1]; out.IMP = [/^[^aeiou]*[aeiou]$/.test(tu) ? tu + "'" : tu, out.CP[2], out.P[3], out.P[4], out.CP[5]]; }
   const pp = o.pp || (st + (cl === "are" ? "ato" : cl === "ere" ? "uto" : "ito"));
   const agree = (i) => (aux === "essere" && /o$/.test(pp) ? (i < 3 ? pp + "/a" : pp.slice(0, -1) + "i/e") : pp);
   out.PP = ov("PP") || IT_AUX[aux].map((a, i) => `${a} ${agree(i)}`);
   if (refl) {
-    for (const k of ["P", "I", "F", "C", "CP", "CI", "PR"]) if (out[k] && !o[k]) out[k] = out[k].map((f, i) => `${IT_REFL[i]} ${f}`);
-    if (!o.PP) out.PP = out.PP.map((f, i) => `${IT_REFL[i]} ${f}`);
+    const pr = (f, i) => (!f || /^(mi|ti|si|ci|vi|m'|t'|s'|c'|v')\s?/.test(f) ? f : `${IT_REFL[i]} ${f}`);
+    for (const k of ["P", "I", "F", "C", "CP", "CI", "PR"]) if (out[k]) out[k] = out[k].map(pr);
+    out.PP = out.PP.map(pr);
     if (out.IMP && !o.IMP) { const e = ["ti", null, "ci", "vi", null]; out.IMP = out.IMP.map((f, i) => (e[i] ? f + e[i] : "si " + f)); }
   }
   const res = {};
@@ -300,6 +306,306 @@ function enConj(inf0, o) {
   res["Present progressive"] = ["am", "are", "is", "are", "are", "are"].map((a) => `${a} ${ing}`);
   res["Present perfect"] = ["have", "have", "has", "have", "have", "have"].map((a) => `${a} ${first(pp)}`);
   res["Future (will)"] = Array(6).fill(`will ${inf}`);
+  return res;
+}
+
+/* ================= Conjugation: Spanish ================= */
+const ES_TENSES = ["Presente", "Pretérito perfecto", "Pretérito indefinido", "Pretérito imperfecto", "Futuro simple", "Condicional", "Subjuntivo presente", "Subjuntivo imperfecto", "Imperativo"];
+const ES_E = {
+  P: { ar: ["o", "as", "a", "amos", "áis", "an"], er: ["o", "es", "e", "emos", "éis", "en"], ir: ["o", "es", "e", "imos", "ís", "en"] },
+  PI: { ar: ["é", "aste", "ó", "amos", "asteis", "aron"], er: ["í", "iste", "ió", "imos", "isteis", "ieron"] },
+  I: { ar: ["aba", "abas", "aba", "ábamos", "abais", "aban"], er: ["ía", "ías", "ía", "íamos", "íais", "ían"] },
+  S: { ar: ["e", "es", "e", "emos", "éis", "en"], er: ["a", "as", "a", "amos", "áis", "an"] },
+  F: ["é", "ás", "á", "emos", "éis", "án"], C: ["ía", "ías", "ía", "íamos", "íais", "ían"]
+};
+const ES_HABER = ["he", "has", "ha", "hemos", "habéis", "han"], ES_REFL = ["me", "te", "se", "nos", "os", "se"];
+/* Irregular verbs: P/PI/I/S/IMP = full forms, yo = 1st person present, pret = preterite stem, fut = future stem, imp = tú imperative, sc = stem change (ie, ue, i) */
+const ES_IRR = {
+  ser: { P: "soy, eres, es, somos, sois, son", PI: "fui, fuiste, fue, fuimos, fuisteis, fueron", I: "era, eras, era, éramos, erais, eran", S: "sea, seas, sea, seamos, seáis, sean", imp: "sé" },
+  estar: { P: "estoy, estás, está, estamos, estáis, están", pret: "estuv", S: "esté, estés, esté, estemos, estéis, estén" },
+  ir: { P: "voy, vas, va, vamos, vais, van", PI: "fui, fuiste, fue, fuimos, fuisteis, fueron", I: "iba, ibas, iba, íbamos, ibais, iban", S: "vaya, vayas, vaya, vayamos, vayáis, vayan", imp: "ve", IMP: "ve, vaya, vamos, id, vayan" },
+  haber: { P: "he, has, ha, hemos, habéis, han", pret: "hub", fut: "habr", S: "haya, hayas, haya, hayamos, hayáis, hayan" },
+  tener: { yo: "tengo", sc: "ie", pret: "tuv", fut: "tendr", imp: "ten" },
+  venir: { yo: "vengo", sc: "ie", pret: "vin", fut: "vendr", imp: "ven", PI: "vine, viniste, vino, vinimos, vinisteis, vinieron" },
+  poner: { yo: "pongo", pret: "pus", fut: "pondr", imp: "pon", pp: "puesto" },
+  salir: { yo: "salgo", fut: "saldr", imp: "sal" },
+  hacer: { yo: "hago", pret: "hic", fut: "har", imp: "haz", pp: "hecho", PI: "hice, hiciste, hizo, hicimos, hicisteis, hicieron" },
+  decir: { yo: "digo", sc: "i", pret: "dij", fut: "dir", imp: "di", pp: "dicho" },
+  traer: { yo: "traigo", pret: "traj", pp: "traído" },
+  caer: { yo: "caigo", pp: "caído" },
+  oír: { P: "oigo, oyes, oye, oímos, oís, oyen", pp: "oído" },
+  valer: { yo: "valgo", fut: "valdr" },
+  saber: { P: "sé, sabes, sabe, sabemos, sabéis, saben", pret: "sup", fut: "sabr", S: "sepa, sepas, sepa, sepamos, sepáis, sepan" },
+  caber: { yo: "quepo", pret: "cup", fut: "cabr" },
+  poder: { sc: "ue", pret: "pud", fut: "podr" },
+  querer: { sc: "ie", pret: "quis", fut: "querr" },
+  dar: { P: "doy, das, da, damos, dais, dan", PI: "di, diste, dio, dimos, disteis, dieron", S: "dé, des, dé, demos, deis, den" },
+  ver: { yo: "veo", PI: "vi, viste, vio, vimos, visteis, vieron", I: "veía, veías, veía, veíamos, veíais, veían", pp: "visto", P: "veo, ves, ve, vemos, veis, ven" },
+  andar: { pret: "anduv" },
+  conducir: { pret: "conduj" }, producir: { pret: "produj" }, traducir: { pret: "traduj" }, reducir: { pret: "reduj" }, introducir: { pret: "introduj" },
+  scribir: { pp: "scrito" }, vertir: { sc: "ie" }, ferir: { sc: "ie" }, ducir: {}, abrir: { pp: "abierto" }, volver: { sc: "ue", pp: "vuelto" }, devolver: { sc: "ue", pp: "devuelto" }, resolver: { sc: "ue", pp: "resuelto" },
+  morir: { sc: "ue", pp: "muerto" }, romper: { pp: "roto" }, cubrir: { pp: "cubierto" }, imprimir: { pp: "impreso" },
+  jugar: { sc: "ue" }, oler: { P: "huelo, hueles, huele, olemos, oléis, huelen", S: "huela, huelas, huela, olamos, oláis, huelan" },
+  reír: { P: "río, ríes, ríe, reímos, reís, ríen", PI: "reí, reíste, rió, reímos, reísteis, rieron", S: "ría, rías, ría, riamos, riáis, rían", pp: "reído" },
+  sonreír: { P: "sonrío, sonríes, sonríe, sonreímos, sonreís, sonríen", PI: "sonreí, sonreíste, sonrió, sonreímos, sonreísteis, sonrieron", S: "sonría, sonrías, sonría, sonriamos, sonriáis, sonrían", pp: "sonreído" },
+  enviar: { P: "envío, envías, envía, enviamos, enviáis, envían", S: "envíe, envíes, envíe, enviemos, enviéis, envíen" },
+  continuar: { P: "continúo, continúas, continúa, continuamos, continuáis, continúan", S: "continúe, continúes, continúe, continuemos, continuéis, continúen" },
+  esquiar: { P: "esquío, esquías, esquía, esquiamos, esquiáis, esquían", S: "esquíe, esquíes, esquíe, esquiemos, esquiéis, esquíen" },
+  elegir: { sc: "i" }, seguir: { sc: "i" }, conseguir: { sc: "i" }, pedir: { sc: "i" }, repetir: { sc: "i" }, servir: { sc: "i" }, vestir: { sc: "i" }, medir: { sc: "i" }, despedir: { sc: "i" }, corregir: { sc: "i" }, reñir: { sc: "i" },
+  sentir: { sc: "ie" }, preferir: { sc: "ie" }, mentir: { sc: "ie" }, divertir: { sc: "ie" }, convertir: { sc: "ie" }, sugerir: { sc: "ie" }, advertir: { sc: "ie" }, herir: { sc: "ie" }, hervir: { sc: "ie" },
+  dormir: { sc: "ue" }
+};
+/* compound verbs share the irregular forms of their base (mantener → tener, proponer → poner …) */
+const ES_BASES = ["tener", "venir", "poner", "hacer", "decir", "traer", "salir", "valer", "volver", "scribir", "cubrir", "seguir", "sentir", "vertir", "ducir", "ferir"];
+ES_BASES.sort((a, b) => b.length - a.length);
+function esBase(inf) {
+  if (ES_IRR[inf]) return { base: inf, pre: "" };
+  for (const b of ES_BASES) if (inf.length > b.length && inf.endsWith(b)) return { base: b, pre: inf.slice(0, -b.length) };
+  return null;
+}
+const ES_ACC = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
+/* sc: "ie" (e → ie), "ue" (o/u → ue), "i" (e → i), "u" (o → u) – changes the last matching vowel of the stem */
+function esStem(s, sc) {
+  const v = sc === "ue" ? (/o[^aeiou]*$/.test(s) ? "o" : "u") : sc === "u" ? "o" : "e";
+  const i = s.lastIndexOf(v);
+  if (i < 0) return s;
+  return s.slice(0, i) + sc + s.slice(i + 1);
+}
+/* spelling: before e (-car → qu, -gar → gu, -zar → c, -guar → gü) and before o/a (-cer → zc/z, -ger → j, -guir → g) */
+const esBeforeE = (s) => (/gu$/.test(s) ? s.slice(0, -2) + "gü" : /g$/.test(s) ? s + "u" : /c$/.test(s) ? s.slice(0, -1) + "qu" : /z$/.test(s) ? s.slice(0, -1) + "c" : s);
+const esBeforeOA = (s) => (/gu$/.test(s) ? s.slice(0, -1) : /qu$/.test(s) ? s.slice(0, -2) + "c" : /g$/.test(s) ? s.slice(0, -1) + "j" : /[aeiouáéíóú]c$/.test(s) ? s.slice(0, -1) + "zc" : /c$/.test(s) ? s.slice(0, -1) + "z" : s);
+/* o: overrides as above, plus refl via "-se" */
+function esConj(inf0, o) {
+  o = o || {};
+  let inf = normAns(inf0), refl = false;
+  if (/(ar|er|ir|ír)se$/.test(inf)) { refl = true; inf = inf.slice(0, -2); }
+  const m = /^(.*?)(ar|er|ir|ír)$/.exec(inf);
+  if (!m) return null;
+  const st = m[1], cl = m[2] === "ar" ? "ar" : m[2] === "er" ? "er" : "ir";
+  const bi = esBase(inf), base = bi ? { ...(ES_IRR[bi.base] || {}) } : {};
+  if (bi && bi.base === "ducir") base.pret = st.replace(/c$/, "j");
+  else if (bi && bi.pre) {
+    const add = (s) => splitForms(s).map((f) => bi.pre + f).join(", ");
+    for (const k of ["P", "PI", "I", "S", "IMP"]) if (base[k]) base[k] = add(base[k]);
+    for (const k of ["yo", "pret", "fut", "pp"]) if (base[k]) base[k] = bi.pre + base[k];
+    if (base.imp) base.imp = bi.pre + (/^[^aeiou]*[aeiou]n$/.test(base.imp) ? base.imp.replace(/([aeiou])n$/, (_, v) => ES_ACC[v] + "n") : base.imp);
+  }
+  const X = { ...base, ...o };
+  const sc = X.sc || "", ov = (k) => (X[k] ? splitForms(X[k]) : null);
+  const ends = (t) => ES_E[t][cl] || ES_E[t].er;
+  const vowelStem = /[aeo]$/.test(st) && cl !== "ar", uir = /[^gq]u$/.test(st) && cl === "ir";
+  const beforeE = (s) => (cl === "ar" ? esBeforeE(s) : s), beforeOA = (s) => (cl === "ar" ? s : esBeforeOA(s));
+  const out = {};
+  /* Presente */
+  const chg = sc ? esStem(st, sc) : st;
+  let P = ov("P");
+  if (!P) {
+    P = ends("P").map((e, i) => {
+      let s = [0, 1, 2, 5].includes(i) ? chg : st;
+      if (uir && [0, 1, 2, 5].includes(i)) s += "y";
+      if (i === 0) s = beforeOA(s);
+      return s + e;
+    });
+    if (X.yo) P[0] = X.yo;
+  }
+  out.P = P;
+  /* Subjuntivo presente: from the yo form */
+  let S = ov("S");
+  if (!S) {
+    const yoSt = P[0].replace(/o$/, ""), yoIrr = !!X.yo || (!sc && yoSt !== st);
+    const se = cl === "ar" ? ES_E.S.ar : ES_E.S.er;
+    const nosSt = yoIrr ? yoSt : beforeOA(cl === "ir" && sc ? esStem(st, sc === "ue" ? "u" : "i") : st);
+    S = se.map((e, i) => ([3, 4].includes(i) ? nosSt : yoSt)).map((s, i) => (cl === "ar" ? beforeE(s) : s) + se[i]);
+  }
+  out.S = S;
+  /* Pretérito indefinido */
+  let PI = ov("PI");
+  if (!PI) {
+    if (X.pret) {
+      const j = /j$/.test(X.pret);
+      PI = ["e", "iste", "o", "imos", "isteis", j ? "eron" : "ieron"].map((e) => X.pret + e);
+    } else if (vowelStem || uir) {
+      PI = (uir ? ["í", "iste", "yó", "imos", "isteis", "yeron"] : ["í", "íste", "yó", "ímos", "ísteis", "yeron"]).map((e) => st + e);
+    } else {
+      const third = cl === "ir" && sc ? esStem(st, sc === "ue" ? "u" : "i") : st;
+      PI = ends("PI").map((e, i) => (i === 0 ? beforeE(st) : [2, 5].includes(i) ? third : st) + e);
+    }
+  }
+  out.PI = PI;
+  out.I = ov("I") || ends("I").map((e) => st + e);
+  const fs = X.fut || inf.replace(/ír$/, "ir");
+  out.F = ES_E.F.map((e) => fs + e);
+  out.C = ES_E.C.map((e) => fs + e);
+  const pp = X.pp || (cl === "ar" ? st + "ado" : vowelStem ? st + "ído" : st + "ido");
+  out.PP = ES_HABER.map((h) => `${h} ${pp}`);
+  if (!refl) out.IMP = ov("IMP") || [X.imp || P[2], S[2], S[3], inf.replace(/r$/, "d"), S[5]];
+  /* subjuntivo imperfecto from the 3rd person plural of the preterite: hablaron → hablara, habláramos */
+  const si = (PI[5] || "").replace(/ron$/, "");
+  if (si && si !== PI[5]) out.SI = ["ra", "ras", "ra", "ramos", "rais", "ran"].map((e, i) => (i === 3 ? si.replace(/([aeiou])([^aeiou]*)$/, (_, v, c) => ES_ACC[v] + c) : si) + e);
+  if (refl) for (const k of ["P", "PI", "I", "F", "C", "S", "SI", "PP"]) if (out[k]) out[k] = out[k].map((f, i) => `${ES_REFL[i]} ${f}`);
+  const res = {};
+  const K = { P: "Presente", PP: "Pretérito perfecto", PI: "Pretérito indefinido", I: "Pretérito imperfecto", F: "Futuro simple", C: "Condicional", S: "Subjuntivo presente", SI: "Subjuntivo imperfecto", IMP: "Imperativo" };
+  for (const [k, n] of Object.entries(K)) if (out[k]) res[n] = out[k];
+  res._pp = pp;
+  return res;
+}
+
+/* ================= Conjugation: French ================= */
+const FR_TENSES = ["Présent", "Passé composé", "Imparfait", "Futur simple", "Conditionnel présent", "Subjonctif présent", "Impératif"];
+const FR_AUX = { avoir: ["ai", "as", "a", "avons", "avez", "ont"], être: ["suis", "es", "est", "sommes", "êtes", "sont"] };
+const FR_REFL = ["me", "te", "se", "nous", "vous", "se"];
+const FR_ETRE = new Set(["aller", "venir", "devenir", "revenir", "parvenir", "intervenir", "arriver", "partir", "repartir", "entrer", "rentrer", "sortir", "monter", "descendre", "tomber", "rester", "naître", "mourir", "retourner", "passer", "décéder", "apparaître"]);
+/* P = présent (6 forms), pp, fut = future stem, S = subjonctif (6 forms), imp = impératif (tu, nous, vous), I = imparfait stem */
+const FR_IRR = {
+  être: { P: "suis, es, est, sommes, êtes, sont", pp: "été", fut: "ser", I: "ét", S: "sois, sois, soit, soyons, soyez, soient", imp: "sois, soyons, soyez" },
+  avoir: { P: "ai, as, a, avons, avez, ont", pp: "eu", fut: "aur", S: "aie, aies, ait, ayons, ayez, aient", imp: "aie, ayons, ayez" },
+  aller: { P: "vais, vas, va, allons, allez, vont", pp: "allé", fut: "ir", S: "aille, ailles, aille, allions, alliez, aillent", imp: "va, allons, allez" },
+  faire: { P: "fais, fais, fait, faisons, faites, font", pp: "fait", fut: "fer", S: "fasse, fasses, fasse, fassions, fassiez, fassent" },
+  pouvoir: { P: "peux, peux, peut, pouvons, pouvez, peuvent", pp: "pu", fut: "pourr", S: "puisse, puisses, puisse, puissions, puissiez, puissent", imp: "" },
+  vouloir: { P: "veux, veux, veut, voulons, voulez, veulent", pp: "voulu", fut: "voudr", S: "veuille, veuilles, veuille, voulions, vouliez, veuillent", imp: "veuille, veuillons, veuillez" },
+  devoir: { P: "dois, dois, doit, devons, devez, doivent", pp: "dû", fut: "devr" },
+  savoir: { P: "sais, sais, sait, savons, savez, savent", pp: "su", fut: "saur", S: "sache, saches, sache, sachions, sachiez, sachent", imp: "sache, sachons, sachez" },
+  venir: { P: "viens, viens, vient, venons, venez, viennent", pp: "venu", fut: "viendr" },
+  tenir: { P: "tiens, tiens, tient, tenons, tenez, tiennent", pp: "tenu", fut: "tiendr" },
+  prendre: { P: "prends, prends, prend, prenons, prenez, prennent", pp: "pris" },
+  mettre: { P: "mets, mets, met, mettons, mettez, mettent", pp: "mis" },
+  dire: { P: "dis, dis, dit, disons, dites, disent", pp: "dit" },
+  voir: { P: "vois, vois, voit, voyons, voyez, voient", pp: "vu", fut: "verr" },
+  croire: { P: "crois, crois, croit, croyons, croyez, croient", pp: "cru" },
+  boire: { P: "bois, bois, boit, buvons, buvez, boivent", pp: "bu" },
+  écrire: { P: "écris, écris, écrit, écrivons, écrivez, écrivent", pp: "écrit" },
+  lire: { P: "lis, lis, lit, lisons, lisez, lisent", pp: "lu" },
+  partir: { P: "pars, pars, part, partons, partez, partent", pp: "parti" },
+  sortir: { P: "sors, sors, sort, sortons, sortez, sortent", pp: "sorti" },
+  dormir: { P: "dors, dors, dort, dormons, dormez, dorment", pp: "dormi" },
+  sentir: { P: "sens, sens, sent, sentons, sentez, sentent", pp: "senti" },
+  servir: { P: "sers, sers, sert, servons, servez, servent", pp: "servi" },
+  mentir: { P: "mens, mens, ment, mentons, mentez, mentent", pp: "menti" },
+  ouvrir: { P: "ouvre, ouvres, ouvre, ouvrons, ouvrez, ouvrent", pp: "ouvert", fut: "ouvrir" },
+  offrir: { P: "offre, offres, offre, offrons, offrez, offrent", pp: "offert", fut: "offrir" },
+  couvrir: { P: "couvre, couvres, couvre, couvrons, couvrez, couvrent", pp: "couvert", fut: "couvrir" },
+  souffrir: { P: "souffre, souffres, souffre, souffrons, souffrez, souffrent", pp: "souffert", fut: "souffrir" },
+  cueillir: { P: "cueille, cueilles, cueille, cueillons, cueillez, cueillent", pp: "cueilli", fut: "cueiller" },
+  connaître: { P: "connais, connais, connaît, connaissons, connaissez, connaissent", pp: "connu" },
+  paraître: { P: "parais, parais, paraît, paraissons, paraissez, paraissent", pp: "paru" },
+  naître: { P: "nais, nais, naît, naissons, naissez, naissent", pp: "né" },
+  recevoir: { P: "reçois, reçois, reçoit, recevons, recevez, reçoivent", pp: "reçu", fut: "recevr" },
+  vivre: { P: "vis, vis, vit, vivons, vivez, vivent", pp: "vécu" },
+  suivre: { P: "suis, suis, suit, suivons, suivez, suivent", pp: "suivi" },
+  courir: { P: "cours, cours, court, courons, courez, courent", pp: "couru", fut: "courr" },
+  mourir: { P: "meurs, meurs, meurt, mourons, mourez, meurent", pp: "mort", fut: "mourr" },
+  rire: { P: "ris, ris, rit, rions, riez, rient", pp: "ri" },
+  plaire: { P: "plais, plais, plaît, plaisons, plaisez, plaisent", pp: "plu" },
+  conduire: { P: "conduis, conduis, conduit, conduisons, conduisez, conduisent", pp: "conduit" },
+  craindre: { P: "crains, crains, craint, craignons, craignez, craignent", pp: "craint" },
+  peindre: { P: "peins, peins, peint, peignons, peignez, peignent", pp: "peint" },
+  joindre: { P: "joins, joins, joint, joignons, joignez, joignent", pp: "joint" },
+  falloir: { P: ", , faut, , , ", pp: "fallu", fut: "faudr", I: "fall", S: ", , faille, , , ", imp: "" },
+  pleuvoir: { P: ", , pleut, , , ", pp: "plu", fut: "pleuvr", I: "pleuv", S: ", , pleuve, , , ", imp: "" },
+  valoir: { P: "vaux, vaux, vaut, valons, valez, valent", pp: "valu", fut: "vaudr", S: "vaille, vailles, vaille, valions, valiez, vaillent" },
+  asseoir: { P: "assieds, assieds, assied, asseyons, asseyez, asseyent", pp: "assis", fut: "assiér" },
+  envoyer: { fut: "enverr" },
+  battre: { P: "bats, bats, bat, battons, battez, battent", pp: "battu" },
+  rompre: { P: "romps, romps, rompt, rompons, rompez, rompent", pp: "rompu" },
+  vaincre: { P: "vaincs, vaincs, vainc, vainquons, vainquez, vainquent", pp: "vaincu" },
+  acquérir: { P: "acquiers, acquiers, acquiert, acquérons, acquérez, acquièrent", pp: "acquis", fut: "acquerr" },
+  fuir: { P: "fuis, fuis, fuit, fuyons, fuyez, fuient", pp: "fui" },
+  résoudre: { P: "résous, résous, résout, résolvons, résolvez, résolvent", pp: "résolu" },
+  coudre: { P: "couds, couds, coud, cousons, cousez, cousent", pp: "cousu" },
+  haïr: { P: "hais, hais, hait, haïssons, haïssez, haïssent", pp: "haï" },
+  /* endings shared by many compounds */
+  duire: { P: "duis, duis, duit, duisons, duisez, duisent", pp: "duit" },
+  struire: { P: "struis, struis, struit, struisons, struisez, struisent", pp: "struit" },
+  aindre: { P: "ains, ains, aint, aignons, aignez, aignent", pp: "aint" },
+  eindre: { P: "eins, eins, eint, eignons, eignez, eignent", pp: "eint" },
+  oindre: { P: "oins, oins, oint, oignons, oignez, oignent", pp: "oint" },
+  cevoir: { P: "çois, çois, çoit, cevons, cevez, çoivent", pp: "çu", fut: "cevr" }
+};
+const FR_BASES = ["venir", "tenir", "prendre", "mettre", "dire", "voir", "écrire", "crire", "lire", "partir", "sortir", "dormir", "sentir", "servir", "mentir", "ouvrir", "offrir", "couvrir", "connaître", "paraître", "naître", "vivre", "suivre", "courir", "rire", "plaire", "duire", "struire", "aindre", "eindre", "oindre", "cevoir", "battre", "rompre", "faire", "asseoir", "cueillir", "quérir"];
+FR_IRR.crire = { P: "cris, cris, crit, crivons, crivez, crivent", pp: "crit" };
+FR_IRR.quérir = { P: "quiers, quiers, quiert, quérons, quérez, quièrent", pp: "quis", fut: "querr" };
+FR_BASES.sort((a, b) => b.length - a.length);
+function frBase(inf) {
+  if (FR_IRR[inf]) return { base: inf, pre: "" };
+  for (const b of FR_BASES) if (inf.length > b.length && inf.endsWith(b)) return { base: b, pre: inf.slice(0, -b.length) };
+  return null;
+}
+const frVowel = (s) => /^[aeiouyhâàäéèêëîïôöûùüœæ]/i.test(s);
+/* "je" + form, with elision (j'aime); reflexive pronouns too (je m'appelle) */
+function frJoin(pron, form) {
+  if (!form) return "";
+  return /^(je|me|te|se)$/.test(pron) && frVowel(form) ? pron.slice(0, 1) + "'" + form : `${pron} ${form}`;
+}
+/* -er stems that change before a silent ending: e → è (acheter, lever), é → è (préférer; not in the future), l/t doubling (appeler, jeter), y → i (payer, nettoyer) */
+const FR_E_GRAVE = /^(r?achet|(con|dé)?gel|pel|model|harcel|cisel|démantel|martel|crochet)$/;
+function frErStem(st, flag, mute, fut) {
+  if (!mute) return st;
+  if (flag === "ll" || flag === "tt" || (!flag && /[^eé]e[lt]$/.test(st) && !FR_E_GRAVE.test(st))) return st + st.slice(-1);
+  if (/[oua]y$/.test(st)) return st.slice(0, -1) + "i";
+  if (flag === "è" || FR_E_GRAVE.test(st) || /[^eé]e([vnsm]|vr)$/.test(st)) return st.replace(/e([^aeiouéèêy]+)$/, "è$1");
+  if (!fut && /é[^aeiouéèêy]+$/.test(st)) return st.replace(/é([^aeiouéèêy]+)$/, "è$1");
+  return st;
+}
+/* o: { P, pp, fut, S, imp, I, aux, iss, e } */
+function frConj(inf0, o) {
+  o = o || {};
+  let inf = normAns(inf0).replace(/’/g, "'"), refl = false;
+  const rm = /^(se |s')(.+)$/.exec(inf);
+  if (rm) { refl = true; inf = rm[2]; }
+  const m = /^(.*?)(er|ir|re|ïr|oir)$/.exec(inf);
+  if (!m) return null;
+  const bi = frBase(inf), base = bi ? { ...(FR_IRR[bi.base] || {}) } : {};
+  if (bi && bi.pre) {
+    for (const k of ["P", "S", "imp"]) if (base[k]) base[k] = splitForms(base[k]).map((f) => (f ? bi.pre + f : f)).join(", ");
+    for (const k of ["pp", "fut", "I"]) if (base[k]) base[k] = bi.pre + base[k];
+  }
+  const X = { ...base, ...o };
+  const ov = (k) => (X[k] != null && X[k] !== "" ? splitForms(X[k]) : null);
+  const cl = /oir$/.test(inf) && !X.P ? "re" : m[2] === "er" ? "er" : m[2] === "re" ? "re" : "ir";
+  const st = inf.replace(/(er|ir|re|ïr)$/, "");
+  const out = {};
+  let P = ov("P");
+  if (!P) {
+    if (cl === "er") {
+      P = ["e", "es", "e", "ons", "ez", "ent"].map((e, i) => {
+        let s = frErStem(st, X.e, [0, 1, 2, 5].includes(i));
+        if (i === 3) s = s.replace(/g$/, "ge").replace(/c$/, "ç");
+        return s + e;
+      });
+    } else if (cl === "ir") P = ["is", "is", "it", "issons", "issez", "issent"].map((e) => st + e);
+    else P = ["s", "s", /[dt]$/.test(st) ? "" : "t", "ons", "ez", "ent"].map((e) => st + e);
+  }
+  out.P = P;
+  const iSt = X.I || (P[3] || "").replace(/ons$/, "");
+  out.I = ["ais", "ais", "ait", "ions", "iez", "aient"].map((e, i) => {
+    let s = iSt;
+    if (/ge$/.test(s) && i === 3 || /ge$/.test(s) && i === 4) s = s.slice(0, -1);
+    if (/ç$/.test(s) && (i === 3 || i === 4)) s = s.slice(0, -1) + "c";
+    return s + e;
+  });
+  const fs = X.fut || (cl === "er" ? frErStem(st, X.e, true, true) + "er" : cl === "re" ? inf.replace(/e$/, "") : inf);
+  out.F = ["ai", "as", "a", "ons", "ez", "ont"].map((e) => fs + e);
+  out.C = ["ais", "ais", "ait", "ions", "iez", "aient"].map((e) => fs + e);
+  let S = ov("S");
+  if (!S) {
+    const s3 = (P[5] || "").replace(/ent$/, ""), sn = (out.I[3] || "").replace(/ions$/, "");
+    S = ["e", "es", "e", "ions", "iez", "ent"].map((e, i) => ([3, 4].includes(i) ? sn : s3) + e);
+  }
+  out.S = S;
+  const pp = X.pp || (cl === "er" ? st + "é" : cl === "ir" ? st + "i" : st + "u");
+  const aux = refl || X.aux === "être" || FR_ETRE.has(inf) ? "être" : "avoir";
+  const agree = (i) => (aux === "être" ? (i < 3 ? `${pp}(e)` : i === 4 ? `${pp}(e)(s)` : /s$/.test(pp) ? `${pp}(es)` : `${pp}(e)s`) : pp);
+  out.PP = FR_AUX[aux].map((a, i) => `${a} ${agree(i)}`);
+  let imp = X.imp != null ? (X.imp ? splitForms(X.imp) : null) : [P[1].replace(/es$/, cl === "er" || /(vr|ffr|uvr|ueill)es$/.test(P[1]) ? "e" : "es").replace(/^vas$/, "va"), P[3], P[4]];
+  if (imp && refl) imp = imp.map((f, i) => `${f.replace(/'$/, "")}-${["toi", "nous", "vous"][i]}`);
+  if (imp) out.IMP = imp;
+  /* impersonal verbs (il faut, il pleut): only the 3rd person */
+  if (!P[0] && P[2]) for (const k of ["I", "F", "C", "S", "PP"]) out[k] = out[k].map((f, i) => (i === 2 ? f : ""));
+  if (refl) for (const k of ["P", "I", "F", "C", "S", "PP"]) out[k] = out[k].map((f, i) => (f ? frJoin(FR_REFL[i], f).replace(/^(nous|vous) /, "$1 ") : f));
+  const res = {};
+  const K = { P: "Présent", PP: "Passé composé", I: "Imparfait", F: "Futur simple", C: "Conditionnel présent", S: "Subjonctif présent", IMP: "Impératif" };
+  for (const [k, n] of Object.entries(K)) if (out[k] && out[k].some(Boolean)) res[n] = out[k];
+  res._pp = pp; res._aux = aux;
   return res;
 }
 

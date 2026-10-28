@@ -61,7 +61,7 @@ function openCard(card, preset) {
   $("cEx").value = card ? card.ex : ""; $("cExDe").value = card ? card.exDe : ""; $("cNote").value = card ? card.note : "";
   $("cMore").open = !!(card && (card.ex || card.note));
   state.cPos = card ? card.pos : "";
-  state.cAux = card && card.aux === "essere" ? "essere" : "avere";
+  state.cAux = card && card.aux === "essere" ? "essere" : "avere"; state.cAuxSet = !!card;
   state.cMl = card && card.ml ? card.ml : "";
   $("cIsc").checked = !!(card && card.isc);
   state.cTables = card && card.tables ? JSON.parse(JSON.stringify(card.tables)) : {};
@@ -114,7 +114,7 @@ function syncCardForm() {
     $("cAuxAvere").setAttribute("aria-pressed", String(state.cAux === "avere"));
     $("cAuxEssere").setAttribute("aria-pressed", String(state.cAux === "essere"));
     $("cIscWrap").hidden = !/ire$/.test(normAns($("cTg").value));
-    $("cFill").hidden = $("cFillHint").hidden = !["it", "en"].includes(code);
+    $("cFill").hidden = $("cFillHint").hidden = !canConj(code);
     renderTables(L);
   }
 }
@@ -130,8 +130,9 @@ function autoFill() {
   const code = $("cLang").value, inf = $("cTg").value.trim();
   if (!inf) { $("cErr").textContent = T("Trag zuerst den Infinitiv ein."); return; }
   let r = null;
-  if (code === "it") r = itConj(inf, { aux: state.cAux, isc: $("cIsc").checked });
-  if (code === "en") { const sf = state.cTables["Stammformen"] || []; r = enConj(inf, { past: sf[1] || undefined, pp: sf[2] || undefined }); }
+  if (code === "it") { r = itTables(inf, { ...(state.cAuxSet ? { aux: state.cAux } : {}), ...($("cIsc").checked ? { isc: 1 } : {}) }); if (r && r._aux) { state.cAux = r._aux; syncAuxBtns(); } }
+  else if (code === "en") { const sf = state.cTables["Stammformen"] || [], e = lexEntry("en", inf); r = enConj(inf, { past: sf[1] || (e && e.past) || undefined, pp: sf[2] || (e && e.pp) || undefined }); }
+  else r = verbTables(code, inf);
   if (!r) { $("cErr").textContent = code === "it" ? T("Der Infinitiv muss auf -are, -ere, -ire (oder -arsi …) enden.") : T("Konnte keine Formen bilden."); return; }
   let n = 0;
   for (const [t, forms] of Object.entries(r)) {
@@ -258,7 +259,7 @@ function addLang(code) {
     return;
   }
   if (langOf(code)) return;
-  state.settings.langs.push(defaultLang(code)); touchSettings(); closeSheets(); go("lang", code); toast(T("{0} hinzugefügt", [PRESETS[code].name]));
+  state.settings.langs.push(defaultLang(code)); touchSettings(); closeSheets(); go("lang", code); toast(T("{0} hinzugefügt", [lname(PRESETS[code])]));
 }
 function voiceOpts(code) {
   const tag = langTag(code), list = voicesFor(code).slice().sort((a, b) => voiceScore(b, tag) - voiceScore(a, tag));

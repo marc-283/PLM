@@ -53,8 +53,22 @@ document.addEventListener("click", (ev) => {
   const a = ev.target.closest("[data-action]");
   if (!a || a.tagName === "SELECT" || (a.tagName === "INPUT" && a.type !== "button") || a.disabled) return;
   const arg = a.dataset.arg, act = a.dataset.action, S = state.study, top = topView();
+  if (act.startsWith("talk") && talkAction(act, arg, a)) return;
   switch (act) {
     case "back": goBack(); break;
+    case "course-any": { const ls = langs(); if (!ls.length) break; if (ls.length === 1) { go("course", ls[0].code); break; } pickLang(T("Kurs"), (code) => go("course", code)); break; }
+    case "course": go("course", arg); break;
+    case "course-level": state.courseLevel = { ...(state.courseLevel || {}), [a.dataset.p]: arg }; render(); break;
+    case "lesson": { const code = a.dataset.p || viewLangCode(); if (top.v === "lesson") { top.p = { lang: code, id: arg }; state.showAll = false; render(); window.scrollTo(0, 0); } else go("lesson", { lang: code, id: arg }); break; }
+    case "lesson-gram": go("lgram", { lang: a.dataset.p, id: arg }); break;
+    case "lesson-learn": learnLesson(a.dataset.p, arg); break;
+    case "lesson-quiz": startLessonQuiz(a.dataset.p, arg); break;
+    case "lesson-drill": startLessonDrill(a.dataset.p, arg); break;
+    case "lesson-build": startLessonBuild(a.dataset.p, arg); break;
+    case "level-test": startLevelTest(a.dataset.p, arg); break;
+    case "course-ai": openAiLesson(a.dataset.p, arg); break;
+    case "lesson-del": { const k = "lesson:" + arg; if (state.armed !== k) { state.armed = k; render(); break; } state.armed = null; const code = a.dataset.p; state.course.x[code] = customLessons(code).filter((l) => l.id !== arg); delete state.course.p[arg]; state.course.d[arg] = nowTs(); save(); goBack(); toast(T("Lektion gelöscht")); break; }
+    case "ai-job-cancel": state.aiJob = null; $("study").hidden = true; document.body.style.overflow = ""; break;
     case "nav": go(arg, parseP(a)); break;
     case "lang": go("lang", arg); break;
     case "deck": go("deck", { lang: top.p, deck: arg }); break;
@@ -89,16 +103,20 @@ document.addEventListener("click", (ev) => {
     case "drill-any": openDrill(null); break;
     case "theory-any": { const ls = theoryLangs(); if (!ls.length) { toast(T("Für deine Sprachen gibt es noch keine Theorie")); break; } const cur = ls.find((l) => l.code === curLangCode()) || ls[0]; go("theory", cur.code); break; }
     case "newwords-any": pickLang(T("Neue Wörter"), (code) => go("newwords", code)); break;
-    case "th-say": speak(arg, a.dataset.p || viewLangCode()); break;
+    case "th-say": speak(arg, a.dataset.p || viewLangCode(), { btn: a }); break;
     case "th-lang": { if (top.v === "theory") top.p = arg; else if (top.p && typeof top.p === "object") top.p = { lang: arg }; render(); break; }
     case "th-goto": top.p = { ...top.p, id: arg }; render(); window.scrollTo(0, 0); break;
-    case "th-verb": top.p = { ...(top.p || {}), verb: arg }; render(); break;
+    case "th-verb": top.p = { ...(top.p || {}), verb: arg }; render(); window.scrollTo(0, 0); break;
+    case "conj-card": addVerbCard(viewLangCode(), arg); break;
     case "quiz-start": startQuiz(arg); break;
     case "quiz-choose": quizAnswer({ chose: Number(arg) }); break;
     case "quiz-check": quizAnswer({ typed: ($("quizIn") || {}).value }); break;
     case "quiz-skip": quizAnswer({ typed: "" }); break;
-    case "quiz-next": if (state.quiz) { state.quiz.i++; state.quiz.res = null; renderQuiz(); } break;
-    case "quiz-again": { const id = state.quiz && state.quiz.id; closeQuiz(); if (id) startQuiz(id); break; }
+    case "quiz-next": quizNext(); break;
+    case "quiz-again": { const def = state.quiz && state.quiz.def; closeQuiz(); if (def) runQuiz(def); break; }
+    case "quiz-tile": { const Q = state.quiz, q = Q && Q.qs[Q.i]; if (q && q.tiles && !Q.res) { q.picked.push(Number(arg)); renderQuiz(); if (q.picked.length === q.tiles.length) quizAnswer({}); } break; }
+    case "quiz-untile": { const Q = state.quiz, q = Q && Q.qs[Q.i]; if (q && q.tiles && !Q.res) { q.picked = q.picked.filter((x) => x !== Number(arg)); renderQuiz(); } break; }
+    case "quiz-slow": { const Q = state.quiz, q = Q && Q.qs[Q.i]; if (q && q.listen) speak(q.listen, Q.lang, { slow: true, btn: a }); break; }
     case "quiz-close": closeQuiz(); break;
     case "nw-learn": if (!startLearn({ lang: arg })) toast(T("Für heute ist nichts mehr fällig")); break;
     case "nw-preview": startPractice({ lang: arg, sel: "new", count: 30 }); break;
@@ -117,12 +135,12 @@ document.addEventListener("click", (ev) => {
     case "sel-cancel": state.sel = null; render(); break;
     case "sel-all": { const pool = state.scopeIds || []; const all = pool.length && pool.every((id) => state.sel.ids.has(id)); state.sel.ids = all ? new Set() : new Set(pool); state.sel.armed = false; render(); break; }
     case "tense-toggle": { const L = langOf(top.p); if (!L) break; L.active = L.active.includes(arg) ? L.active.filter((x) => x !== arg) : L.tenses.map((t) => t.n).filter((n) => n === arg || L.active.includes(n)); touchSettings(); render(); break; }
-    case "speak": speak(arg, viewLangCode()); break;
+    case "speak": speak(arg, viewLangCode(), { btn: a }); break;
     case "speak-table": { const c = cardById(top.p), L = c && langOf(c.lang); if (!c) break; const t = L.tenses.find((x) => x.n === arg) || {}, labels = tenseLabels(L, t); speak(c.tables[arg].map((f, i) => (t.given ? f : `${(labels[i] || "").split("/")[0]} ${f}`)).join(", "), c.lang); break; }
-    case "say": speak(arg, studyLang()); break;
-    case "say-slow": speak(arg, studyLang(), { slow: true }); break;
-    case "voice-test": speak(arg === "it" ? "Ciao! Come stai? Oggi studiamo un po' d'italiano." : arg === "en" ? "Hello! How are you? Let's practise some English today." : (cardsOf(arg)[0] || {}).tg || langName(arg), arg); break;
-    case "voice-try": { const sel = $("fs-voice"), L = langOf(arg); if (L && sel) { const old = L.voice; L.voice = sel.value; speak(arg === "it" ? "Buongiorno, piacere di conoscerti!" : arg === "en" ? "Good morning, nice to meet you!" : (cardsOf(arg)[0] || {}).tg || lname(L), arg); L.voice = old; } break; }
+    case "say": speak(arg, studyLang(), { btn: a }); break;
+    case "say-slow": speak(arg, studyLang(), { slow: true, btn: a }); break;
+    case "voice-test": speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][0] : (cardsOf(arg)[0] || {}).tg || langName(arg), arg, { btn: a }); break;
+    case "voice-try": { const sel = $("fs-voice"), L = langOf(arg); if (L && sel) { const old = L.voice; L.voice = sel.value; speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][1] : (cardsOf(arg)[0] || {}).tg || lname(L), arg, { btn: a }); L.voice = old; } break; }
     case "mic": micStart(arg); break;
     case "pack-load": { const r = loadPack(top.p, arg); render(); packToast(r); break; }
     case "pack-remove": {
@@ -225,6 +243,7 @@ document.addEventListener("change", (ev) => {
   if (id === "impTopic" && state.imp) { state.imp.topic = t.value.trim(); render(); return; }
 });
 let qTimer = 0;
+let conjTimer = 0;
 document.addEventListener("input", (ev) => {
   const t = ev.target;
   if (t.id === "q") {
@@ -233,6 +252,7 @@ document.addEventListener("input", (ev) => {
   }
   if (t.id === "impText" && state.imp) state.imp.text = t.value;
   if (t.id === "cTg" && state.cType === "verb") $("cIscWrap").hidden = !/ire$/.test(normAns(t.value));
+  if (t.id === "conjIn") { clearTimeout(conjTimer); conjTimer = setTimeout(updateConjSug, 60); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target && e.target.id === "q") e.target.blur(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeSheetsAnimated(); });
@@ -242,8 +262,8 @@ $("addBtn").addEventListener("click", () => openCard(null));
 $("ctWord").addEventListener("click", () => { readTables(); state.cType = "word"; syncCardForm(); });
 $("ctVerb").addEventListener("click", () => { readTables(); state.cType = "verb"; syncCardForm(); });
 $("ctCloze").addEventListener("click", () => { readTables(); state.cType = "cloze"; syncCardForm(); });
-$("cAuxAvere").addEventListener("click", () => { state.cAux = "avere"; syncAuxBtns(); });
-$("cAuxEssere").addEventListener("click", () => { state.cAux = "essere"; syncAuxBtns(); });
+$("cAuxAvere").addEventListener("click", () => { state.cAux = "avere"; state.cAuxSet = true; syncAuxBtns(); });
+$("cAuxEssere").addEventListener("click", () => { state.cAux = "essere"; state.cAuxSet = true; syncAuxBtns(); });
 function syncAuxBtns() { $("cAuxAvere").setAttribute("aria-pressed", String(state.cAux === "avere")); $("cAuxEssere").setAttribute("aria-pressed", String(state.cAux === "essere")); }
 $("cFill").addEventListener("click", autoFill);
 $("cNewTopicAdd").addEventListener("click", () => {

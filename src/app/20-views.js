@@ -134,6 +134,7 @@ function viewHub() {
     <div class="hubrow"><button class="searchbar hubsearch" data-action="nav" data-arg="search">${ICON_SEARCH}<span>${T("Karten suchen")}</span></button><button class="sqbtn" data-action="add" aria-label="${T("Neue Karte")}">+</button></div>
     ${n && !syncOn() && (lastBackupDays() == null ? n >= 30 && Date.now() - Math.min(...state.cards.map((c) => c.created)) > 7 * 864e5 : lastBackupDays() > 14) ? `<button class="notice" data-action="export-json">${T("Letztes Backup: {0} · Jetzt sichern ›", [esc(lastBackupText())])}</button>` : ""}
     <nav class="tiles" aria-label="${T("Sprachen")}">${tiles}<button class="tile dash" data-action="add-lang"><span class="tile-l"><span class="tile-t" style="font-size:20px;color:var(--muted)">${T("+ Sprache")}</span><span class="tile-s">${T("Spanisch, Französisch, Portugiesisch …")}</span></span><span></span><span class="chev" aria-hidden="true">›</span></button></nav>
+    <button class="coursetile" data-action="course-any"><span class="tile-l"><span class="tile-t">${T("Kurs")}</span><span class="tile-s">${esc(hubCourseLine())}</span></span><span class="lvchips" aria-hidden="true">${LEVELS.map((x) => `<i>${x}</i>`).join("")}</span><span class="chev" aria-hidden="true">›</span></button>
     <div class="minitiles">
       <button class="mtile" data-action="build-any"><span class="tile-t">${T("Sätze bauen")}</span>${sentences ? `<span class="tile-v">${num(sentences)}</span><span class="tile-s">${T("Sätze aus deinen Wörtern")}</span>` : `<span class="tile-s">${T("Sätze bilden und korrigieren lassen")}</span>`}</button>
       <button class="mtile" data-action="drill-any"><span class="tile-t">${T("Konjugation")}</span>${verbs ? `<span class="tile-v">${num(verbs)}</span><span class="tile-s">${T("Verben – Formen üben")}</span>` : `<span class="tile-s">${T("Verbformen trainieren")}</span>`}</button>
@@ -155,6 +156,11 @@ function viewHub() {
     </section>`;
 }
 
+function hubCourseLine() {
+  const ls = langs().filter((L) => hasCourse(L.code));
+  for (const L of ls) { if (!COURSE[L.code]) continue; const nx = nextLesson(L.code); if (nx && lessonStarted(nx)) return T("{0}: weiter mit {1} · {2}", [lname(L), nx.level, L10(nx.t)]); }
+  return T("Schritt für Schritt von A1 bis B2: Wörter, Grammatik, eigene Sätze, Gespräche");
+}
 function deckRows(L) {
   return decksOf(L.code).map((d) => {
     const dd = dueInfo({ lang: L.code, deck: d.name }), m = countByState({ lang: L.code, deck: d.name });
@@ -173,7 +179,7 @@ function viewLang(v) {
   if (!cs.length) return `${head}
     <section class="empty">${T("<strong>Noch keine Karten</strong>")}<span>${packs.length ? T("Lade ein Starter-Paket, fotografiere eine Vokabelliste, lade ein PDF aus deinem Kurs hoch oder leg eigene Karten an.") : T("Fotografiere eine Vokabelliste, lade ein PDF hoch, importiere eine Liste oder leg eigene Karten an.")}</span>
       <div class="btnrow">${packs.length ? `<button class="btn primary" data-action="nav" data-arg="starter"${lp}>${T("Starter-Pakete")}</button>` : ""}<button class="btn" data-action="nav" data-arg="import"${lp}>${T("Foto / PDF / Liste")}</button><button class="btn" data-action="add">${T("+ Karte")}</button></div></section>
-    <section class="sec">${navRow("lang-settings", L.code, T("Spracheinstellungen"), T("Neue Karten pro Tag, Richtung, Zeiten, Stimme"))}</section>`;
+    <section class="sec">${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}${navRow("lang-settings", L.code, T("Spracheinstellungen"), T("Neue Karten pro Tag, Richtung, Zeiten, Stimme"))}</section>`;
   const verbs = cs.filter((c) => c.type === "verb").length, sb = sentenceBank(L.code).length;
   return `${head}
     <section class="hero">
@@ -195,7 +201,8 @@ function viewLang(v) {
     </section>
     <section class="sec" aria-labelledby="hPrac">
       <div class="sechead"><h2 class="sectitle" id="hPrac">${T("Üben")}</h2></div>
-      ${THEORY[L.code] && THEORY[L.code].length ? navRow("nav", "theory", T("Theorie & Grammatik"), L.code === "it" ? T("Artikel, Zeitformen, Konjugation – mit Übungen") : T("Zeitformen, if-Sätze, Artikel – mit Übungen"), "", badgeTxt("§", L.color), lp) : ""}
+      ${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}
+      ${theoryLangs().some((x) => x.code === L.code) ? navRow("nav", "theory", T("Theorie & Grammatik"), L.code === "it" ? T("Artikel, Zeitformen, Konjugation – mit Übungen") : L.code === "en" ? T("Zeitformen, if-Sätze, Artikel – mit Übungen") : T("Grammatik aus dem Kurs und Verben in allen Zeitformen"), "", badgeTxt("§", L.color), lp) : ""}
       ${cs.length ? navRow("nav", "newwords", T("Neue Wörter ansehen"), T("Wörter, die noch nicht gelernt sind – lesen und anhören"), (() => { const k = newCardsOf(L.code).length; return k ? `<small>${num(k)}</small>` : ""; })(), badgeTxt("Aa", L.color), lp) : ""}
       ${navRow("build", L.code, T("Sätze bauen"), sb ? T("{0} – aus Bausteinen oder frei tippen, mit Korrektur", [plural(sb, T("Satz"), T("Sätze"))]) : T("Sätze entstehen aus Beispielsätzen und Satzkarten"), "", badgeTxt("✎", L.color))}
       ${navRow("nav", "verbs", T("Konjugation"), verbs ? T("{0} · aktiv: {1}", [plural(verbs, T("Verb"), T("Verben")), L.active.join(", ") || T("keine Zeit")]) : T("Noch keine Verben – leg eins an"), "", badgeTxt("V", L.color), lp)}

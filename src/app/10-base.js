@@ -1,7 +1,7 @@
 /* ================= Basics ================= */
 const KEYS = {
   cards: "plm.cards.v1", settings: "plm.settings.v1", stats: "plm.stats.v1", backup: "plm.lastBackup", open: "plm.open",
-  tomb: "plm.tomb.v1", statsOther: "plm.statsOther.v1", tests: "plm.tests.v1", dev: "plm.dev", ai: "plm.ai.v1", sync: "plm.sync.v1"
+  tomb: "plm.tomb.v1", statsOther: "plm.statsOther.v1", tests: "plm.tests.v1", dev: "plm.dev", ai: "plm.ai.v1", sync: "plm.sync.v1", course: "plm.course.v1"
 };
 const POS = { n: T("Nomen"), v: T("Verb"), adj: T("Adjektiv"), adv: T("Adverb"), ph: T("Ausdruck"), s: T("Satz"), x: T("Sonstiges") };
 const MODES = [["flip", T("Umdrehen")], ["type", T("Tippen")], ["choice", T("Auswahl")]];
@@ -32,7 +32,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch
 
 /* ================= State ================= */
 const state = {
-  cards: [], settings: null, stats: {}, statsOther: {}, tomb: {}, tests: {},
+  cards: [], settings: null, stats: {}, statsOther: {}, tomb: {}, tests: {}, course: { p: {}, lv: {}, x: {} }, talk: null,
   stack: [{ v: "hub" }], enter: false, sel: null, armed: null,
   q: { text: "", lang: "all" }, chart: "hist", statRange: 30, listFilter: "all",
   editing: null, cType: "word", study: null, imp: null, imp2: null
@@ -55,6 +55,7 @@ function saveNow() {
     localStorage.setItem(KEYS.statsOther, JSON.stringify(state.statsOther));
     localStorage.setItem(KEYS.tomb, JSON.stringify(state.tomb));
     localStorage.setItem(KEYS.tests, JSON.stringify(state.tests));
+    localStorage.setItem(KEYS.course, JSON.stringify(state.course, (k, v) => (k.startsWith("_") ? undefined : v)));
     saveWarned = false;
   } catch {
     if (!saveWarned) { saveWarned = true; toast(T("Speichern fehlgeschlagen – Speicher voll? Sichere ein Backup.")); }
@@ -144,6 +145,7 @@ function loadAll() {
   state.cards = (Array.isArray(raw) ? raw : []).map(normCard).filter(Boolean);
   const obj = (k) => { const v = readJSON(k, {}); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
   state.stats = obj(KEYS.stats); state.statsOther = obj(KEYS.statsOther); state.tomb = obj(KEYS.tomb); state.tests = obj(KEYS.tests);
+  state.course = normCourse(obj(KEYS.course));
   reindex();
 }
 
@@ -331,6 +333,15 @@ if (window.speechSynthesis) {
   try { speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch { speechSynthesis.onvoiceschanged = loadVoices; }
 }
 const canSpeak = () => !!window.speechSynthesis;
+const VOICE_SAMPLE = {
+  it: ["Ciao! Come stai? Oggi studiamo un po' d'italiano.", "Buongiorno, piacere di conoscerti!"],
+  en: ["Hello! How are you? Let's practise some English today.", "Good morning, nice to meet you!"],
+  es: ["¡Hola! ¿Qué tal? Hoy practicamos un poco de español.", "Buenos días, ¡encantado de conocerte!"],
+  fr: ["Bonjour ! Comment ça va ? Aujourd'hui, on pratique un peu le français.", "Bonjour, enchanté de faire ta connaissance !"],
+  pt: ["Olá! Tudo bem? Hoje vamos praticar um pouco de português.", "Bom dia, muito prazer!"],
+  nl: ["Hallo! Hoe gaat het? Vandaag oefenen we een beetje Nederlands.", "Goedemorgen, leuk je te ontmoeten!"],
+  sv: ["Hej! Hur mår du? I dag övar vi lite svenska.", "God morgon, trevligt att träffas!"]
+};
 const langTag = (code) => { const L = langOf(code); return (L && L.tts) || code; };
 function voicesFor(code) {
   if (!voices.length) loadVoices();
@@ -353,38 +364,63 @@ function pickVoice(code) {
   return list.slice().sort((a, b) => voiceScore(b, tag) - voiceScore(a, tag))[0] || null;
 }
 /* curUtter keeps the utterance referenced – Safari otherwise drops it and never finishes speaking */
-let speakTimer = 0, curUtter = null; // eslint-disable-line no-unused-vars
+let speakTimer = 0, speakWatch = 0, curUtter = null, speakBtn = null; // eslint-disable-line no-unused-vars
 const noVoiceWarned = new Set();
+const speakText = (text) => String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>]+>/g, "").replace(/\s+[–—→⟶]\s+/g, ", ").replace(/\s\/\s/g, ", ").replace(/[…_]+/g, " ").replace(/\s+/g, " ").trim();
+/* Play sound even with the ring/silent switch off (iOS 17+), where the browser supports it */
+function audioPlayback() { try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch { /* not supported */ } }
+function speakMark(btn, on) { if (btn && btn.classList) btn.classList.toggle("speaking", on); }
+/* o: { slow, quiet, onend, btn } – btn gets a "speaking" ring while the voice talks */
 function speak(text, code, o) {
   o = o || {};
   const ss = window.speechSynthesis;
   if (!ss || !text) return false;
-  const clean = String(text).replace(/\{\{|\}\}/g, "").replace(/\s\/\s/g, ", ").replace(/[…_]+/g, " ").replace(/\s+/g, " ").trim();
+  const clean = speakText(text);
   if (!clean) return false;
-  const u = new SpeechSynthesisUtterance(clean);
-  u.lang = langTag(code); u.rate = o.slow ? 0.62 : state.settings.rate; u.pitch = 1; u.volume = 1;
-  const v = pickVoice(code);
-  if (v) u.voice = v;
-  else if (voices.length && !noVoiceWarned.has(code) && !o.quiet) { noVoiceWarned.add(code); toast(T("Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache", [langName(code)])); }
-  if (o.onend) { u.onend = o.onend; u.onerror = o.onend; }
-  curUtter = u;
+  audioPlayback();
+  const mk = () => {
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = langTag(code); u.rate = o.slow ? 0.62 : state.settings.rate; u.pitch = 1; u.volume = 1;
+    const v = pickVoice(code);
+    if (v) u.voice = v;
+    return u;
+  };
+  if (!pickVoice(code) && voices.length && !noVoiceWarned.has(code) && !o.quiet) { noVoiceWarned.add(code); toast(T("Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache", [langName(code)])); }
+  let started = false, ended = false, watch = 0;
+  const done = () => { if (ended) return; ended = true; clearTimeout(watch); speakMark(o.btn, false); if (speakBtn === o.btn) speakBtn = null; if (o.onend) o.onend(); };
+  const arm = (x) => { x.onstart = () => { started = true; }; x.onend = done; x.onerror = done; curUtter = x; };
+  const u = mk(); arm(u);
+  if (speakBtn && speakBtn !== o.btn) speakMark(speakBtn, false);
+  speakBtn = o.btn || null; speakMark(o.btn, true);
   try {
-    clearTimeout(speakTimer);
-    if (ss.speaking || ss.pending) { ss.cancel(); speakTimer = setTimeout(() => { try { ss.speak(u); } catch { /* ignore */ } }, 80); }
-    else { if (ss.paused) ss.resume(); ss.speak(u); }
-  } catch { return false; }
+    clearTimeout(speakTimer); clearTimeout(speakWatch);
+    /* iOS: speak() has to run right inside the tap – a delayed call is silently dropped */
+    if (ss.speaking || ss.pending) ss.cancel();
+    if (ss.paused) ss.resume();
+    ss.speak(u);
+    /* Some engines drop an utterance queued right after cancel() or hang after the app was in the background: try once more */
+    watch = speakWatch = setTimeout(() => {
+      if (started || ended || curUtter !== u) return;
+      if (ss.speaking && !ss.paused) return;
+      try { ss.cancel(); if (ss.paused) ss.resume(); const u2 = mk(); arm(u2); ss.speak(u2); } catch { /* ignore */ }
+      watch = speakWatch = setTimeout(() => { if (!started && !ended) { done(); if (!o.quiet) toast(T("Keine Sprachausgabe – Lautstärke und Stumm-Schalter prüfen")); } }, 2500);
+    }, 650);
+  } catch { done(); return false; }
   return true;
 }
-function stopSpeak() { try { clearTimeout(speakTimer); if (window.speechSynthesis) speechSynthesis.cancel(); } catch { /* ignore */ } }
+function stopSpeak() { try { clearTimeout(speakTimer); clearTimeout(speakWatch); speakMark(speakBtn, false); speakBtn = null; if (window.speechSynthesis) speechSynthesis.cancel(); } catch { /* ignore */ } }
 /* iOS only plays speech after a user gesture – unlock it on the first touch */
 let ttsUnlocked = false;
 function unlockTTS() {
   if (ttsUnlocked || !window.speechSynthesis) return;
   ttsUnlocked = true;
-  try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } catch { /* ignore */ }
+  audioPlayback();
+  try { const u = new SpeechSynthesisUtterance(""); u.volume = 0; speechSynthesis.speak(u); } catch { /* ignore */ }
 }
 document.addEventListener("touchend", unlockTTS, { capture: true, once: true });
 document.addEventListener("click", unlockTTS, { capture: true, once: true });
+/* iOS leaves the speech queue stuck after the app was in the background */
+document.addEventListener("visibilitychange", () => { if (!document.hidden && window.speechSynthesis) { try { speechSynthesis.cancel(); } catch { /* ignore */ } } });
 
 /* ================= Speech recognition (pronunciation check) ================= */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
@@ -454,6 +490,12 @@ function packCards(code, pack) {
       const r = itConj(v.v, v) || {};
       const tables = {}; for (const [k, f] of Object.entries(r)) if (!k.startsWith("_")) tables[k] = f;
       out.push(mk({ type: "verb", tg: v.v, de: v.de, pos: "v", topic: part.topic || "Verben", note: v.note || "", ex: v.ex || "", exDe: v.exDe || "", tables, aux: r._aux, isc: !!v.isc }));
+    }
+    /* the most frequent verbs of the dictionary, with tables from the conjugation engine (es, fr) */
+    if (part.kind === "lexverbs") for (const e of lexOf(code).slice(0, part.n || 60)) {
+      let r = null; try { r = verbTables(code, e.inf); } catch { r = null; }
+      const tables = {}; for (const [k, f] of Object.entries(r || {})) if (!k.startsWith("_") && Array.isArray(f)) tables[k] = f;
+      out.push(mk({ type: "verb", tg: e.inf, de: e.de, pos: "v", topic: part.topic || "Verben", tables }));
     }
     if (part.kind === "enverbs") for (const line of part.data.split("\n")) {
       const [inf, past, pp, de, ex, exDe] = line.split("|").map((x) => (x || "").trim());

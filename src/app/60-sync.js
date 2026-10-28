@@ -1,7 +1,7 @@
 /* ================= Merge (backup import + sync) ================= */
 const GIST_FILE = "plm-sync.json";
 function snapshotData(full) {
-  return { app: "plm", version: 2, exportedAt: new Date().toISOString(), dev: devId, settings: state.settings, cards: state.cards, tomb: state.tomb, tests: state.tests, devStats: { ...state.statsOther, [devId]: state.stats }, ...(full ? { stats: state.stats } : {}) };
+  return { app: "plm", version: 2, exportedAt: new Date().toISOString(), dev: devId, settings: state.settings, cards: state.cards, tomb: state.tomb, tests: state.tests, course: JSON.parse(JSON.stringify(state.course, (k, v) => (k.startsWith("_") ? undefined : v))), devStats: { ...state.statsOther, [devId]: state.stats }, ...(full ? { stats: state.stats } : {}) };
 }
 const srsT = (s) => (s ? (Number.isFinite(s.t) ? s.t : (s.ld || 0) * 864e5) : -1);
 function mergeCard(a, b) {
@@ -78,6 +78,7 @@ function mergeData(d, o) {
       else state.statsOther[dev] = st;
     }
   } else if (d.stats) mergeStatsInto(state.stats, d.stats);
+  if (d.course) mergeCourse(d.course);
   dedupeCards();
   reindex();
 }
