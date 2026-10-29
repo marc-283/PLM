@@ -2,7 +2,7 @@
 """Builds the deployable app (index.html, sw.js, manifest.webmanifest) from src/."""
 import hashlib, json, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 def read(p): return open(os.path.join(ROOT, p), encoding="utf-8").read()
 def js_dir(d): return "\n".join(read(os.path.join(d, f)) for f in sorted(os.listdir(os.path.join(ROOT, d))) if f.endswith(".js"))
 html = read("src/shell.html")

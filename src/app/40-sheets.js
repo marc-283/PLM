@@ -21,12 +21,14 @@ function dismissSheet(sh, fromY) {
 function closeSheetsAnimated() { const sh = sheetOpen(); if (sh) dismissSheet(sh, 0); else closeSheets(); }
 
 let toastTimer;
+/* action: { label, fn } for a button, or a number = how long the message stays (ms) */
 function toast(msg, action) {
-  const t = $("toast");
+  const t = $("toast"), ms = typeof action === "number" ? action : action ? 7000 : 3600;
+  if (typeof action === "number") action = null;
   t.textContent = "";
   const span = document.createElement("span"); span.textContent = msg; t.appendChild(span);
   if (action) { const b = document.createElement("button"); b.className = "toastbtn"; b.type = "button"; b.textContent = action.label; b.addEventListener("click", () => { t.hidden = true; action.fn(); }); t.appendChild(b); }
-  t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, action ? 7000 : 3600);
+  t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms);
 }
 
 /* ---------- Card editor ---------- */

@@ -370,6 +370,39 @@ const speakText = (text) => String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>
 /* Play sound even with the ring/silent switch off (iOS 17+), where the browser supports it */
 function audioPlayback() { try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch { /* not supported */ } }
 function speakMark(btn, on) { if (btn && btn.classList) btn.classList.toggle("speaking", on); }
+/* Slow mode: a clearly lower rate, relative to the normal speaking rate */
+const slowRate = () => Math.max(0.35, Math.min(0.55, (state.settings.rate || 0.9) * 0.6));
+/* Slow mode also speaks a sentence in small pieces with a short pause in between – iOS voices often ignore the rate
+   (an Apple bug), the pauses make it slower anyway. Short words (articles, prepositions) stay with the next word:
+   "a coffee", "il cane", "l'ami" – so nothing is read out as a single letter. */
+function slowChunks(text) {
+  const out = [];
+  const t = text.replace(/\s+([?!:;»%])/g, "$1").replace(/([«¿¡])\s+/g, "$1"); // French "ici ?" → "ici?"
+  for (const phrase of t.replace(/([,;:.!?])\s+/g, "$1\n").split("\n")) {
+    const words = phrase.split(/\s+/).filter(Boolean);
+    let cur = [];
+    words.forEach((w, i) => {
+      cur.push(w);
+      const core = w.replace(/[^\p{L}\p{N}'’-]/gu, "");
+      const glue = (core.length <= 3 || /^s['’]il$/i.test(core)) && i < words.length - 1 && !/[,;:.!?]$/.test(w) && cur.length < 3;
+      if (!glue) { out.push(cur.join(" ")); cur = []; }
+    });
+    if (cur.length) out.push(cur.join(" "));
+  }
+  return out.length ? out : [text];
+}
+/* Does this voice really slow down? Compare ms per character of normal and slow utterances (per voice) */
+const rateStats = {};
+function noteRate(voice, slow, ms, chars) {
+  if (!voice || chars < 4 || !(ms > 150)) return;
+  const s = rateStats[voice] || (rateStats[voice] = { n: [], s: [] });
+  (slow ? s.s : s.n).push(ms / chars);
+  if (s.n.length < 2 || s.s.length < 2) return;
+  const med = (a) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
+  const key = `plm.rateIgnored.${voice}`;
+  if (med(s.s) < med(s.n) * 1.15) { if (!lsGet(key)) { lsSet(key, "1"); toast(T("Diese Stimme ignoriert das Sprechtempo (iOS). Sätze kommen langsam Wort für Wort – für einzelne Wörter eine andere Stimme probieren: Spracheinstellungen › Stimme."), 7000); } }
+  else if (lsGet(key)) lsSet(key, "");
+}
 /* o: { slow, quiet, onend, btn } – btn gets a "speaking" ring while the voice talks */
 function speak(text, code, o) {
   o = o || {};
@@ -378,31 +411,44 @@ function speak(text, code, o) {
   const clean = speakText(text);
   if (!clean) return false;
   audioPlayback();
-  const mk = () => {
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = langTag(code); u.rate = o.slow ? 0.62 : state.settings.rate; u.pitch = 1; u.volume = 1;
+  const parts = o.slow ? slowChunks(clean) : [clean];
+  const mk = (txt) => {
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = langTag(code); u.rate = o.slow ? slowRate() : state.settings.rate; u.pitch = 1; u.volume = 1;
     const v = pickVoice(code);
     if (v) u.voice = v;
     return u;
   };
   if (!pickVoice(code) && voices.length && !noVoiceWarned.has(code) && !o.quiet) { noVoiceWarned.add(code); toast(T("Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache", [langName(code)])); }
-  let started = false, ended = false, watch = 0;
+  let started = false, ended = false, watch = 0, list = [];
   const done = () => { if (ended) return; ended = true; clearTimeout(watch); speakMark(o.btn, false); if (speakBtn === o.btn) speakBtn = null; if (o.onend) o.onend(); };
-  const arm = (x) => { x.onstart = () => { started = true; }; x.onend = done; x.onerror = done; curUtter = x; };
-  const u = mk(); arm(u);
+  const build = () => {
+    list = parts.map(mk);
+    const vName = (pickVoice(code) || {}).name || "";
+    list.forEach((x, i) => {
+      let t0 = 0;
+      x.onstart = () => { started = true; t0 = performance.now(); };
+      x.onend = () => { if (t0) noteRate(vName, !!o.slow, performance.now() - t0 - 100, x.text.length); if (i === list.length - 1) done(); };
+      x.onerror = done;
+    });
+    curUtter = list; // keep every piece referenced – Safari otherwise drops them
+    return list;
+  };
+  build();
   if (speakBtn && speakBtn !== o.btn) speakMark(speakBtn, false);
   speakBtn = o.btn || null; speakMark(o.btn, true);
   try {
     clearTimeout(speakTimer); clearTimeout(speakWatch);
-    /* iOS: speak() has to run right inside the tap – a delayed call is silently dropped */
+    /* iOS: speak() has to run right inside the tap – a delayed call is silently dropped; the pieces are queued at once */
     if (ss.speaking || ss.pending) ss.cancel();
     if (ss.paused) ss.resume();
-    ss.speak(u);
+    const first = list;
+    for (const x of list) ss.speak(x);
     /* Some engines drop an utterance queued right after cancel() or hang after the app was in the background: try once more */
     watch = speakWatch = setTimeout(() => {
-      if (started || ended || curUtter !== u) return;
+      if (started || ended || curUtter !== first) return;
       if (ss.speaking && !ss.paused) return;
-      try { ss.cancel(); if (ss.paused) ss.resume(); const u2 = mk(); arm(u2); ss.speak(u2); } catch { /* ignore */ }
+      try { ss.cancel(); if (ss.paused) ss.resume(); for (const x of build()) ss.speak(x); } catch { /* ignore */ }
       watch = speakWatch = setTimeout(() => { if (!started && !ended) { done(); if (!o.quiet) toast(T("Keine Sprachausgabe – Lautstärke und Stumm-Schalter prüfen")); } }, 2500);
     }, 650);
   } catch { done(); return false; }

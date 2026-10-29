@@ -28,4 +28,4 @@ addEventListener("hashchange", () => {
 let lastDay = today();
 document.addEventListener("visibilitychange", () => { if (!document.hidden && today() !== lastDay) { lastDay = today(); if (!state.study) render(); } });
 /* test hook (only when plm.debug is set) */
-try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, lessonQuizQs, courseLevels }; } catch { /* ignore */ }
+try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, lessonQuizQs, courseLevels, slowChunks, speak }; } catch { /* ignore */ }
