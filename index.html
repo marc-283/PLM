@@ -534,15 +534,52 @@ details.more[open] summary { margin-bottom: 12px; }
 .talk-done { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .th-listened { font-weight: 600; color: var(--ink); }
 
+/* 🔊 next to each card in lists and in the card editor */
+.crow { position: relative; }
+.crow > .row { padding-right: 54px; }
+.csay { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--raised); color: var(--accent); display: grid; place-items: center; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.csay svg { width: 20px; height: 20px; pointer-events: none; }
+.csay:active { transform: translateY(-50%) scale(0.92); background: rgba(255, 232, 58, 0.18); }
+.inrow { display: flex; gap: 8px; align-items: center; }
+.inrow input { flex: 1; min-width: 0; }
+.inrow .th-say { width: 44px; height: 44px; }
+
+/* Phrasebook */
+.pbtile { margin-top: 10px; border-color: var(--line); background: linear-gradient(135deg, rgba(63, 169, 255, 0.14), rgba(63, 169, 255, 0.03) 60%), var(--surface); }
+.pbtile .tile-t { color: #3FA9FF; }
+.pbflags { font-size: 20px; letter-spacing: 2px; white-space: nowrap; }
+.pblist-langs { margin-top: 12px; }
+.pbletter { font-family: var(--f-display); font-weight: 800; font-size: 13px; letter-spacing: 0.08em; color: var(--accent); padding: 14px 0 2px; border-bottom: 1px solid var(--line); }
+.badge.pbflag { font-size: 24px; background: var(--raised); }
+.pbhead { display: flex; align-items: center; gap: 14px; }
+.pbbig { font-size: 46px; line-height: 1; }
+.pbhead .vtitle { margin: 0; }
+.pbhead .meta { margin: 6px 0 0; }
+.pbcats { margin-top: 14px; }
+.pbcats button { font-size: 13.5px; padding-left: 4px; padding-right: 4px; }
+.pbdesc { margin: 10px 0 4px; }
+.pbname { margin: 10px 0 4px; }
+.pblist { display: flex; flex-direction: column; }
+.pbi { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.pbi-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pbi-t { font-size: 19px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.pbi-p { font-size: 14px; color: var(--accent); font-style: italic; overflow-wrap: anywhere; }
+.pbi-m { font-size: 14.5px; color: var(--muted); }
+.pbi-n { font-size: 12.5px; color: var(--faint); }
+.pblvl { font-size: 12px; font-weight: 600; color: var(--ink); background: var(--raised); border-radius: 999px; padding: 1px 7px; margin-right: 4px; white-space: nowrap; }
+.pbi-b { display: flex; gap: 6px; align-items: center; }
+.pbi-b .th-say { width: 40px; height: 40px; font-size: 20px; font-weight: 700; }
+.pbfoot { margin-top: 16px; }
+
 </style>
 <script>
-window.PLM_VERSION = "1.3.2";
+window.PLM_VERSION = "1.4.0";
 /* App language: German or English (Settings › App language). Texts are written in German and looked up in UI_EN. */
 let UI = "de";
 try { const s = JSON.parse(localStorage.getItem("plm.settings.v1") || "null"); UI = (s && s.ui) || localStorage.getItem("plm.ui") || (/^de\b/i.test(navigator.language || "de") ? "de" : "en"); } catch { UI = "de"; }
 if (UI !== "en") UI = "de";
 document.documentElement.lang = UI;
-const UI_EN = {"(Beispielsätze)": "(example sentences)", "+ 10 neue Karten": "+ 10 new cards", "+ Karte": "+ Card", "+ Neues Projekt": "+ New project", "+ Neues Projekt …": "+ New project …", "+ Neues Thema …": "+ New topic …", "+ Sprache": "+ Language", "+ Sprache hinzufügen": "+ Add language", "+ Verb": "+ Verb", "-isc- Verb": "-isc- verb", "0 ausgewählt": "0 selected", "1 Jahr": "1 year", "10 Formen": "10 forms", "10 Fragen": "10 questions", "10 Karten": "10 cards", "10 Sätze": "10 sentences", "1–4: Antwort wählen": "1–4: choose answer", "1–4: bewerten · Enter: Vorschlag": "1–4: rate · Enter: suggestion", "20 Formen": "20 forms", "20 Fragen": "20 questions", "20 Karten": "20 cards", "20 Sätze": "20 sentences", "28 Wörter, die Deutsche gern verwechseln – mit Beispielsatz": "28 words Germans often mix up – with example sentences", "30 Ausdrücke für Meetings, E-Mails und Gespräche – mit Beispielsatz": "30 expressions for meetings, emails and conversations – with example sentences", "30 Fragen": "30 questions", "30 Karten": "30 cards", "30 Tage": "30 days", "40 Formen": "40 forms", "45 Verben mit Konjugation und Beispielsatz – Presente, Passato prossimo, Imperfetto, Futuro und mehr": "45 verbs with conjugation and example sentence – Presente, Passato prossimo, Imperfetto, Futuro and more", "5 Sätze": "5 sentences", "50 Fragen": "50 questions", "50 Karten": "50 cards", "80 % – weniger Wiederholungen": "80 % – fewer reviews", "80 Formen": "80 forms", "81 Verben mit Stammformen (go – went – gone) und Beispielsatz": "81 verbs with principal parts (go – went – gone) and example sentence", "90 % – empfohlen": "90 % – recommended", "90 Tage": "90 days", "95 % – mehr Wiederholungen": "95 % – more reviews", "<10 Min": "<10 min", "<b>Umdrehen</b>: Karte antippen, selbst einschätzen. <b>Tippen</b>: Antwort schreiben, PLM prüft – auch Akzente, Artikel und Tippfehler. <b>Auswahl</b>: eine von vier Antworten.": "<b>Flip</b>: tap the card and rate yourself. <b>Type</b>: write the answer, PLM checks it – accents, articles and typos included. <b>Choice</b>: pick one of four answers.", "<b>{0} ohne Übersetzung</b> – {1}.": "<b>{0} without translation</b> – {1}.", "<strong>Noch keine Karten</strong>": "<strong>No cards yet</strong>", "Abbrechen": "Cancel", "Abfragerichtung": "Direction", "Abgefragte Zeiten": "Tenses asked", "Adjektiv": "Adjective", "Adverb": "Adverb", "Alle": "All", "Alle Formen waren schon ausgefüllt": "All forms were already filled in", "Alle Karten": "All cards", "Alle Karten waren schon da": "All cards were already there", "Alle Karten ›": "All cards ›", "Alle Projekte": "All projects", "Alle Sprachen": "All languages", "Alle Wörter sind schon im Lernen": "All words are already being learned", "Alle Wörter sind schon im Lernen. Lade ein Starter-Paket oder importiere neue Wörter.": "All words are already being learned. Load a starter pack or import new words.", "Alle auswählen": "Select all", "Alle {0} anzeigen": "Show all {0}", "Alles erledigt": "All done", "Alles gelöscht": "Everything deleted", "Alles liegt auf diesem Gerät in PLM und läuft auch offline{0}. Wenn du PLM vom Home-Bildschirm löschst, sind die lokalen Daten weg – ein Backup in iCloud Drive schadet nie.": "Everything is stored in PLM on this device and works offline{0}. If you delete PLM from the home screen, the local data is gone – a backup in iCloud Drive never hurts.", "Alles löschen": "Delete everything", "Alles richtig!": "All correct!", "Alles schon vollständig": "Everything is already complete", "Alltag": "Everyday life", "Alltagssätze": "Everyday sentences", "Als Karten durchgehen": "Go through as cards", "Am häufigsten vergessen": "Most often forgotten", "Andere Sprache": "Other language", "Anhören": "Listen", "Antwort": "Answer", "Antwortmodus": "Answer mode", "Anzahl": "Number", "Anzeigen": "Show", "Arabisch": "Arabic", "Art": "Type", "Art der Karte": "Card type", "Artikel": "Articles", "Artikel, Zeitformen, Konjugation – mit Übungen": "Articles, tenses, conjugation – with exercises", "Arzt & Apotheke": "Doctor & pharmacy", "Auf": "In", "Auf <b>platform.claude.com</b> anmelden, unter <b>Billing</b> etwas Guthaben aufladen.": "Sign in at <b>platform.claude.com</b> and add some credit under <b>Billing</b>.", "Auf Anhieb": "First try", "Auf Deutsch": "In German", "Auf dem Gerät": "On the device", "Auf dem Gerät erkennt PLM Listen und zweispaltige Tabellen. Für Buchseiten mit Übungen, deutsche Übersetzungen und automatische Themen:": "On the device PLM recognises lists and two-column tables. For book pages with exercises, German translations and automatic topics:", "Auf dem anderen Gerät denselben Token eintragen – PLM findet die Daten automatisch. Karten, Fortschritt, Statistik und Einstellungen werden zusammengeführt.": "Enter the same token on your other device – PLM finds the data automatically. Cards, progress, statistics and settings are merged.", "Auf github.com: <b>Settings › Developer settings › Personal access tokens › Tokens (classic) › Generate new token (classic)</b>": "On github.com: <b>Settings › Developer settings › Personal access tokens › Tokens (classic) › Generate new token (classic)</b>", "Auf {0}": "In {0}", "Aus deinen Kursunterlagen: Lektion 1 und 2 – Begrüßung, Kursraum, Länder, nützliche Sätze, Verben, Zahlen bis 100, Aussprache, Nomen auf -e, Verbote mit „Non …“ und Lückensätze": "From your course material: lessons 1 and 2 – greetings, classroom, countries, useful sentences, verbs, numbers to 100, pronunciation, nouns ending in -e, “Non …” prohibitions and gap sentences", "Ausdruck": "Phrase", "Aussprache": "Pronunciation", "Aussprache-Sprache": "Pronunciation language", "Auswahl": "Choice", "Auswertung": "Analysis", "Auswählen": "Select", "Automatisch{0}": "Automatic{0}", "Backup geladen · {0}": "Backup loaded · {0}", "Backup laden": "Load backup", "Backup sichern": "Save backup", "Bar & Café": "Bar & café", "Bausteine antippen": "Tap word tiles", "Bearbeiten": "Edit", "Bedeutung ({0})": "Meaning ({0})", "Beenden": "Quit", "Begrüßung & Floskeln": "Greetings & phrases", "Beide Richtungen": "Both directions", "Beide Richtungen: erst erkennen, später selbst aktiv wissen. Gilt für Vokabeln und Verbbedeutungen.": "Both directions: recognise first, later recall actively. Applies to vocabulary and verb meanings.", "Beispiel anhören": "Listen to the example", "Beispielsatz": "Example sentence", "Beispielsatz & Notiz": "Example sentence & note", "Bestanden": "Passed", "Bewerbung & Studium": "Applications & studies", "Business & Uni": "Business & uni", "CSV exportieren": "Export CSV", "Chinesisch": "Chinese", "Claude-API-Schlüssel": "Claude API key", "Dafür gibt es gerade keine Aufgaben": "There are no exercises for this right now", "Damit iPhone und iPad dieselben Karten und denselben Lernstand haben, speichert PLM eine Kopie in einem privaten „Gist“ in deinem GitHub-Konto. Kostenlos, ohne Server dazwischen.": "So that iPhone and iPad have the same cards and progress, PLM stores a copy in a private “Gist” in your GitHub account. Free, with no server in between.", "Das PDF ist größer als 30 MB – bitte aufteilen.": "The PDF is larger than 30 MB – please split it.", "Das hat nicht geklappt.": "That didn’t work.", "Das ist kein PLM-Backup": "This is not a PLM backup", "Das sieht nicht wie ein Claude-API-Schlüssel aus (beginnt mit sk-ant-)": "That doesn’t look like a Claude API key (starts with sk-ant-)", "Das sieht nicht wie ein GitHub-Token aus (beginnt mit ghp_ …)": "That doesn’t look like a GitHub token (starts with ghp_ …)", "Datei konnte nicht gelesen werden": "File couldn’t be read", "Datei wählen": "Choose file", "Daten &amp; Backup": "Data &amp; backup", "Dein Satz": "Your sentence", "Dem Token fehlt die Berechtigung „gist“": "The token lacks the “gist” permission", "Dem Token fehlt die Berechtigung „gist“ – neues Token mit Häkchen bei „gist“ anlegen": "The token lacks the “gist” permission – create a new token with “gist” ticked", "Der Eintrag braucht einen Text.": "The entry needs a text.", "Der Infinitiv muss auf -are, -ere, -ire (oder -arsi …) enden.": "The infinitive must end in -are, -ere, -ire (or -arsi …).", "Der KI-Schlüssel ist ungültig.": "The AI key is invalid.", "Deutsch": "German", "Deutsch *": "German *", "Diagramm": "Chart", "Die Bedeutung ist Englisch": "The meaning is English", "Die Datei ist zu groß für die KI – teile das PDF auf.": "The file is too large for the AI – split the PDF.", "Die Datei konnte nicht gelesen werden": "The file couldn’t be read", "Die KI erkennt Wörter, Sätze, Verben und Grammatik und ordnet sie in Themen …": "The AI detects words, sentences, verbs and grammar and sorts them into topics …", "Die KI hat diese Anfrage abgelehnt.": "The AI declined this request.", "Die KI hat in diesem Material nichts zum Lernen gefunden.": "The AI found nothing to learn in this material.", "Die KI ist gerade überlastet – bitte gleich nochmal versuchen.": "The AI is overloaded right now – please try again shortly.", "Die KI ordnet in Themen, übersetzt ins Deutsche, ergänzt Beispielsätze und baut Lückensätze und Verbtabellen.": "The AI sorts into topics, translates into German, adds example sentences and builds gap sentences and verb tables.", "Die KI schreibt deine Karten … ({0}k Zeichen)": "The AI is writing your cards … ({0}k characters)", "Die KI-Antwort war unvollständig – bitte nochmal versuchen.": "The AI answer was incomplete – please try again.", "Die Stimme pro Sprache wählst du in den Spracheinstellungen. Bessere Stimmen lädst du auf dem iPhone unter <b>Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen</b> (z. B. Italienisch „Alice“ oder „Federica“ in der Version „Erweitert“). Nichts zu hören? Lautstärke hoch, Stummschalter prüfen.": "You choose the voice for each language in the language settings. Better voices can be downloaded on the iPhone under <b>Settings › Accessibility › Spoken Content › Voices</b> (e.g. Italian “Alice” or “Federica”, “Enhanced” version). Can’t hear anything? Turn up the volume and check the silent switch.", "Die Verbindung zur KI ist abgebrochen – bitte nochmal versuchen.": "The connection to the AI was interrupted – please try again.", "Die nächsten Wiederholungen plant PLM automatisch. Komm morgen wieder – kurze tägliche Runden bringen am meisten.": "PLM schedules your next reviews automatically. Come back tomorrow – short daily rounds work best.", "Die wichtigsten Wörter für Alltag, Essen, Reisen, Uni und Arbeit – jedes mit Beispielsatz": "The most important words for everyday life, food, travel, uni and work – each with an example sentence", "Diese Karte gibt es schon ({0}).": "This card already exists ({0}).", "Diese Karten üben": "Practise these cards", "Diese Sprache gibt es schon.": "This language already exists.", "Diese Woche": "This week", "Dieser Browser kann nicht vorlesen.": "This browser can’t read aloud.", "Direkt lernen": "Start learning right away", "Dranbleiben!": "Keep going!", "Dänisch": "Danish", "E-Mails": "Emails", "Eigene Karten": "My cards", "Eigenschaften": "Describing things", "Ein Projekt mit diesem Namen gibt es schon.": "A project with this name already exists.", "Eine Karte pro Zeile: Wort und Übersetzung getrennt durch Tab, Semikolon, Komma oder „ - “. Quizlet-Export (Tab), Anki-Textexport und Excel/Numbers-Tabellen funktionieren direkt. Lückensätze mit {{Lücke}} werden erkannt.": "One card per line: word and translation separated by tab, semicolon, comma or “ - ”. Quizlet exports (tab), Anki text exports and Excel/Numbers tables work directly. Gap sentences with {{gap}} are recognised.", "Einkaufen": "Shopping", "Einstellungen": "Settings", "Eintrag": "Entry", "Eintrag bearbeiten": "Edit entry", "Einträge": "Entries", "Englisch": "English", "Englisch (UK)": "English (UK)", "Englisch (USA)": "English (US)", "Enter: merken · K: kenne ich schon": "Enter: got it · K: I know it", "Enter: prüfen": "Enter: check", "Enter: prüfen / weiter": "Enter: check / next", "Enter: weiter": "Enter: next", "Entfernen": "Remove", "Ergebnis": "Result", "Ergebnis ›": "Result ›", "Ergebnisse": "Results", "Ergänzen": "Add missing", "Erinnerung": "Reminder", "Erkennen": "Recognise", "Erste Zeile ist eine Überschrift": "First row is a header", "Es läuft schon ein Import": "An import is already running", "Essen & Trinken": "Food & drink", "Etwas langsamer – empfohlen": "A bit slower – recommended", "Everyday Sentences": "Everyday sentences", "False Friends": "False friends", "Familie & Menschen": "Family & people", "Fast alles richtig{0}": "Almost all correct{0}", "Fast richtig": "Almost right", "Fast – achte auf den Akzent": "Almost – mind the accent", "Fast – der Artikel fehlt oder stimmt nicht": "Almost – the article is missing or wrong", "Fast – die rot markierten Wörter nochmal üben": "Almost – practise the words marked in red", "Fast – kleiner Tippfehler": "Almost – small typo", "Fehler": "Mistakes", "Fehler üben ({0})": "Practise mistakes ({0})", "Fehlt: {0}": "Missing: {0}", "Fertig": "Done", "Filter": "Filter", "Finance": "Finance", "Form": "Form", "Formen schnell üben": "Quick form practice", "Formen üben": "Practise forms", "Fortschritt zurücksetzen": "Reset progress", "Fortsetzen": "Resume", "Foto / PDF / Liste": "Photo / PDF / list", "Foto oder PDF": "Photo or PDF", "Foto {0}": "Photo {0}", "Foto {0} von {1} vorbereiten …": "Preparing photo {0} of {1} …", "Foto {0} von {1} wird gelesen …": "Reading photo {0} of {1} …", "Foto, PDF aus dem Kurs oder Liste (Quizlet, Anki, Excel)": "Photo, course PDF or list (Quizlet, Anki, Excel)", "Foto, PDF oder Liste in Karten verwandeln": "Turn a photo, PDF or list into cards", "Fotografiere eine Vokabelliste, ein Glossar oder eine Buchseite – oder lade ein PDF aus deinem Kurs. Du prüfst alles, bevor es Karten werden.": "Photograph a word list, a glossary or a book page – or upload a PDF from your course. You review everything before it becomes cards.", "Fotografiere eine Vokabelliste, lade ein PDF hoch, importiere eine Liste oder leg eigene Karten an.": "Take a photo of a word list, upload a PDF, import a list or create your own cards.", "Frage": "Question", "Fragen": "Questions", "Fragt einmal nach der Mitteilungs-Erlaubnis. Die Zahl aktualisiert sich, wenn du PLM öffnest oder schließt.": "Asks once for notification permission. The number updates when you open or close PLM.", "Französisch": "French", "Frei tippen": "Type freely", "Freie Runde{0}{1} – zählt für deine Serie, ändert aber nicht den Wiederholungsplan.": "Free round{0}{1} – counts for your streak but doesn’t change the review schedule.", "Fremdsprache *": "Foreign language *", "Fremdsprache automatisch vorlesen": "Read the foreign language aloud automatically", "Funktioniert für regelmäßige Verben. Bei unregelmäßigen Verben bitte prüfen und korrigieren.": "Works for regular verbs. Please check and correct irregular verbs.", "Fällige Karten als Zahl am App-Symbol<br>": "Number of due cards on the app icon<br>", "Fällige Wiederholungen": "Reviews due", "Für Verben trägst du die Personen ein, z. B. ich-Form bis sie-Form. Zeiten kannst du später ergänzen.": "For verbs, enter the persons, e.g. I-form to they-form. You can add tenses later.", "Für deine Sprachen gibt es noch keine Theorie": "There’s no theory for your languages yet", "Für diese Sprache gibt es noch keine Starter-Pakete. Importiere ein Foto, PDF oder eine Liste.": "There are no starter packs for this language yet. Import a photo, PDF or list.", "Für diese Sprache gibt es noch keine Theorie.": "There’s no theory for this language yet.", "Für diese Zeiten sind noch keine Formen eingetragen": "No forms entered for these tenses yet", "Für einen Test braucht das Projekt mindestens 3 Karten": "A test needs at least 3 cards in the project", "Für heute erledigt": "Done for today", "Für heute erledigt · {0} neue Karten warten": "Done for today · {0} new cards waiting", "Für heute erledigt ✓": "Done for today ✓", "Für heute ist nichts mehr fällig": "Nothing else is due today", "Ganze Sätze für Gym, Bar, Restaurant, Einkaufen, Unterwegs, Smalltalk, Arbeit, Wohnung, Arzt und Verabredungen": "Whole sentences for the gym, bar, restaurant, shopping, getting around, small talk, work, home, the doctor and making plans", "Ganze Sätze für Gym, Meetings, E-Mails, Smalltalk, Reisen und Restaurant": "Whole sentences for the gym, meetings, emails, small talk, travel and restaurants", "Gehört: „{0}“": "Heard: “{0}”", "Gelernte Karten": "Cards studied", "Gelernte Karten pro Tag": "Cards studied per day", "Gemischt – auch neue Wörter erschließen": "Mixed – also work out new words", "Gemischte Fragen mit Note": "Mixed questions with a grade", "Genau – Claude Sonnet 5.5": "Accurate – Claude Sonnet 5.5", "Geschafft!": "Done!", "Gespeichert": "Saved", "Gewusst": "Correct", "Gewusst / geübt": "Correct / practised", "Gewusst ✓": "Knew it ✓", "Gib dem Projekt einen Namen.": "Give the project a name.", "Gib der Sprache einen Namen.": "Give the language a name.", "Gist konnte nicht angelegt werden ({0})": "Couldn’t create the Gist ({0})", "GitHub antwortet mit {0}": "GitHub answers with {0}", "GitHub-Token": "GitHub token", "Grammatik": "Grammar", "Grammatik in Sätzen": "Grammar in sentences", "Grammatik zum Nachlesen, mit Beispielen zum Anhören und Übungen": "Grammar to read up on, with examples to listen to and exercises", "Grammatik, Zeitformen, Artikel – mit Übungen": "Grammar, tenses, articles – with exercises", "Griechisch": "Greek", "Grundwortschatz": "Basic vocabulary", "Gut": "Good", "Gut!": "Good!", "Gym": "Gym", "Günstig – Claude Haiku 5.5": "Cheap – Claude Haiku 5.5", "Heute": "Today", "Heute (inkl. überfällig)": "Today (incl. overdue)", "Heute dran": "Due today", "Heute gelernt": "Studied today", "Hilfsverb": "Auxiliary verb", "Im Fitnessstudio": "At the gym", "Im Lernen": "Learning", "Import": "Import", "Import {0}": "Import {0}", "Importieren": "Import", "In Projekt": "Into project", "In diesem Projekt sind keine Karten mehr.": "There are no cards left in this project.", "Infinitiv": "Infinitive", "Infinitiv ({0})": "Infinitive ({0})", "Italienisch": "Italian", "Japanisch": "Japanese", "Jede aktive Zeit wird pro Verb als eigene Karte wiederholt. Starte mit wenigen Zeiten und schalte weitere dazu, sobald sie sitzen.": "Every active tense is reviewed as its own card for each verb. Start with a few tenses and add more once they stick.", "Jedes Paket wird ein Projekt. PLM zeigt dir jeden Tag nur ein paar neue Karten (15 pro Sprache, einstellbar). Weitere Pakete kannst du jederzeit nachladen.": "Every pack becomes a project. PLM only shows you a few new cards each day (15 per language, adjustable). You can load more packs any time.", "Jedes Verb in allen wichtigen Zeitformen – z. B. essere": "Any verb in all the important tenses – e.g. essere", "Jetzt synchronisieren": "Sync now", "KI antwortet ✓": "AI responds ✓", "KI ergänzt …": "AI is filling in …", "KI erreichbar ✓": "AI reachable ✓", "KI fragen": "Ask the AI", "KI liest dein Material": "AI is reading your material", "KI prüft …": "AI is checking …", "KI-Assistent (optional)": "AI assistant (optional)", "KI-Assistent einrichten ›": "Set up the AI assistant ›", "KI-Fehler{0}{1}": "AI error{0}{1}", "Kapitel": "Chapter", "Karte": "Card", "Karte angelegt{0}": "Card created{0}", "Karte bearbeiten": "Edit card", "Karte gespeichert": "Card saved", "Karte gilt wieder als neu": "Card counts as new again", "Karten": "Cards", "Karten sicher gelernt": "Cards learned for good", "Karten suchen": "Search cards", "Kartenstand": "Card status", "Kein Guthaben mehr auf deinem Claude-Konto (platform.claude.com › Billing).": "No credit left on your Claude account (platform.claude.com › Billing).", "Kein KI-Schlüssel hinterlegt (Einstellungen › KI-Assistent)": "No AI key stored (Settings › AI assistant)", "Kein Zugriff aufs Mikrofon – erlaube es in den Einstellungen bzw. schalte „Diktieren“ ein.": "No microphone access – allow it in Settings or turn on “Dictation”.", "Keine": "None", "Keine Karten in dieser Auswahl.": "No cards in this selection.", "Keine Sätze in diesem Projekt": "No sentences in this project", "Keine Verbindung zu GitHub": "No connection to GitHub", "Keine Verbindung zur KI – bist du online?": "No connection to the AI – are you online?", "Keine Wörter erkannt. Tipp: gerade von oben fotografieren, gutes Licht – oder den KI-Assistenten nutzen.": "No words recognised. Tip: photograph straight from above in good light – or use the AI assistant.", "Keine passenden Karten zum Üben": "No matching cards to practise", "Keine weiteren neuen Karten": "No more new cards", "Keine zwei Spalten erkannt. Trenne Wort und Übersetzung mit Tab, Semikolon, Komma oder „ - “.": "No two columns recognised. Separate word and translation with tab, semicolon, comma or “ - ”.", "Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache": "No {0} voice on this device – see Settings › Pronunciation", "Kenne ich schon": "I know it", "Kennenlernen & Smalltalk": "Getting to know people & small talk", "Kleine Wörter": "Little words", "Konjugation": "Conjugation", "Konnte keine Formen bilden.": "Couldn’t build any forms.", "Konsonant am Anfang": "starts with a consonant", "Koreanisch": "Korean", "Kosten nach Verbrauch: ein Foto kostet meist unter 1 Cent, ein Kurs-PDF mit 10 Seiten einige Cent. Der Schlüssel bleibt nur auf diesem Gerät und wird nicht synchronisiert. Dein Material geht dafür direkt an Anthropic.": "Pay per use: a photo usually costs less than 1 cent, a 10-page course PDF a few cents. The key stays on this device only and is not synced. Your material is sent directly to Anthropic.", "Kostenlos und offline: erkennt Listen und zweispaltige Tabellen. Übersetzungen nur, wenn sie im Material stehen.": "Free and offline: recognises lists and two-column tables. Translations only if they are in the material.", "Kurs A1": "Course A1", "Kürzlich neu gelernt": "Recently learned", "L1 · Aussprache: c, g, sc": "L1 · Pronunciation: c, g, sc", "L1 · Begrüßung": "L1 · Greetings", "L1 · Grammatik": "L1 · Grammar", "L1 · Im Kursraum": "L1 · In the classroom", "L1 · Länder": "L1 · Countries", "L1 · Nationalitäten": "L1 · Nationalities", "L1 · Nomen": "L1 · Nouns", "L1 · Nützliche Sätze": "L1 · Useful sentences", "L1 · Unterwegs": "L1 · Getting around", "L1 · Verben": "L1 · Verbs", "L1 · Zahlen 0–100": "L1 · Numbers 0–100", "L2 · Nomen auf -e: il oder la?": "L2 · Nouns ending in -e: il or la?", "Lade ein Starter-Paket, fotografiere eine Vokabelliste, lade ein PDF aus deinem Kurs hoch oder leg eigene Karten an.": "Load a starter pack, take a photo of a word list, upload a PDF from your course or create your own cards.", "Laden": "Load", "Langsam": "Slow", "Langsam anhören": "Listen slowly", "Lass PLM geöffnet, bis es fertig ist{0}.": "Keep PLM open until it’s finished{0}.", "Laut KI nicht ganz richtig": "Not quite right according to the AI", "Laut KI richtig": "Correct according to the AI", "Leer oder unvollständig (übersprungen)": "Empty or incomplete (skipped)", "Leere Formen automatisch ausfüllen": "Fill in empty forms automatically", "Leertaste: umdrehen": "Space: flip", "Leicht": "Easy", "Leider falsch": "Not quite", "Lernen": "Learn", "Lerntage": "Study days", "Letztes Backup: {0} · Jetzt sichern ›": "Last backup: {0} · Back up now ›", "Letztes Backup: {0} · {1} · {2} KB": "Last backup: {0} · {1} · {2} KB", "Liste einfügen": "Paste a list", "Los geht's": "Let’s go", "Löschen": "Delete", "Löscht alle Karten dieses Projekts samt Fortschritt": "Deletes all cards of this project including progress", "Löscht alle Karten, Fortschritte und Statistiken auf diesem Gerät{0}.": "Deletes all cards, progress and statistics on this device{0}.", "Lücke": "Gap", "Lücke in doppelte geschweifte Klammern setzen: {{a}}. Mehrere Lücken sind möglich.": "Put the gap in double curly brackets: {{a}}. Several gaps are possible.", "Lücke mit {{…}} markieren.": "Mark the gap with {{…}}.", "Lücke {0}": "Gap {0}", "Lückensatz": "Gap sentence", "Lückensätze zu Präpositionen, Artikeln und Zeiten": "Gap sentences on prepositions, articles and tenses", "Management": "Management", "Markiere die Lücke mit doppelten geschweiften Klammern, z. B. Vado {{a}} Roma.": "Mark the gap with double curly brackets, e.g. Vado {{a}} Roma.", "Meetings & Calls": "Meetings & calls", "Mehr": "More", "Menü": "Menu", "Menüs, Hinweise und Theorie. Deine Karten bleiben, wie sie sind.": "Menus, hints and theory. Your cards stay as they are.", "Merken ›": "Got it ›", "Min.": "min", "Mit KI": "With AI", "Mit KI ergänzen{0}": "Fill in with AI{0}", "Mit dem Mikrofon-Knopf auf der Kartenrückseite sprichst du nach – PLM prüft per Spracherkennung, ob du verstanden wurdest.": "With the microphone button on the back of the card you repeat the word – PLM uses speech recognition to check whether you were understood.", "Mit einem eigenen Claude-API-Schlüssel wertet PLM Fotos und Kurs-PDFs schlau aus: Projekte und Themen, deutsche Übersetzungen, Beispielsätze, Verbtabellen und Lückensätze. Außerdem gibt die KI beim Sätzebauen Feedback. Ohne Schlüssel erkennt PLM Wortlisten und Tabellen direkt auf dem Gerät.": "With your own Claude API key PLM analyses photos and course PDFs intelligently: projects and topics, German translations, example sentences, verb tables and gap sentences. The AI also gives feedback when you build sentences. Without a key PLM recognises word lists and tables right on the device.", "Mit {0} löschen?": "Delete with {0}?", "Modell": "Model", "Modus": "Mode", "Morgen": "Tomorrow", "Nachsprechen mit Mikrofon wird in diesem Browser nicht unterstützt. Auf dem iPhone funktioniert es in Safari, wenn „Diktieren“ eingeschaltet ist (Einstellungen › Allgemein › Tastatur).": "Repeating with the microphone isn’t supported in this browser. On the iPhone it works in Safari when “Dictation” is turned on (Settings › General › Keyboard).", "Nachsprechen und prüfen": "Repeat and check", "Name": "Name", "Name des neuen Projekts": "Name of the new project", "Name „PLM“, Ablauf z. B. „No expiration“, nur den Haken bei <b>gist</b> setzen, erstellen.": "Name “PLM”, expiration e.g. “No expiration”, tick only <b>gist</b>, create.", "Name, Aussprache und Personen selbst festlegen": "Set name, pronunciation and persons yourself", "Neu": "New", "Neu ·": "New ·", "Neu · {0}": "New · {0}", "Neue Karte": "New card", "Neue Karten": "New cards", "Neue Karten erst kennenlernen, dann abfragen<br>": "Get to know new cards before being asked<br>", "Neue Karten kommen nach und nach – so viele pro Tag, wie du in den Spracheinstellungen festlegst. Karten, die es schon gibt, werden nicht doppelt angelegt.": "New cards arrive gradually – as many per day as you set in the language settings. Cards you already have are not added twice.", "Neue Karten pro Tag": "New cards per day", "Neue Karten pro Tag, Richtung, Zeiten, Stimme": "New cards per day, direction, tenses, voice", "Neue Runde": "New round", "Neue Sprache": "New language", "Neue Wörter": "New words", "Neue Wörter ansehen": "Browse new words", "Neuer Lerntag beginnt um": "New study day starts at", "Neuer Test": "New test", "Neues Projekt": "New project", "Neues Projekt, z. B. Kurs A2": "New project, e.g. Course A2", "Neues Thema": "New topic", "Neues Thema, z. B. Reisen": "New topic, e.g. Travel", "Nicht gefunden": "Not found", "Nicht verstanden – hör es dir an und versuch es nochmal": "Not understood – listen and try again", "Nichts Neues zu importieren.": "Nothing new to import.", "Nichts gefunden.": "Nothing found.", "Nichts gehört – tippe aufs Mikrofon und sprich direkt los.": "Nothing heard – tap the microphone and start speaking right away.", "Nichts zu prüfen": "Nothing to review", "Niederländisch": "Dutch", "Noch eine Runde": "One more round", "Noch keine Formen eingetragen.": "No forms entered yet.", "Noch keine Karten – tippen zum Starten": "No cards yet – tap to start", "Noch keine Karten.": "No cards yet.", "Noch keine Sätze – lade z. B. „Alltagssätze“ oder lerne Wörter mit Beispielsatz": "No sentences yet – load e.g. “Alltagssätze” or learn words with example sentences", "Noch keine Verben – lade ein Starter-Paket oder leg ein Verb an": "No verbs yet – load a starter pack or add a verb", "Noch keine Verben – leg eins an": "No verbs yet – add one", "Noch keine Verben.": "No verbs yet.", "Noch keine Verbformen eingetragen": "No verb forms entered yet", "Noch nicht ganz": "Not quite yet", "Noch nicht gelernt (Vorschau)": "Not learned yet (preview)", "Noch nicht gelernt – lesen und anhören": "Not learned yet – read and listen", "Noch nicht synchronisiert": "Not synced yet", "Nochmal": "Again", "Nochmal ·": "Again ·", "Nomen": "Noun", "Nomen mit Artikel eintragen.": "Enter nouns with their article.", "Normal": "Normal", "Norwegisch": "Norwegian", "Notiz": "Note", "Notiz / Eselsbrücke": "Note / memory aid", "Nur Deutsch → {0}": "Only German → {0}", "Nur Verbformen": "Verb forms only", "Nur {0} → Deutsch": "Only {0} → German", "Oder neues Thema": "Or new topic", "Offline – Sync folgt, sobald du online bist": "Offline – syncing as soon as you’re online", "Offline – die KI braucht eine Internetverbindung": "Offline – the AI needs an internet connection", "Oft vergessen – gezielt üben oder Eselsbrücke ergänzen": "Often forgotten – practise them or add a memory aid", "Ohne Erlaubnis kann PLM keine Zahl anzeigen": "Without permission PLM can’t show a number", "Ohne Thema": "No topic", "Ohne Übersetzung": "No translation", "PDF wird geöffnet …": "Opening PDF …", "PDF wird hochgeladen …": "Uploading PDF …", "PDF wählen": "Choose PDF", "PDF-Leser konnte nicht geladen werden – einmal mit Internet öffnen": "PDF reader couldn’t be loaded – open once with internet", "PLM plant jede Karte mit FSRS – dem Verfahren, das auch Anki nutzt: Was du gut kannst, kommt seltener, was du vergisst, früher wieder.": "PLM schedules every card with FSRS – the method Anki uses too: what you know well comes back less often, what you forget comes back sooner.", "PLM {0} · Personal Language Management": "PLM {0} · Personal Language Management", "Pakete": "Packs", "Passato prossimo mit": "Passato prossimo with", "Passato prossimo mit {0}": "Passato prossimo with {0}", "Passato prossimo mit …?": "passato prossimo with …?", "Pausieren": "Pause", "Pausiert": "Paused", "Pausiert – wird nicht mehr abgefragt": "Paused – won’t be asked any more", "Personen (mit Komma getrennt)": "Persons (comma-separated)", "Phrasal Verbs": "Phrasal verbs", "Phrasal Verbs & Redewendungen": "Phrasal verbs & idioms", "Plural": "plural", "Plural mit Artikel": "plural with article", "Polnisch": "Polish", "Portugiesisch": "Portuguese", "Portugiesisch (Brasilien)": "Portuguese (Brazil)", "Portugiesisch (Portugal)": "Portuguese (Portugal)", "Projekt": "Project", "Projekt leer": "Project empty", "Projekt löschen": "Delete project", "Projekt umbenennen": "Rename project", "Projekte": "Projects", "Präpositionen": "Prepositions", "Präsens, Vergangenheit, Futur": "Present, Past, Future", "Prüfen": "Review", "Redewendungen": "Idioms", "Regelmäßig gebildet – bei unbekannten Verben bitte gegenprüfen.": "Formed by the regular rules – please double-check unfamiliar verbs.", "Reihenfolge neuer Karten": "Order of new cards", "Reisen": "Travel", "Reisen & Stadt": "Travel & city", "Rekord": "Record", "Restaurant": "Restaurant", "Richtig": "Correct", "Richtig!": "Correct!", "Richtig: {0}": "Right: {0}", "Rund 90 Fachbegriffe aus Finance, Management und Studium – jeder mit Beispielsatz": "Around 90 terms from finance, management and university – each with an example sentence", "Russisch": "Russian", "Rückgängig": "Undo", "Satz": "Sentence", "Satz auf {0}": "Sentence in {0}", "Satz mit {{Lücke}}": "Sentence with {{gap}}", "Schließen": "Close", "Schlüssel entfernen": "Remove key", "Schlüssel entfernt": "Key removed", "Schlüssel: <b>{0}</b>": "Key: <b>{0}</b>", "Schnell": "Fast", "Schon vorhanden (übersprungen)": "Already there (skipped)", "Schwedisch": "Swedish", "Schwer": "Hard", "Schwierig": "Difficult", "Schwierige Karten": "Difficult cards", "Schwierige Karten ({0})": "Difficult cards ({0})", "Sehr gut verstanden!": "Understood perfectly!", "Sehr gut!": "Excellent!", "Seite {0}": "Page {0}", "Seite {0} von {1} wird gelesen (Scan) …": "Reading page {0} of {1} (scan) …", "Seite {0} von {1} …": "Page {0} of {1} …", "Seite {0}: gescannt – Texterkennung wird geladen …": "Page {0}: scanned – loading text recognition …", "Serie": "Streak", "Sicher": "Known", "Sicher (Abstand ≥ 3 Wochen)": "Known (interval ≥ 3 weeks)", "Singular": "singular", "Sitzung beendet": "Session finished", "Smalltalk": "Small talk", "So geht's:": "Here’s how:", "Sonstiges": "Other", "Spalte {0}": "Column {0}", "Spalten": "Columns", "Spanisch": "Spanish", "Spanisch (Mexiko)": "Spanish (Mexico)", "Spanisch (Spanien)": "Spanish (Spain)", "Spanisch, Französisch, Portugiesisch …": "Spanish, French, Portuguese …", "Speichern": "Save", "Speichern + nächste": "Save + next", "Speichern fehlgeschlagen ({0})": "Saving failed ({0})", "Speichern fehlgeschlagen – Speicher voll? Sichere ein Backup.": "Saving failed – storage full? Save a backup.", "Sprache": "Language", "Sprache hinzufügen": "Add language", "Sprache löschen": "Delete language", "Sprache nicht gefunden": "Language not found", "Spracheinstellungen": "Language settings", "Sprachen": "Languages", "Spracherkennung gerade nicht verfügbar – versuch es nochmal.": "Speech recognition unavailable right now – please try again.", "Spracherkennung wird hier nicht unterstützt.": "Speech recognition isn’t supported here.", "Sprechtempo": "Speaking rate", "Sprich jetzt …": "Speak now …", "Stammformen": "Principal parts", "Stammformen und Zeitformen – z. B. go, went, gone": "Principal parts and tenses – e.g. go, went, gone", "Stark!": "Great!", "Startbildschirm, dann Menü": "Splash screen, then menu", "Starte unter Importieren ein Foto oder PDF.": "Start a photo or PDF under Import.", "Starter": "Starter", "Starter-Pakete": "Starter packs", "Starter-Wortschatz laden": "Load starter vocabulary", "Statistik": "Statistics", "Stimme": "Voice", "Suche": "Search", "Suche in beiden Sprachen, in Beispielsätzen, Notizen und Verbformen.": "Searches both languages, example sentences, notes and verb forms.", "Suche leeren": "Clear search", "Sync fehlgeschlagen": "Sync failed", "Sync getrennt – die Daten im Gist bleiben erhalten": "Sync disconnected – the data in the Gist is kept", "Synchronisiert": "Synced", "Synchronisiert · {0}{1} Karten": "Synced · {0}{1} cards", "Synchronisiert über dein GitHub-Konto{0}. {1}": "Synced via your GitHub account{0}. {1}", "Sätze": "Sentences", "Sätze aus deinen Wörtern": "Sentences from your words", "Sätze bauen": "Build sentences", "Sätze bauen ·": "Build sentences ·", "Sätze bilden und korrigieren lassen": "Build sentences and get them corrected", "Sätze entstehen aus Beispielsätzen und Satzkarten": "Sentences come from example sentences and sentence cards", "Tag": "Day", "Tage": "Days", "Test": "Test", "Test starten": "Start test", "Test ·": "Test ·", "Test · {0}": "Test · {0}", "Testen": "Test", "Tests": "Tests", "Texterkennung konnte nicht geladen werden – einmal mit Internet öffnen": "Text recognition couldn’t be loaded – open once with internet", "Texterkennung läuft": "Text recognition running", "Texterkennung wird geladen …": "Loading text recognition …", "Thema": "Topic", "Thema behalten": "Keep topic", "Themen": "Topics", "Theorie": "Theory", "Theorie & Grammatik": "Theory & grammar", "Tippe die Wörter in der richtigen Reihenfolge an": "Tap the words in the right order", "Tippen": "Type", "Tippen oder nach oben wischen": "Tap or swipe up", "Tippen zum Umdrehen": "Tap to flip", "Token hat keine Gist-Berechtigung oder GitHub-Limit erreicht": "Token has no Gist permission or the GitHub limit was reached", "Token kopieren, hier einfügen – auf iPhone <i>und</i> iPad.": "Copy the token and paste it here – on iPhone <i>and</i> iPad.", "Token ungültig oder abgelaufen": "Token invalid or expired", "Trag das Wort auf {0} ein.": "Enter the word in {0}.", "Trag den Infinitiv ein.": "Enter the infinitive.", "Trag die Bedeutung ein.": "Enter the meaning.", "Trag einen Satz ein.": "Enter a sentence.", "Trag zuerst den Infinitiv ein.": "Enter the infinitive first.", "Trennen": "Disconnect", "Täglich um": "Daily at", "Türkisch": "Turkish", "Umbenannt": "Renamed", "Umdrehen": "Flip", "Uni & Arbeit": "Uni & work", "Unregelmäßige Verben": "Irregular verbs", "Unter <b>API Keys</b> einen Schlüssel erstellen und hier einfügen.": "Create a key under <b>API Keys</b> and paste it here.", "Unterwegs": "Getting around", "Verabreden & Telefon": "Making plans & phone", "Verb": "Verb", "Verb nachschlagen": "Look up a verb", "Verben": "Verbs", "Verben – Formen üben": "Verbs – practise forms", "Verbformen trainieren": "Train verb forms", "Verbinde mit GitHub …": "Connecting to GitHub …", "Verbinden": "Connect", "Verbindung fehlgeschlagen": "Connection failed", "Verbote: Non + Infinitiv": "Prohibitions: Non + infinitive", "Verbunden – Daten vom anderen Gerät übernommen": "Connected – data from your other device was taken over", "Verbunden – deine Karten liegen jetzt auch in GitHub": "Connected – your cards are now also stored on GitHub", "Verlauf": "History", "Verschieben": "Move", "Verschoben": "Moved", "Vokabel": "Word", "Vokabeln wiederholen (PLM)": "Review vocabulary (PLM)", "Vokal am Anfang": "starts with a vowel", "Vor allem mit Wörtern, die ich schon kenne": "Mostly with words I already know", "Vorbereiten …": "Preparing …", "Vorlesen": "Read aloud", "Vorne steht nur das Wort – antippen dreht die Karte mit Übersetzung und Beispiel.": "The front shows only the word – tap to flip to the translation and example.", "Vorschau": "Preview", "Vorschau fälliger Karten": "Preview of due cards", "War richtig ✓": "I was right ✓", "Was ist richtig?": "Which is right?", "Weiter": "Next", "Weiter lernen ({0})": "Keep learning ({0})", "Weiter zu PLM": "Continue to PLM", "Weiter ›": "Next ›", "Weitere Zeit hinzufügen": "Add another tense", "Weiß nicht": "Don’t know", "Welche Zeiten abgefragt werden, legst du pro Sprache fest (Konjugation).": "Which tenses are asked is set per language (Conjugation).", "Wenn PLM öffnet": "When PLM opens", "Wichtige Verben": "Important verbs", "Wie angelegt (Themen nacheinander)": "As created (topic by topic)", "Wiederholung": "Review", "Wiederholungen": "Reviews", "Wiederholungen pro Tag max.": "Max. reviews per day", "Wird wieder abgefragt": "Will be asked again", "Wirklich alles löschen?": "Really delete everything?", "Wirklich entfernen?": "Really remove?", "Wirklich löschen?": "Really delete?", "Wirklich trennen?": "Really disconnect?", "Wirklich zurücksetzen?": "Really reset?", "Wirklich {0} löschen?": "Really delete {0}?", "Wohnung & Alltag": "Home & daily life", "Wort, Übersetzung, Verbform …": "Word, translation, verb form …", "Wortart": "Part of speech", "Wähle mindestens ein Paket.": "Choose at least one pack.", "Wähle mindestens eine Zeit.": "Choose at least one tense.", "Wörter, die noch nicht gelernt sind – lesen und anhören": "Words you haven’t learned yet – read and listen", "Zahlen": "Numbers", "Zeit": "Time", "Zeit für deine Karten in PLM.": "Time for your cards in PLM.", "Zeiten": "Tenses", "Zeiten & Formen": "Tenses & forms", "Zeiten (mit Komma getrennt)": "Tenses (comma-separated)", "Zeitform": "Tense", "Zeitformen": "Tenses", "Zeitformen, if-Sätze, Artikel – mit Übungen": "Tenses, if-clauses, articles – with exercises", "Zeitraum": "Period", "Ziel: so viel behalten": "Goal: retain this much", "Zu viel Material auf einmal – lade weniger Seiten hoch.": "Too much material at once – upload fewer pages.", "Zu viele Anfragen – kurz warten und nochmal versuchen.": "Too many requests – wait a moment and try again.", "Zufällig": "Random", "Zufällig aus allen": "Random from all", "Zufällige Personen und Zeiten": "Random persons and tenses", "Zuletzt {0} % · {1}": "Last {0} % · {1}", "Zum Kalender": "Add to calendar", "Zurück": "Back", "Zurücksetzen": "Reset", "am {0}": "on {0}", "aus deinen Karten": "from your cards", "beginnt mit s + Konsonant, z, gn, ps …": "starts with s + consonant, z, gn, ps …", "beide Richtungen": "both directions", "deine Antwort: {0}": "your answer: {0}", "die KI kann sie ergänzen": "the AI can fill them in", "erkannte Einträge": "recognised entries", "erkannter Eintrag": "recognised entry", "fällig": "due", "gerade eben": "just now", "gestern": "yesterday", "heute": "today", "iPhone ↔ iPad": "iPhone ↔ iPad", "iPhone-Web-Apps können sich nicht selbst zu einer Uhrzeit melden. Am zuverlässigsten ist ein täglicher Kalender-Termin mit Hinweis – PLM erstellt ihn für dich.": "iPhone web apps can’t notify you at a set time by themselves. The most reliable option is a daily calendar event with an alert – PLM creates it for you.", "in {0} Mon.": "in {0} mo", "in {0} T.": "in {0} d", "keine": "none", "keine Zeit": "no tense", "mit Artikel": "with article", "morgen": "tomorrow", "männlich": "masculine", "neue Karte": "new card", "neue Karten": "new cards", "nicht aktiv": "not active", "noch nie": "never", "nur Deutsch →": "German → only", "nur Deutsch → {0}": "German → {0} only", "nur {0} → Deutsch": "{0} → German only", "optional": "optional", "regelmäßig": "regular", "schon in {0}": "already in {0}", "tippe auf „Ändern“, um sie einzutragen, oder richte den KI-Assistenten ein": "tap “Edit” to enter them, or set up the AI assistant", "um {0}": "at {0}", "und im Gist": "and in the Gist", "unregelmäßig": "irregular", "verneint (!)": "negative (!)", "vor {0} Min.": "{0} min ago", "vor {0} Tagen": "{0} days ago", "weiblich": "feminine", "wie capire → capisco": "like capire → capisco", "wird abgefragt": "is asked", "z. B. Ich fahre morgen nach Rom.": "e.g. Ich fahre morgen nach Rom.", "z. B. Kurs A2": "e.g. Course A2", "z. B. Polnisch": "e.g. Polish", "z. B. Reisen": "e.g. Travel", "z. B. Trapassato prossimo": "e.g. Trapassato prossimo", "z. B. andare": "e.g. andare", "z. B. das Haus": "e.g. das Haus", "z. B. essere, andare, capire": "e.g. essere, andare, capire", "z. B. gehen; fahren": "e.g. gehen; fahren", "z. B. go": "e.g. go", "z. B. go, take, be": "e.g. go, take, be", "z. B. la casa": "e.g. la casa", "z. B. to look forward to": "e.g. to look forward to", "{0} Anhören": "{0} Listen", "{0} Formen ergänzt – bitte kurz prüfen": "{0} forms added – please check them", "{0} Fotos": "{0} photos", "{0} J": "{0} y", "{0} Karten": "{0} cards", "{0} Karten importieren": "Import {0} cards", "{0} Min.": "{0} min", "{0} Mo": "{0} mo", "{0} Std. {1} Min.": "{0} h {1} min", "{0} Stimme testen": "{0} Test voice", "{0} T": "{0} d", "{0} Wo": "{0} wk", "{0} Zeilen erkannt. Wähle, welche Spalte was ist.": "{0} rows recognised. Choose which column is which.", "{0} auf Englisch.": "{0} in English.", "{0} aus anderen Projekten übernommen": "{0} taken over from other projects", "{0} ausgewählt": "{0} selected", "{0} ergänzt": "{0} filled in", "{0} erkannt – unter Importieren prüfen": "{0} recognised – review them under Import", "{0} fällig{1}": "{0} due{1}", "{0} geladen – los geht's!": "{0} loaded – let’s go!", "{0} gelöscht": "{0} deleted", "{0} hinzugefügt": "{0} added", "{0} in den nächsten {1} Tagen": "{0} in the next {1} days", "{0} in ein anderes Projekt oder Thema": "{0} to another project or topic", "{0} in {1} Tagen{2} · {3} Min.": "{0} in {1} days{2} · {3} min", "{0} in „{1}“ angelegt": "{0} created in “{1}”", "{0} löschen?": "Delete {0}?", "{0} neu": "{0} new", "{0} neue Karten": "{0} new cards", "{0} neue pro Tag · {1}": "{0} new per day · {1}", "{0} noch nicht gelernt": "{0} not learned yet", "{0} noch nicht gelernt – in Ruhe durchlesen und anhören": "{0} not learned yet – read and listen at your own pace", "{0} schon vorhanden": "{0} already there", "{0} sicher": "{0} known", "{0} sicher · {1} im Lernen · {2} neu": "{0} known · {1} learning · {2} new", "{0} von {1} richtig": "{0} of {1} correct", "{0} warten auf Prüfung ›": "{0} waiting for review ›", "{0} {1} · ca. {2} Min.": "{0} {1} · approx. {2} min", "{0} · Satz": "{0} · Sentence", "{0} · aktiv: {1}": "{0} · active: {1}", "{0} · aus Fotos, Kurs-PDFs oder Listen werden Karten": "{0} · photos, course PDFs or lists become cards", "{0} · gemischte Fragen: Übersetzen, Auswahl, Lückensätze, Verbformen und Sätze bauen. Am Ende gibt es eine Auswertung – der Wiederholungsplan bleibt unverändert.": "{0} · mixed questions: translating, multiple choice, gap sentences, verb forms and building sentences. You get a result at the end – the review schedule stays unchanged.", "{0} · jedes Paket wird ein Projekt": "{0} · every pack becomes a project", "{0} · {1} % sicher": "{0} · {1} % known", "{0} · {1} neu · ca. {2} Min.": "{0} · {1} new · approx. {2} min", "{0} übernehmen": "Add {0}", "{0} – aus Bausteinen oder frei tippen, mit Korrektur": "{0} – from word tiles or typed freely, with correction", "{0}: PLM fragt zufällige Personen ab – schnell tippen, sofortiges Feedback. Ändert den Wiederholungsplan nicht.": "{0}: PLM asks random persons – type fast, instant feedback. Doesn’t change the review schedule.", "{0}: {1} fällig": "{0}: {1} due", "{0}:00 Uhr": "{0}:00", "{0}Mehrere richtige Antworten mit ; trennen. Optionales in Klammern: (to) cope with.": "{0}Separate several correct answers with ; – optional parts in brackets: (to) cope with.", "{0}{1} · Konjugation": "{0}{1} · Conjugation", "{0}{1} · {2} Wiederholungen · angelegt {3}": "{0}{1} · {2} reviews · created {3}", "{0}{1}: Du siehst einen deutschen Satz und baust ihn auf {2} – aus Wort-Bausteinen oder frei getippt. PLM korrigiert Wort für Wort.": "{0}{1}: you see a German sentence and build it in {2} – from word tiles or typed freely. PLM corrects word by word.", "· KI: {0} Tokens": "· AI: {0} tokens", "· Passato prossimo mit essere": "· Passato prossimo with essere", "· nächste Wiederholung {0}": "· next review {0}", "· {0} % gewusst": "· {0} % correct", "· {0} % sicher": "· {0} % known", "· {0} neu": "· {0} new", "· {0} noch neu": "· {0} still new", "· {0} sicher": "· {0} known", "· Üben": "· Practise", "Ändern": "Edit", "Öffne die Datei und tippe auf „Hinzufügen“": "Open the file and tap “Add”", "Ø {0} pro Tag · {1} % gewusst · {2} neue Karten · {3}": "Ø {0} per day · {1} % correct · {2} new cards · {3}", "Üben": "Practise", "Üben ·": "Practice ·", "Üben: {0}": "Practise: {0}", "Übersetze ins {0}e": "Translate into {0}", "Übersetzung (Hinweis)": "Translation (hint)", "Übersetzung des Beispiels": "Translation of the example", "Übersetzung fehlt": "Translation missing", "Übersetzung ist": "translation is", "Übersetzungen sind": "translations are", "Übung · {0}": "Exercise · {0}", "Übungsrunde": "Practice round", "– bei großen PDFs einige Minuten": "– a few minutes for large PDFs", "– neue Karten pro Tag ist auf 0": "– new cards per day is set to 0", "– neuer Rekord!": "– new record!", "– zusätzlich in deinem GitHub-Gist": "– plus in your GitHub Gist", "„Lernen“ nimmt die neuen Wörter in deinen Wiederholungsplan auf (so viele pro Tag, wie eingestellt). „Durchgehen“ zeigt sie nur als Karten, ohne Plan.": "“Learn” adds the new words to your review schedule (as many per day as set). “Go through” only shows them as cards, without a schedule.", "„{0}“ als Karte anlegen ›": "Create “{0}” as a card ›", "„{0}“ ist kein italienischer Infinitiv (-are, -ere, -ire, -arsi …).": "“{0}” isn’t an Italian infinitive (-are, -ere, -ire, -arsi …).", "„{0}“ ist kein lesbares Bild (HEIC bitte als JPEG teilen)": "“{0}” isn’t a readable image (please share HEIC as JPEG)", "„{0}“ wurde nicht erkannt.": "“{0}” wasn’t recognised.", "„{0}“: bitte eine Zahl zwischen {1} und {2}.": "“{0}”: please enter a number between {1} and {2}.", "‹ Zurück": "‹ Back", "→ Deutsch": "→ German", "↻ Synchronisiere …": "↻ Syncing …", "⇄ Seiten tauschen": "⇄ Swap sides", "⇄ Sprachen tauschen": "⇄ Swap languages", "▶ Lernen": "▶ Learn", "▶ Lernen ({0})": "▶ Learn ({0})", "⚠ Sync: {0}": "⚠ Sync: {0}", "⚡ Formen schnell üben": "⚡ Quick form practice", "✓ Synchronisiert {0}": "✓ Synced {0}", "✓ {0} im Projekt": "✓ {0} in the project", "📷 Foto aufnehmen / wählen": "📷 Take / choose photo", "🔥 {0} in Folge gelernt{1}": "🔥 {0} in a row{1}", "Keine Sprachausgabe – Lautstärke und Stumm-Schalter prüfen": "No speech output – check the volume and the mute switch", "Kein passendes Verb gefunden": "No matching verb found", "meintest du …?": "did you mean …?", "Kurs": "Course", "{0}: weiter mit {1} · {2}": "{0}: continue with {1} · {2}", "Schritt für Schritt von A1 bis B2: Wörter, Grammatik, eigene Sätze, Gespräche": "Step by step from A1 to B2: words, grammar, your own sentences, conversations", "Kurs A1 – B2": "Course A1 – B2", "Grammatik aus dem Kurs und Verben in allen Zeitformen": "Grammar from the course and verbs in every tense", "Jedes Verb in allen wichtigen Zeitformen – auch mit Übersetzung suchen": "Every verb in all the main tenses – you can also search by meaning", "Kurs {0}: Grammatik": "Course {0}: grammar", "Lektion {0} · {1}": "Lesson {0} · {1}", "Für {0} gibt es noch keine automatische Konjugation. Eigene Verbkarten mit Formen kannst du unter Konjugation anlegen.": "There's no automatic conjugation for {0} yet. You can create your own verb cards with forms under Conjugation.", "Meintest du:": "Did you mean:", "Passato prossimo mit avere oder essere": "Passato prossimo with avere or essere", "Passé composé mit être": "Passé composé with être", "„{0}“ ist {1} von {2}": "“{0}” is {1} of {2}", "Deine Karte öffnen ›": "Open your card ›", "+ Als Karte lernen": "+ Learn as a card", "z. B. essere, bevo, trinken": "e.g. essere, bevo, to drink", "z. B. go, went, gehen": "e.g. go, went, gehen", "z. B. tener, tengo, haben": "e.g. tener, tengo, to have", "z. B. être, suis, sein": "e.g. être, suis, to be", "Infinitiv, Verbform oder Übersetzung eingeben": "Type an infinitive, a verb form or a translation", "Vorschläge": "Suggestions", "Das Verb ist schon in deinen Karten": "This verb is already in your cards", "„{0}“ ist jetzt eine Karte im Projekt „Verben“": "“{0}” is now a card in the project “Verbs”", "fehlt: {0}": "missing: {0}", "Der Kurs konnte nicht geladen werden – bist du online?": "The course couldn't be loaded – are you online?", "A1 bis B2 – Wörter, Grammatik, Übungen und Gespräche": "A1 to B2 – words, grammar, exercises and conversations", "Lektionen mit dem KI-Assistenten erstellen": "Create lessons with the AI assistant", "{0} von {1} Lektionen · weiter: {2} {3}": "{0} of {1} lessons · next: {2} {3}", "Alle {0} Lektionen geschafft": "All {0} lessons done", "Alle Wörter dieser Lektion sind schon im Wiederholungsplan – weiter mit der Übung": "All words of this lesson are already in your review plan – go on with the exercise", "Was heißt …?": "What's the word?", "Hören": "Listening", "Schreiben": "Writing", "Satz bauen": "Build the sentence", "Wörter": "Words", "Übung": "Exercise", "Gespräch": "Conversation", "Schritt für Schritt von A1 bis B2": "Step by step from A1 to B2", "Kurs wird geladen …": "Loading the course …", "Niveau": "Level", "+ Neue Lektion mit KI": "+ New lesson with AI", "Der KI-Assistent schreibt eine weitere {0}-Lektion zu einem Thema deiner Wahl": "The AI assistant writes another {0} lesson on a topic of your choice", "Für {0} gibt es noch keinen fertigen Kurs": "There's no ready-made course for {0} yet", "Lass dir vom KI-Assistenten Lektionen erstellen – mit Wörtern, Grammatik, Übungen und einem Gespräch zum Mitspielen.": "Let the AI assistant create lessons for you – with words, grammar, exercises and a conversation to play along.", "Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kannst du dir Lektionen für jede Sprache erstellen lassen.": "With the AI assistant (Settings › AI assistant) you can have lessons created for any language.", "Start": "Start", "Lektion {0}": "Lesson {0}", "Alle Lektionen in {0} geschafft – mach den Abschlusstest!": "All lessons in {0} done – take the final test!", "Lektionen": "Lessons", "Lektion": "Lesson", "KI": "AI", "Für dieses Niveau gibt es noch keine Lektionen.": "There are no lessons for this level yet.", "Abschlusstest {0}": "Final test {0}", "24 gemischte Aufgaben aus allen Lektionen": "24 mixed tasks from all lessons", "Wörter & Sätze": "Words & sentences", "{0} Wörter · {1} Sätze – anhören, lesen, dann lernen": "{0} words · {1} sentences – listen, read, then learn", "Alle {0} Wörter zeigen": "Show all {0} words", "Nützliche Sätze": "Useful sentences", "▶ Wiederholen": "▶ Review", "„Lernen“ nimmt die Wörter in deinen Wiederholungsplan auf (Projekt „{0}“).": "“Learn” adds the words to your review plan (project “{0}”).", "✎ Grammatik üben": "✎ Practise grammar", "Mehr in der Theorie ›": "More in the theory ›", "Bestes Ergebnis: {0} % – ab 70 % gilt die Übung als geschafft": "Best result: {0} % – from 70 % the exercise counts as done", "Gemischte Aufgaben: Wörter, Hören, Schreiben, Sätze, Grammatik": "Mixed tasks: words, listening, writing, sentences, grammar", "Nochmal üben": "Practise again", "Übung starten": "Start the exercise", "Gespräch: {0}": "Conversation: {0}", "🔊 Anhören": "🔊 Listen", "💬 Mitspielen": "💬 Play along", "⇄ Rollen tauschen": "⇄ Swap roles", "✦ Frei sprechen (KI)": "✦ Free conversation (AI)", "✓ Lektion geschafft": "✓ Lesson done", "KI-Lektion löschen": "Delete AI lesson", "Karten, die du schon gelernt hast, bleiben erhalten": "Cards you've already learned are kept", "Zur Lektion ›": "To the lesson ›", "Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)": "You need the AI assistant for this (Settings › AI assistant)", "Neue {0}-Lektion": "New {0} lesson", "Der KI-Assistent schreibt eine Lektion für {0} auf Niveau {1}: Wörter mit Beispielsätzen, Grammatik, Übungen und ein Gespräch zum Mitspielen. Kostet meist 1–3 Cent.": "The AI assistant writes a {0} lesson at level {1}: words with example sentences, grammar, exercises and a conversation to play along. Usually costs 1–3 cents.", "Erstellen": "Create", "Thema (optional)": "Topic (optional)", "z. B. Arzttermin, Bewerbungsgespräch, Fußball": "e.g. doctor's appointment, job interview, football", "KI schreibt die Lektion …": "The AI is writing the lesson …", "{0} Zeichen erhalten": "{0} characters received", "Das dauert etwa eine halbe Minute.": "This takes about half a minute.", "Neue Lektion: {0}": "New lesson: {0}", "dein Name": "your name", "deine Stadt": "your city", "dein Land": "your country", "dein Beruf": "your job", "dein Alter": "your age", "ein Gericht": "a dish", "ein Tag": "a day", "eine Uhrzeit": "a time", "eine Zahl": "a number", "frei wählbar": "your choice", "Du": "You", "Gegenüber": "Partner", "Text ausblenden (Hörverstehen)": "Hide the text (listening practice)", "Mitspielen": "Play along", "Rollen getauscht": "Roles swapped", "Gespräch zu Ende": "End of the conversation", "{0} von {1} Sätzen richtig": "{0} of {1} sentences right", "💬 Normale Rolle": "💬 Normal role", "⏸ Pause": "⏸ Pause", "▶ Weiter abspielen": "▶ Continue", "Nächster Satz ›": "Next sentence ›", "Du sagst:": "You say:", "„…“ = {0}": "“…” = {0}", "Tipp: {0} …": "Hint: {0} …", "So kannst du es sagen:": "This is how you can say it:", "Nicht ganz": "Not quite", "⌨ Tippen": "⌨ Type", "Deine Antwort": "Your answer", "Auf {0} antworten …": "Answer in {0} …", "Sprechen": "Speak", "Bausteine": "Word tiles", "Tipp": "Hint", "Lösung": "Solution", "{0} von {1} ohne Fehler": "{0} of {1} without mistakes", "Frei sprechen": "Free conversation", "schreibt …": "is typing …", "Senden": "Send", "Lektion gelöscht": "Lesson deleted", "Imperativ im Alltag": "Everyday imperatives", "Aufforderungen, Bitten und Verbote – du, Sie, ihr und wir; mit Pronomen (Dimmi! Fammi vedere! Non dirglielo!) und kurzer Erklärung": "Commands, requests and prohibitions – tu, Lei, voi and noi; with pronouns (Dimmi! Fammi vedere! Non dirglielo!) and a short explanation", "Alltagssätze 2": "Everyday sentences 2", "Noch mehr ganze Sätze: Bahn & Flughafen, Hotel, Wohnung, Bank & Ämter, Notfall, Ausgehen, Dating & Gefühle, Uni, Telefon, Wetter und zu Gast bei Freunden": "Even more whole sentences: train & airport, hotel, flat, bank & offices, emergencies, going out, dating & feelings, uni, phone, weather and visiting friends", "du: Aufforderungen": "tu: commands", "du: Verbote mit Pronomen": "tu: prohibitions with pronouns", "Sie (Lei): höflich": "Lei: polite", "ihr (voi) und wir (noi)": "voi and noi", "Bahn & Flughafen": "Train & airport", "Hotel": "Hotel", "Wohnung & Vermieter": "Flat & landlord", "Bank, Post & Ämter": "Bank, post office & authorities", "Notfall": "Emergency", "Ausgehen": "Going out", "Dating & Gefühle": "Dating & feelings", "Uni": "Uni", "Telefon & Nachrichten": "Phone & messages", "Wetter & Smalltalk": "Weather & small talk", "Zu Gast bei Freunden": "Visiting friends", "Everyday Sentences 2": "Everyday Sentences 2", "Noch mehr ganze Sätze: Uni & Seminar, Vorstellungsgespräch, Arzt & Apotheke, Wohnung, Beschwerden, Ausgehen, Gefühle & Meinung, Telefon und höflich widersprechen": "Even more whole sentences: uni & seminars, job interviews, doctor & pharmacy, flat, complaints, going out, feelings & opinions, phone and disagreeing politely", "Uni & Seminar": "Uni & seminars", "Vorstellungsgespräch": "Job interview", "Wohnung": "Flat", "Beschwerden & Kundenservice": "Complaints & customer service", "Gefühle & Meinung": "Feelings & opinions", "Höflich widersprechen": "Disagreeing politely", "Die wichtigsten Wörter für Alltag, Essen, Reisen, Uni und Arbeit – mit Beispielsatz": "The most important words for everyday life, food, travel, uni and work – with example sentences", "Ganze Sätze für Bar & Restaurant, Einkaufen, Fitnessstudio, Unterwegs, Smalltalk, Verabredungen, Arbeit, Wohnung und Arzt": "Whole sentences for bars & restaurants, shopping, the gym, getting around, small talk, making plans, work, home and the doctor", "Die 60 häufigsten Verben mit allen Zeitformen – Presente, Indefinido, Imperfecto, Futuro, Subjuntivo und mehr": "The 60 most common verbs in every tense – presente, indefinido, imperfecto, futuro, subjuntivo and more", "Bar & Restaurant": "Bar & restaurant", "Verabreden": "Making plans", "Arbeit & Uni": "Work & uni", "Ganze Sätze für Café & Restaurant, Einkaufen, Fitnessstudio, Unterwegs, Smalltalk, Verabredungen, Arbeit, Wohnung und Arzt": "Whole sentences for cafés & restaurants, shopping, the gym, getting around, small talk, making plans, work, home and the doctor", "Die 60 häufigsten Verben mit allen Zeitformen – Présent, Passé composé, Imparfait, Futur, Conditionnel, Subjonctif": "The 60 most common verbs in every tense – présent, passé composé, imparfait, futur, conditionnel, subjonctif", "Café & Restaurant": "Café & restaurant", "Sprachkurs A1": "Language course A1", "Sprachkurs A2": "Language course A2", "Sprachkurs B1": "Language course B1", "Sprachkurs B2": "Language course B2", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – europäisches Portugiesisch, brasilianische Varianten in der Notiz": "The most important words for everyday life, food, travel and meeting people – European Portuguese, Brazilian variants in the notes", "Ganze Sätze für Café & Restaurant, Einkaufen, Unterwegs, Kennenlernen, Verabredungen, Arzt und Fitnessstudio": "Whole sentences for cafés & restaurants, shopping, getting around, meeting people, making plans, the doctor and the gym", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – mit de/het und Beispielsätzen": "The most important words for everyday life, food, travel and meeting people – with de/het and example sentences", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – mit en/ett und Beispielsätzen": "The most important words for everyday life, food, travel and meeting people – with en/ett and example sentences", "Kennenlernen": "Meeting people", "Diese Stimme ignoriert das Sprechtempo (iOS). Sätze kommen langsam Wort für Wort – für einzelne Wörter eine andere Stimme probieren: Spracheinstellungen › Stimme.": "This voice ignores the speaking rate (iOS). Sentences now come slowly word by word – for single words, try another voice: language settings › Voice."};
+const UI_EN = {"(Beispielsätze)": "(example sentences)", "+ 10 neue Karten": "+ 10 new cards", "+ Karte": "+ Card", "+ Neues Projekt": "+ New project", "+ Neues Projekt …": "+ New project …", "+ Neues Thema …": "+ New topic …", "+ Sprache": "+ Language", "+ Sprache hinzufügen": "+ Add language", "+ Verb": "+ Verb", "-isc- Verb": "-isc- verb", "0 ausgewählt": "0 selected", "1 Jahr": "1 year", "10 Formen": "10 forms", "10 Fragen": "10 questions", "10 Karten": "10 cards", "10 Sätze": "10 sentences", "1–4: Antwort wählen": "1–4: choose answer", "1–4: bewerten · Enter: Vorschlag": "1–4: rate · Enter: suggestion", "20 Formen": "20 forms", "20 Fragen": "20 questions", "20 Karten": "20 cards", "20 Sätze": "20 sentences", "28 Wörter, die Deutsche gern verwechseln – mit Beispielsatz": "28 words Germans often mix up – with example sentences", "30 Ausdrücke für Meetings, E-Mails und Gespräche – mit Beispielsatz": "30 expressions for meetings, emails and conversations – with example sentences", "30 Fragen": "30 questions", "30 Karten": "30 cards", "30 Tage": "30 days", "40 Formen": "40 forms", "45 Verben mit Konjugation und Beispielsatz – Presente, Passato prossimo, Imperfetto, Futuro und mehr": "45 verbs with conjugation and example sentence – Presente, Passato prossimo, Imperfetto, Futuro and more", "5 Sätze": "5 sentences", "50 Fragen": "50 questions", "50 Karten": "50 cards", "80 % – weniger Wiederholungen": "80 % – fewer reviews", "80 Formen": "80 forms", "81 Verben mit Stammformen (go – went – gone) und Beispielsatz": "81 verbs with principal parts (go – went – gone) and example sentence", "90 % – empfohlen": "90 % – recommended", "90 Tage": "90 days", "95 % – mehr Wiederholungen": "95 % – more reviews", "<10 Min": "<10 min", "<b>Umdrehen</b>: Karte antippen, selbst einschätzen. <b>Tippen</b>: Antwort schreiben, PLM prüft – auch Akzente, Artikel und Tippfehler. <b>Auswahl</b>: eine von vier Antworten.": "<b>Flip</b>: tap the card and rate yourself. <b>Type</b>: write the answer, PLM checks it – accents, articles and typos included. <b>Choice</b>: pick one of four answers.", "<b>{0} ohne Übersetzung</b> – {1}.": "<b>{0} without translation</b> – {1}.", "<strong>Noch keine Karten</strong>": "<strong>No cards yet</strong>", "Abbrechen": "Cancel", "Abfragerichtung": "Direction", "Abgefragte Zeiten": "Tenses asked", "Adjektiv": "Adjective", "Adverb": "Adverb", "Alle": "All", "Alle Formen waren schon ausgefüllt": "All forms were already filled in", "Alle Karten": "All cards", "Alle Karten waren schon da": "All cards were already there", "Alle Karten ›": "All cards ›", "Alle Projekte": "All projects", "Alle Sprachen": "All languages", "Alle Wörter sind schon im Lernen": "All words are already being learned", "Alle Wörter sind schon im Lernen. Lade ein Starter-Paket oder importiere neue Wörter.": "All words are already being learned. Load a starter pack or import new words.", "Alle auswählen": "Select all", "Alle {0} anzeigen": "Show all {0}", "Alles erledigt": "All done", "Alles gelöscht": "Everything deleted", "Alles liegt auf diesem Gerät in PLM und läuft auch offline{0}. Wenn du PLM vom Home-Bildschirm löschst, sind die lokalen Daten weg – ein Backup in iCloud Drive schadet nie.": "Everything is stored in PLM on this device and works offline{0}. If you delete PLM from the home screen, the local data is gone – a backup in iCloud Drive never hurts.", "Alles löschen": "Delete everything", "Alles richtig!": "All correct!", "Alles schon vollständig": "Everything is already complete", "Alltag": "Everyday life", "Alltagssätze": "Everyday sentences", "Als Karten durchgehen": "Go through as cards", "Am häufigsten vergessen": "Most often forgotten", "Andere Sprache": "Other language", "Anhören": "Listen", "Antwort": "Answer", "Antwortmodus": "Answer mode", "Anzahl": "Number", "Anzeigen": "Show", "Arabisch": "Arabic", "Art": "Type", "Art der Karte": "Card type", "Artikel": "Articles", "Artikel, Zeitformen, Konjugation – mit Übungen": "Articles, tenses, conjugation – with exercises", "Arzt & Apotheke": "Doctor & pharmacy", "Auf": "In", "Auf <b>platform.claude.com</b> anmelden, unter <b>Billing</b> etwas Guthaben aufladen.": "Sign in at <b>platform.claude.com</b> and add some credit under <b>Billing</b>.", "Auf Anhieb": "First try", "Auf Deutsch": "In German", "Auf dem Gerät": "On the device", "Auf dem Gerät erkennt PLM Listen und zweispaltige Tabellen. Für Buchseiten mit Übungen, deutsche Übersetzungen und automatische Themen:": "On the device PLM recognises lists and two-column tables. For book pages with exercises, German translations and automatic topics:", "Auf dem anderen Gerät denselben Token eintragen – PLM findet die Daten automatisch. Karten, Fortschritt, Statistik und Einstellungen werden zusammengeführt.": "Enter the same token on your other device – PLM finds the data automatically. Cards, progress, statistics and settings are merged.", "Auf github.com: <b>Settings › Developer settings › Personal access tokens › Tokens (classic) › Generate new token (classic)</b>": "On github.com: <b>Settings › Developer settings › Personal access tokens › Tokens (classic) › Generate new token (classic)</b>", "Auf {0}": "In {0}", "Aus deinen Kursunterlagen: Lektion 1 und 2 – Begrüßung, Kursraum, Länder, nützliche Sätze, Verben, Zahlen bis 100, Aussprache, Nomen auf -e, Verbote mit „Non …“ und Lückensätze": "From your course material: lessons 1 and 2 – greetings, classroom, countries, useful sentences, verbs, numbers to 100, pronunciation, nouns ending in -e, “Non …” prohibitions and gap sentences", "Ausdruck": "Phrase", "Aussprache": "Pronunciation", "Aussprache-Sprache": "Pronunciation language", "Auswahl": "Choice", "Auswertung": "Analysis", "Auswählen": "Select", "Automatisch{0}": "Automatic{0}", "Backup geladen · {0}": "Backup loaded · {0}", "Backup laden": "Load backup", "Backup sichern": "Save backup", "Bar & Café": "Bar & café", "Bausteine antippen": "Tap word tiles", "Bearbeiten": "Edit", "Bedeutung ({0})": "Meaning ({0})", "Beenden": "Quit", "Begrüßung & Floskeln": "Greetings & phrases", "Beide Richtungen": "Both directions", "Beide Richtungen: erst erkennen, später selbst aktiv wissen. Gilt für Vokabeln und Verbbedeutungen.": "Both directions: recognise first, later recall actively. Applies to vocabulary and verb meanings.", "Beispiel anhören": "Listen to the example", "Beispielsatz": "Example sentence", "Beispielsatz & Notiz": "Example sentence & note", "Bestanden": "Passed", "Bewerbung & Studium": "Applications & studies", "Business & Uni": "Business & uni", "CSV exportieren": "Export CSV", "Chinesisch": "Chinese", "Claude-API-Schlüssel": "Claude API key", "Dafür gibt es gerade keine Aufgaben": "There are no exercises for this right now", "Damit iPhone und iPad dieselben Karten und denselben Lernstand haben, speichert PLM eine Kopie in einem privaten „Gist“ in deinem GitHub-Konto. Kostenlos, ohne Server dazwischen.": "So that iPhone and iPad have the same cards and progress, PLM stores a copy in a private “Gist” in your GitHub account. Free, with no server in between.", "Das PDF ist größer als 30 MB – bitte aufteilen.": "The PDF is larger than 30 MB – please split it.", "Das hat nicht geklappt.": "That didn’t work.", "Das ist kein PLM-Backup": "This is not a PLM backup", "Das sieht nicht wie ein Claude-API-Schlüssel aus (beginnt mit sk-ant-)": "That doesn’t look like a Claude API key (starts with sk-ant-)", "Das sieht nicht wie ein GitHub-Token aus (beginnt mit ghp_ …)": "That doesn’t look like a GitHub token (starts with ghp_ …)", "Datei konnte nicht gelesen werden": "File couldn’t be read", "Datei wählen": "Choose file", "Daten &amp; Backup": "Data &amp; backup", "Dein Satz": "Your sentence", "Dem Token fehlt die Berechtigung „gist“": "The token lacks the “gist” permission", "Dem Token fehlt die Berechtigung „gist“ – neues Token mit Häkchen bei „gist“ anlegen": "The token lacks the “gist” permission – create a new token with “gist” ticked", "Der Eintrag braucht einen Text.": "The entry needs a text.", "Der Infinitiv muss auf -are, -ere, -ire (oder -arsi …) enden.": "The infinitive must end in -are, -ere, -ire (or -arsi …).", "Der KI-Schlüssel ist ungültig.": "The AI key is invalid.", "Deutsch": "German", "Deutsch *": "German *", "Diagramm": "Chart", "Die Bedeutung ist Englisch": "The meaning is English", "Die Datei ist zu groß für die KI – teile das PDF auf.": "The file is too large for the AI – split the PDF.", "Die Datei konnte nicht gelesen werden": "The file couldn’t be read", "Die KI erkennt Wörter, Sätze, Verben und Grammatik und ordnet sie in Themen …": "The AI detects words, sentences, verbs and grammar and sorts them into topics …", "Die KI hat diese Anfrage abgelehnt.": "The AI declined this request.", "Die KI hat in diesem Material nichts zum Lernen gefunden.": "The AI found nothing to learn in this material.", "Die KI ist gerade überlastet – bitte gleich nochmal versuchen.": "The AI is overloaded right now – please try again shortly.", "Die KI ordnet in Themen, übersetzt ins Deutsche, ergänzt Beispielsätze und baut Lückensätze und Verbtabellen.": "The AI sorts into topics, translates into German, adds example sentences and builds gap sentences and verb tables.", "Die KI schreibt deine Karten … ({0}k Zeichen)": "The AI is writing your cards … ({0}k characters)", "Die KI-Antwort war unvollständig – bitte nochmal versuchen.": "The AI answer was incomplete – please try again.", "Die Stimme pro Sprache wählst du in den Spracheinstellungen. Bessere Stimmen lädst du auf dem iPhone unter <b>Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen</b> (z. B. Italienisch „Alice“ oder „Federica“ in der Version „Erweitert“). Nichts zu hören? Lautstärke hoch, Stummschalter prüfen.": "You choose the voice for each language in the language settings. Better voices can be downloaded on the iPhone under <b>Settings › Accessibility › Spoken Content › Voices</b> (e.g. Italian “Alice” or “Federica”, “Enhanced” version). Can’t hear anything? Turn up the volume and check the silent switch.", "Die Verbindung zur KI ist abgebrochen – bitte nochmal versuchen.": "The connection to the AI was interrupted – please try again.", "Die nächsten Wiederholungen plant PLM automatisch. Komm morgen wieder – kurze tägliche Runden bringen am meisten.": "PLM schedules your next reviews automatically. Come back tomorrow – short daily rounds work best.", "Die wichtigsten Wörter für Alltag, Essen, Reisen, Uni und Arbeit – jedes mit Beispielsatz": "The most important words for everyday life, food, travel, uni and work – each with an example sentence", "Diese Karte gibt es schon ({0}).": "This card already exists ({0}).", "Diese Karten üben": "Practise these cards", "Diese Sprache gibt es schon.": "This language already exists.", "Diese Woche": "This week", "Dieser Browser kann nicht vorlesen.": "This browser can’t read aloud.", "Direkt lernen": "Start learning right away", "Dranbleiben!": "Keep going!", "Dänisch": "Danish", "E-Mails": "Emails", "Eigene Karten": "My cards", "Eigenschaften": "Describing things", "Ein Projekt mit diesem Namen gibt es schon.": "A project with this name already exists.", "Eine Karte pro Zeile: Wort und Übersetzung getrennt durch Tab, Semikolon, Komma oder „ - “. Quizlet-Export (Tab), Anki-Textexport und Excel/Numbers-Tabellen funktionieren direkt. Lückensätze mit {{Lücke}} werden erkannt.": "One card per line: word and translation separated by tab, semicolon, comma or “ - ”. Quizlet exports (tab), Anki text exports and Excel/Numbers tables work directly. Gap sentences with {{gap}} are recognised.", "Einkaufen": "Shopping", "Einstellungen": "Settings", "Eintrag": "Entry", "Eintrag bearbeiten": "Edit entry", "Einträge": "Entries", "Englisch": "English", "Englisch (UK)": "English (UK)", "Englisch (USA)": "English (US)", "Enter: merken · K: kenne ich schon": "Enter: got it · K: I know it", "Enter: prüfen": "Enter: check", "Enter: prüfen / weiter": "Enter: check / next", "Enter: weiter": "Enter: next", "Entfernen": "Remove", "Ergebnis": "Result", "Ergebnis ›": "Result ›", "Ergebnisse": "Results", "Ergänzen": "Add missing", "Erinnerung": "Reminder", "Erkennen": "Recognise", "Erste Zeile ist eine Überschrift": "First row is a header", "Es läuft schon ein Import": "An import is already running", "Essen & Trinken": "Food & drink", "Etwas langsamer – empfohlen": "A bit slower – recommended", "Everyday Sentences": "Everyday sentences", "False Friends": "False friends", "Familie & Menschen": "Family & people", "Fast alles richtig{0}": "Almost all correct{0}", "Fast richtig": "Almost right", "Fast – achte auf den Akzent": "Almost – mind the accent", "Fast – der Artikel fehlt oder stimmt nicht": "Almost – the article is missing or wrong", "Fast – die rot markierten Wörter nochmal üben": "Almost – practise the words marked in red", "Fast – kleiner Tippfehler": "Almost – small typo", "Fehler": "Mistakes", "Fehler üben ({0})": "Practise mistakes ({0})", "Fehlt: {0}": "Missing: {0}", "Fertig": "Done", "Filter": "Filter", "Finance": "Finance", "Form": "Form", "Formen schnell üben": "Quick form practice", "Formen üben": "Practise forms", "Fortschritt zurücksetzen": "Reset progress", "Fortsetzen": "Resume", "Foto / PDF / Liste": "Photo / PDF / list", "Foto oder PDF": "Photo or PDF", "Foto {0}": "Photo {0}", "Foto {0} von {1} vorbereiten …": "Preparing photo {0} of {1} …", "Foto {0} von {1} wird gelesen …": "Reading photo {0} of {1} …", "Foto, PDF aus dem Kurs oder Liste (Quizlet, Anki, Excel)": "Photo, course PDF or list (Quizlet, Anki, Excel)", "Foto, PDF oder Liste in Karten verwandeln": "Turn a photo, PDF or list into cards", "Fotografiere eine Vokabelliste, ein Glossar oder eine Buchseite – oder lade ein PDF aus deinem Kurs. Du prüfst alles, bevor es Karten werden.": "Photograph a word list, a glossary or a book page – or upload a PDF from your course. You review everything before it becomes cards.", "Fotografiere eine Vokabelliste, lade ein PDF hoch, importiere eine Liste oder leg eigene Karten an.": "Take a photo of a word list, upload a PDF, import a list or create your own cards.", "Frage": "Question", "Fragen": "Questions", "Fragt einmal nach der Mitteilungs-Erlaubnis. Die Zahl aktualisiert sich, wenn du PLM öffnest oder schließt.": "Asks once for notification permission. The number updates when you open or close PLM.", "Französisch": "French", "Frei tippen": "Type freely", "Freie Runde{0}{1} – zählt für deine Serie, ändert aber nicht den Wiederholungsplan.": "Free round{0}{1} – counts for your streak but doesn’t change the review schedule.", "Fremdsprache *": "Foreign language *", "Fremdsprache automatisch vorlesen": "Read the foreign language aloud automatically", "Funktioniert für regelmäßige Verben. Bei unregelmäßigen Verben bitte prüfen und korrigieren.": "Works for regular verbs. Please check and correct irregular verbs.", "Fällige Karten als Zahl am App-Symbol<br>": "Number of due cards on the app icon<br>", "Fällige Wiederholungen": "Reviews due", "Für Verben trägst du die Personen ein, z. B. ich-Form bis sie-Form. Zeiten kannst du später ergänzen.": "For verbs, enter the persons, e.g. I-form to they-form. You can add tenses later.", "Für deine Sprachen gibt es noch keine Theorie": "There’s no theory for your languages yet", "Für diese Sprache gibt es noch keine Starter-Pakete. Importiere ein Foto, PDF oder eine Liste.": "There are no starter packs for this language yet. Import a photo, PDF or list.", "Für diese Sprache gibt es noch keine Theorie.": "There’s no theory for this language yet.", "Für diese Zeiten sind noch keine Formen eingetragen": "No forms entered for these tenses yet", "Für einen Test braucht das Projekt mindestens 3 Karten": "A test needs at least 3 cards in the project", "Für heute erledigt": "Done for today", "Für heute erledigt · {0} neue Karten warten": "Done for today · {0} new cards waiting", "Für heute erledigt ✓": "Done for today ✓", "Für heute ist nichts mehr fällig": "Nothing else is due today", "Ganze Sätze für Gym, Bar, Restaurant, Einkaufen, Unterwegs, Smalltalk, Arbeit, Wohnung, Arzt und Verabredungen": "Whole sentences for the gym, bar, restaurant, shopping, getting around, small talk, work, home, the doctor and making plans", "Ganze Sätze für Gym, Meetings, E-Mails, Smalltalk, Reisen und Restaurant": "Whole sentences for the gym, meetings, emails, small talk, travel and restaurants", "Gehört: „{0}“": "Heard: “{0}”", "Gelernte Karten": "Cards studied", "Gelernte Karten pro Tag": "Cards studied per day", "Gemischt – auch neue Wörter erschließen": "Mixed – also work out new words", "Gemischte Fragen mit Note": "Mixed questions with a grade", "Genau – Claude Sonnet 5.5": "Accurate – Claude Sonnet 5.5", "Geschafft!": "Done!", "Gespeichert": "Saved", "Gewusst": "Correct", "Gewusst / geübt": "Correct / practised", "Gewusst ✓": "Knew it ✓", "Gib dem Projekt einen Namen.": "Give the project a name.", "Gib der Sprache einen Namen.": "Give the language a name.", "Gist konnte nicht angelegt werden ({0})": "Couldn’t create the Gist ({0})", "GitHub antwortet mit {0}": "GitHub answers with {0}", "GitHub-Token": "GitHub token", "Grammatik": "Grammar", "Grammatik in Sätzen": "Grammar in sentences", "Grammatik zum Nachlesen, mit Beispielen zum Anhören und Übungen": "Grammar to read up on, with examples to listen to and exercises", "Grammatik, Zeitformen, Artikel – mit Übungen": "Grammar, tenses, articles – with exercises", "Griechisch": "Greek", "Grundwortschatz": "Basic vocabulary", "Gut": "Good", "Gut!": "Good!", "Gym": "Gym", "Günstig – Claude Haiku 5.5": "Cheap – Claude Haiku 5.5", "Heute": "Today", "Heute (inkl. überfällig)": "Today (incl. overdue)", "Heute dran": "Due today", "Heute gelernt": "Studied today", "Hilfsverb": "Auxiliary verb", "Im Fitnessstudio": "At the gym", "Im Lernen": "Learning", "Import": "Import", "Import {0}": "Import {0}", "Importieren": "Import", "In Projekt": "Into project", "In diesem Projekt sind keine Karten mehr.": "There are no cards left in this project.", "Infinitiv": "Infinitive", "Infinitiv ({0})": "Infinitive ({0})", "Italienisch": "Italian", "Japanisch": "Japanese", "Jede aktive Zeit wird pro Verb als eigene Karte wiederholt. Starte mit wenigen Zeiten und schalte weitere dazu, sobald sie sitzen.": "Every active tense is reviewed as its own card for each verb. Start with a few tenses and add more once they stick.", "Jedes Paket wird ein Projekt. PLM zeigt dir jeden Tag nur ein paar neue Karten (15 pro Sprache, einstellbar). Weitere Pakete kannst du jederzeit nachladen.": "Every pack becomes a project. PLM only shows you a few new cards each day (15 per language, adjustable). You can load more packs any time.", "Jedes Verb in allen wichtigen Zeitformen – z. B. essere": "Any verb in all the important tenses – e.g. essere", "Jetzt synchronisieren": "Sync now", "KI antwortet ✓": "AI responds ✓", "KI ergänzt …": "AI is filling in …", "KI erreichbar ✓": "AI reachable ✓", "KI fragen": "Ask the AI", "KI liest dein Material": "AI is reading your material", "KI prüft …": "AI is checking …", "KI-Assistent (optional)": "AI assistant (optional)", "KI-Assistent einrichten ›": "Set up the AI assistant ›", "KI-Fehler{0}{1}": "AI error{0}{1}", "Kapitel": "Chapter", "Karte": "Card", "Karte angelegt{0}": "Card created{0}", "Karte bearbeiten": "Edit card", "Karte gespeichert": "Card saved", "Karte gilt wieder als neu": "Card counts as new again", "Karten": "Cards", "Karten sicher gelernt": "Cards learned for good", "Karten suchen": "Search cards", "Kartenstand": "Card status", "Kein Guthaben mehr auf deinem Claude-Konto (platform.claude.com › Billing).": "No credit left on your Claude account (platform.claude.com › Billing).", "Kein KI-Schlüssel hinterlegt (Einstellungen › KI-Assistent)": "No AI key stored (Settings › AI assistant)", "Kein Zugriff aufs Mikrofon – erlaube es in den Einstellungen bzw. schalte „Diktieren“ ein.": "No microphone access – allow it in Settings or turn on “Dictation”.", "Keine": "None", "Keine Karten in dieser Auswahl.": "No cards in this selection.", "Keine Sätze in diesem Projekt": "No sentences in this project", "Keine Verbindung zu GitHub": "No connection to GitHub", "Keine Verbindung zur KI – bist du online?": "No connection to the AI – are you online?", "Keine Wörter erkannt. Tipp: gerade von oben fotografieren, gutes Licht – oder den KI-Assistenten nutzen.": "No words recognised. Tip: photograph straight from above in good light – or use the AI assistant.", "Keine passenden Karten zum Üben": "No matching cards to practise", "Keine weiteren neuen Karten": "No more new cards", "Keine zwei Spalten erkannt. Trenne Wort und Übersetzung mit Tab, Semikolon, Komma oder „ - “.": "No two columns recognised. Separate word and translation with tab, semicolon, comma or “ - ”.", "Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache": "No {0} voice on this device – see Settings › Pronunciation", "Kenne ich schon": "I know it", "Kennenlernen & Smalltalk": "Getting to know people & small talk", "Kleine Wörter": "Little words", "Konjugation": "Conjugation", "Konnte keine Formen bilden.": "Couldn’t build any forms.", "Konsonant am Anfang": "starts with a consonant", "Koreanisch": "Korean", "Kosten nach Verbrauch: ein Foto kostet meist unter 1 Cent, ein Kurs-PDF mit 10 Seiten einige Cent. Der Schlüssel bleibt nur auf diesem Gerät und wird nicht synchronisiert. Dein Material geht dafür direkt an Anthropic.": "Pay per use: a photo usually costs less than 1 cent, a 10-page course PDF a few cents. The key stays on this device only and is not synced. Your material is sent directly to Anthropic.", "Kostenlos und offline: erkennt Listen und zweispaltige Tabellen. Übersetzungen nur, wenn sie im Material stehen.": "Free and offline: recognises lists and two-column tables. Translations only if they are in the material.", "Kurs A1": "Course A1", "Kürzlich neu gelernt": "Recently learned", "L1 · Aussprache: c, g, sc": "L1 · Pronunciation: c, g, sc", "L1 · Begrüßung": "L1 · Greetings", "L1 · Grammatik": "L1 · Grammar", "L1 · Im Kursraum": "L1 · In the classroom", "L1 · Länder": "L1 · Countries", "L1 · Nationalitäten": "L1 · Nationalities", "L1 · Nomen": "L1 · Nouns", "L1 · Nützliche Sätze": "L1 · Useful sentences", "L1 · Unterwegs": "L1 · Getting around", "L1 · Verben": "L1 · Verbs", "L1 · Zahlen 0–100": "L1 · Numbers 0–100", "L2 · Nomen auf -e: il oder la?": "L2 · Nouns ending in -e: il or la?", "Lade ein Starter-Paket, fotografiere eine Vokabelliste, lade ein PDF aus deinem Kurs hoch oder leg eigene Karten an.": "Load a starter pack, take a photo of a word list, upload a PDF from your course or create your own cards.", "Laden": "Load", "Langsam": "Slow", "Langsam anhören": "Listen slowly", "Lass PLM geöffnet, bis es fertig ist{0}.": "Keep PLM open until it’s finished{0}.", "Laut KI nicht ganz richtig": "Not quite right according to the AI", "Laut KI richtig": "Correct according to the AI", "Leer oder unvollständig (übersprungen)": "Empty or incomplete (skipped)", "Leere Formen automatisch ausfüllen": "Fill in empty forms automatically", "Leertaste: umdrehen": "Space: flip", "Leicht": "Easy", "Leider falsch": "Not quite", "Lernen": "Learn", "Lerntage": "Study days", "Letztes Backup: {0} · Jetzt sichern ›": "Last backup: {0} · Back up now ›", "Letztes Backup: {0} · {1} · {2} KB": "Last backup: {0} · {1} · {2} KB", "Liste einfügen": "Paste a list", "Los geht's": "Let’s go", "Löschen": "Delete", "Löscht alle Karten dieses Projekts samt Fortschritt": "Deletes all cards of this project including progress", "Löscht alle Karten, Fortschritte und Statistiken auf diesem Gerät{0}.": "Deletes all cards, progress and statistics on this device{0}.", "Lücke": "Gap", "Lücke in doppelte geschweifte Klammern setzen: {{a}}. Mehrere Lücken sind möglich.": "Put the gap in double curly brackets: {{a}}. Several gaps are possible.", "Lücke mit {{…}} markieren.": "Mark the gap with {{…}}.", "Lücke {0}": "Gap {0}", "Lückensatz": "Gap sentence", "Lückensätze zu Präpositionen, Artikeln und Zeiten": "Gap sentences on prepositions, articles and tenses", "Management": "Management", "Markiere die Lücke mit doppelten geschweiften Klammern, z. B. Vado {{a}} Roma.": "Mark the gap with double curly brackets, e.g. Vado {{a}} Roma.", "Meetings & Calls": "Meetings & calls", "Mehr": "More", "Menü": "Menu", "Menüs, Hinweise und Theorie. Deine Karten bleiben, wie sie sind.": "Menus, hints and theory. Your cards stay as they are.", "Merken ›": "Got it ›", "Min.": "min", "Mit KI": "With AI", "Mit KI ergänzen{0}": "Fill in with AI{0}", "Mit dem Mikrofon-Knopf auf der Kartenrückseite sprichst du nach – PLM prüft per Spracherkennung, ob du verstanden wurdest.": "With the microphone button on the back of the card you repeat the word – PLM uses speech recognition to check whether you were understood.", "Mit einem eigenen Claude-API-Schlüssel wertet PLM Fotos und Kurs-PDFs schlau aus: Projekte und Themen, deutsche Übersetzungen, Beispielsätze, Verbtabellen und Lückensätze. Außerdem gibt die KI beim Sätzebauen Feedback. Ohne Schlüssel erkennt PLM Wortlisten und Tabellen direkt auf dem Gerät.": "With your own Claude API key PLM analyses photos and course PDFs intelligently: projects and topics, German translations, example sentences, verb tables and gap sentences. The AI also gives feedback when you build sentences. Without a key PLM recognises word lists and tables right on the device.", "Mit {0} löschen?": "Delete with {0}?", "Modell": "Model", "Modus": "Mode", "Morgen": "Tomorrow", "Nachsprechen mit Mikrofon wird in diesem Browser nicht unterstützt. Auf dem iPhone funktioniert es in Safari, wenn „Diktieren“ eingeschaltet ist (Einstellungen › Allgemein › Tastatur).": "Repeating with the microphone isn’t supported in this browser. On the iPhone it works in Safari when “Dictation” is turned on (Settings › General › Keyboard).", "Nachsprechen und prüfen": "Repeat and check", "Name": "Name", "Name des neuen Projekts": "Name of the new project", "Name „PLM“, Ablauf z. B. „No expiration“, nur den Haken bei <b>gist</b> setzen, erstellen.": "Name “PLM”, expiration e.g. “No expiration”, tick only <b>gist</b>, create.", "Name, Aussprache und Personen selbst festlegen": "Set name, pronunciation and persons yourself", "Neu": "New", "Neu ·": "New ·", "Neu · {0}": "New · {0}", "Neue Karte": "New card", "Neue Karten": "New cards", "Neue Karten erst kennenlernen, dann abfragen<br>": "Get to know new cards before being asked<br>", "Neue Karten kommen nach und nach – so viele pro Tag, wie du in den Spracheinstellungen festlegst. Karten, die es schon gibt, werden nicht doppelt angelegt.": "New cards arrive gradually – as many per day as you set in the language settings. Cards you already have are not added twice.", "Neue Karten pro Tag": "New cards per day", "Neue Karten pro Tag, Richtung, Zeiten, Stimme": "New cards per day, direction, tenses, voice", "Neue Runde": "New round", "Neue Sprache": "New language", "Neue Wörter": "New words", "Neue Wörter ansehen": "Browse new words", "Neuer Lerntag beginnt um": "New study day starts at", "Neuer Test": "New test", "Neues Projekt": "New project", "Neues Projekt, z. B. Kurs A2": "New project, e.g. Course A2", "Neues Thema": "New topic", "Neues Thema, z. B. Reisen": "New topic, e.g. Travel", "Nicht gefunden": "Not found", "Nicht verstanden – hör es dir an und versuch es nochmal": "Not understood – listen and try again", "Nichts Neues zu importieren.": "Nothing new to import.", "Nichts gefunden.": "Nothing found.", "Nichts gehört – tippe aufs Mikrofon und sprich direkt los.": "Nothing heard – tap the microphone and start speaking right away.", "Nichts zu prüfen": "Nothing to review", "Niederländisch": "Dutch", "Noch eine Runde": "One more round", "Noch keine Formen eingetragen.": "No forms entered yet.", "Noch keine Karten – tippen zum Starten": "No cards yet – tap to start", "Noch keine Karten.": "No cards yet.", "Noch keine Sätze – lade z. B. „Alltagssätze“ oder lerne Wörter mit Beispielsatz": "No sentences yet – load e.g. “Alltagssätze” or learn words with example sentences", "Noch keine Verben – lade ein Starter-Paket oder leg ein Verb an": "No verbs yet – load a starter pack or add a verb", "Noch keine Verben – leg eins an": "No verbs yet – add one", "Noch keine Verben.": "No verbs yet.", "Noch keine Verbformen eingetragen": "No verb forms entered yet", "Noch nicht ganz": "Not quite yet", "Noch nicht gelernt (Vorschau)": "Not learned yet (preview)", "Noch nicht gelernt – lesen und anhören": "Not learned yet – read and listen", "Noch nicht synchronisiert": "Not synced yet", "Nochmal": "Again", "Nochmal ·": "Again ·", "Nomen": "Noun", "Nomen mit Artikel eintragen.": "Enter nouns with their article.", "Normal": "Normal", "Norwegisch": "Norwegian", "Notiz": "Note", "Notiz / Eselsbrücke": "Note / memory aid", "Nur Deutsch → {0}": "Only German → {0}", "Nur Verbformen": "Verb forms only", "Nur {0} → Deutsch": "Only {0} → German", "Oder neues Thema": "Or new topic", "Offline – Sync folgt, sobald du online bist": "Offline – syncing as soon as you’re online", "Offline – die KI braucht eine Internetverbindung": "Offline – the AI needs an internet connection", "Oft vergessen – gezielt üben oder Eselsbrücke ergänzen": "Often forgotten – practise them or add a memory aid", "Ohne Erlaubnis kann PLM keine Zahl anzeigen": "Without permission PLM can’t show a number", "Ohne Thema": "No topic", "Ohne Übersetzung": "No translation", "PDF wird geöffnet …": "Opening PDF …", "PDF wird hochgeladen …": "Uploading PDF …", "PDF wählen": "Choose PDF", "PDF-Leser konnte nicht geladen werden – einmal mit Internet öffnen": "PDF reader couldn’t be loaded – open once with internet", "PLM plant jede Karte mit FSRS – dem Verfahren, das auch Anki nutzt: Was du gut kannst, kommt seltener, was du vergisst, früher wieder.": "PLM schedules every card with FSRS – the method Anki uses too: what you know well comes back less often, what you forget comes back sooner.", "PLM {0} · Personal Language Management": "PLM {0} · Personal Language Management", "Pakete": "Packs", "Passato prossimo mit": "Passato prossimo with", "Passato prossimo mit {0}": "Passato prossimo with {0}", "Passato prossimo mit …?": "passato prossimo with …?", "Pausieren": "Pause", "Pausiert": "Paused", "Pausiert – wird nicht mehr abgefragt": "Paused – won’t be asked any more", "Personen (mit Komma getrennt)": "Persons (comma-separated)", "Phrasal Verbs": "Phrasal verbs", "Phrasal Verbs & Redewendungen": "Phrasal verbs & idioms", "Plural": "plural", "Plural mit Artikel": "plural with article", "Polnisch": "Polish", "Portugiesisch": "Portuguese", "Portugiesisch (Brasilien)": "Portuguese (Brazil)", "Portugiesisch (Portugal)": "Portuguese (Portugal)", "Projekt": "Project", "Projekt leer": "Project empty", "Projekt löschen": "Delete project", "Projekt umbenennen": "Rename project", "Projekte": "Projects", "Präpositionen": "Prepositions", "Präsens, Vergangenheit, Futur": "Present, Past, Future", "Prüfen": "Review", "Redewendungen": "Idioms", "Regelmäßig gebildet – bei unbekannten Verben bitte gegenprüfen.": "Formed by the regular rules – please double-check unfamiliar verbs.", "Reihenfolge neuer Karten": "Order of new cards", "Reisen": "Travel", "Reisen & Stadt": "Travel & city", "Rekord": "Record", "Restaurant": "Restaurant", "Richtig": "Correct", "Richtig!": "Correct!", "Richtig: {0}": "Right: {0}", "Rund 90 Fachbegriffe aus Finance, Management und Studium – jeder mit Beispielsatz": "Around 90 terms from finance, management and university – each with an example sentence", "Russisch": "Russian", "Rückgängig": "Undo", "Satz": "Sentence", "Satz auf {0}": "Sentence in {0}", "Satz mit {{Lücke}}": "Sentence with {{gap}}", "Schließen": "Close", "Schlüssel entfernen": "Remove key", "Schlüssel entfernt": "Key removed", "Schlüssel: <b>{0}</b>": "Key: <b>{0}</b>", "Schnell": "Fast", "Schon vorhanden (übersprungen)": "Already there (skipped)", "Schwedisch": "Swedish", "Schwer": "Hard", "Schwierig": "Difficult", "Schwierige Karten": "Difficult cards", "Schwierige Karten ({0})": "Difficult cards ({0})", "Sehr gut verstanden!": "Understood perfectly!", "Sehr gut!": "Excellent!", "Seite {0}": "Page {0}", "Seite {0} von {1} wird gelesen (Scan) …": "Reading page {0} of {1} (scan) …", "Seite {0} von {1} …": "Page {0} of {1} …", "Seite {0}: gescannt – Texterkennung wird geladen …": "Page {0}: scanned – loading text recognition …", "Serie": "Streak", "Sicher": "Known", "Sicher (Abstand ≥ 3 Wochen)": "Known (interval ≥ 3 weeks)", "Singular": "singular", "Sitzung beendet": "Session finished", "Smalltalk": "Small talk", "So geht's:": "Here’s how:", "Sonstiges": "Other", "Spalte {0}": "Column {0}", "Spalten": "Columns", "Spanisch": "Spanish", "Spanisch (Mexiko)": "Spanish (Mexico)", "Spanisch (Spanien)": "Spanish (Spain)", "Spanisch, Französisch, Portugiesisch …": "Spanish, French, Portuguese …", "Speichern": "Save", "Speichern + nächste": "Save + next", "Speichern fehlgeschlagen ({0})": "Saving failed ({0})", "Speichern fehlgeschlagen – Speicher voll? Sichere ein Backup.": "Saving failed – storage full? Save a backup.", "Sprache": "Language", "Sprache hinzufügen": "Add language", "Sprache löschen": "Delete language", "Sprache nicht gefunden": "Language not found", "Spracheinstellungen": "Language settings", "Sprachen": "Languages", "Spracherkennung gerade nicht verfügbar – versuch es nochmal.": "Speech recognition unavailable right now – please try again.", "Spracherkennung wird hier nicht unterstützt.": "Speech recognition isn’t supported here.", "Sprechtempo": "Speaking rate", "Sprich jetzt …": "Speak now …", "Stammformen": "Principal parts", "Stammformen und Zeitformen – z. B. go, went, gone": "Principal parts and tenses – e.g. go, went, gone", "Stark!": "Great!", "Startbildschirm, dann Menü": "Splash screen, then menu", "Starte unter Importieren ein Foto oder PDF.": "Start a photo or PDF under Import.", "Starter": "Starter", "Starter-Pakete": "Starter packs", "Starter-Wortschatz laden": "Load starter vocabulary", "Statistik": "Statistics", "Stimme": "Voice", "Suche": "Search", "Suche in beiden Sprachen, in Beispielsätzen, Notizen und Verbformen.": "Searches both languages, example sentences, notes and verb forms.", "Suche leeren": "Clear search", "Sync fehlgeschlagen": "Sync failed", "Sync getrennt – die Daten im Gist bleiben erhalten": "Sync disconnected – the data in the Gist is kept", "Synchronisiert": "Synced", "Synchronisiert · {0}{1} Karten": "Synced · {0}{1} cards", "Synchronisiert über dein GitHub-Konto{0}. {1}": "Synced via your GitHub account{0}. {1}", "Sätze": "Sentences", "Sätze aus deinen Wörtern": "Sentences from your words", "Sätze bauen": "Build sentences", "Sätze bauen ·": "Build sentences ·", "Sätze bilden und korrigieren lassen": "Build sentences and get them corrected", "Sätze entstehen aus Beispielsätzen und Satzkarten": "Sentences come from example sentences and sentence cards", "Tag": "Day", "Tage": "Days", "Test": "Test", "Test starten": "Start test", "Test ·": "Test ·", "Test · {0}": "Test · {0}", "Testen": "Test", "Tests": "Tests", "Texterkennung konnte nicht geladen werden – einmal mit Internet öffnen": "Text recognition couldn’t be loaded – open once with internet", "Texterkennung läuft": "Text recognition running", "Texterkennung wird geladen …": "Loading text recognition …", "Thema": "Topic", "Thema behalten": "Keep topic", "Themen": "Topics", "Theorie": "Theory", "Theorie & Grammatik": "Theory & grammar", "Tippe die Wörter in der richtigen Reihenfolge an": "Tap the words in the right order", "Tippen": "Type", "Tippen oder nach oben wischen": "Tap or swipe up", "Tippen zum Umdrehen": "Tap to flip", "Token hat keine Gist-Berechtigung oder GitHub-Limit erreicht": "Token has no Gist permission or the GitHub limit was reached", "Token kopieren, hier einfügen – auf iPhone <i>und</i> iPad.": "Copy the token and paste it here – on iPhone <i>and</i> iPad.", "Token ungültig oder abgelaufen": "Token invalid or expired", "Trag das Wort auf {0} ein.": "Enter the word in {0}.", "Trag den Infinitiv ein.": "Enter the infinitive.", "Trag die Bedeutung ein.": "Enter the meaning.", "Trag einen Satz ein.": "Enter a sentence.", "Trag zuerst den Infinitiv ein.": "Enter the infinitive first.", "Trennen": "Disconnect", "Täglich um": "Daily at", "Türkisch": "Turkish", "Umbenannt": "Renamed", "Umdrehen": "Flip", "Uni & Arbeit": "Uni & work", "Unregelmäßige Verben": "Irregular verbs", "Unter <b>API Keys</b> einen Schlüssel erstellen und hier einfügen.": "Create a key under <b>API Keys</b> and paste it here.", "Unterwegs": "Getting around", "Verabreden & Telefon": "Making plans & phone", "Verb": "Verb", "Verb nachschlagen": "Look up a verb", "Verben": "Verbs", "Verben – Formen üben": "Verbs – practise forms", "Verbformen trainieren": "Train verb forms", "Verbinde mit GitHub …": "Connecting to GitHub …", "Verbinden": "Connect", "Verbindung fehlgeschlagen": "Connection failed", "Verbote: Non + Infinitiv": "Prohibitions: Non + infinitive", "Verbunden – Daten vom anderen Gerät übernommen": "Connected – data from your other device was taken over", "Verbunden – deine Karten liegen jetzt auch in GitHub": "Connected – your cards are now also stored on GitHub", "Verlauf": "History", "Verschieben": "Move", "Verschoben": "Moved", "Vokabel": "Word", "Vokabeln wiederholen (PLM)": "Review vocabulary (PLM)", "Vokal am Anfang": "starts with a vowel", "Vor allem mit Wörtern, die ich schon kenne": "Mostly with words I already know", "Vorbereiten …": "Preparing …", "Vorlesen": "Read aloud", "Vorne steht nur das Wort – antippen dreht die Karte mit Übersetzung und Beispiel.": "The front shows only the word – tap to flip to the translation and example.", "Vorschau": "Preview", "Vorschau fälliger Karten": "Preview of due cards", "War richtig ✓": "I was right ✓", "Was ist richtig?": "Which is right?", "Weiter": "Next", "Weiter lernen ({0})": "Keep learning ({0})", "Weiter zu PLM": "Continue to PLM", "Weiter ›": "Next ›", "Weitere Zeit hinzufügen": "Add another tense", "Weiß nicht": "Don’t know", "Welche Zeiten abgefragt werden, legst du pro Sprache fest (Konjugation).": "Which tenses are asked is set per language (Conjugation).", "Wenn PLM öffnet": "When PLM opens", "Wichtige Verben": "Important verbs", "Wie angelegt (Themen nacheinander)": "As created (topic by topic)", "Wiederholung": "Review", "Wiederholungen": "Reviews", "Wiederholungen pro Tag max.": "Max. reviews per day", "Wird wieder abgefragt": "Will be asked again", "Wirklich alles löschen?": "Really delete everything?", "Wirklich entfernen?": "Really remove?", "Wirklich löschen?": "Really delete?", "Wirklich trennen?": "Really disconnect?", "Wirklich zurücksetzen?": "Really reset?", "Wirklich {0} löschen?": "Really delete {0}?", "Wohnung & Alltag": "Home & daily life", "Wort, Übersetzung, Verbform …": "Word, translation, verb form …", "Wortart": "Part of speech", "Wähle mindestens ein Paket.": "Choose at least one pack.", "Wähle mindestens eine Zeit.": "Choose at least one tense.", "Wörter, die noch nicht gelernt sind – lesen und anhören": "Words you haven’t learned yet – read and listen", "Zahlen": "Numbers", "Zeit": "Time", "Zeit für deine Karten in PLM.": "Time for your cards in PLM.", "Zeiten": "Tenses", "Zeiten & Formen": "Tenses & forms", "Zeiten (mit Komma getrennt)": "Tenses (comma-separated)", "Zeitform": "Tense", "Zeitformen": "Tenses", "Zeitformen, if-Sätze, Artikel – mit Übungen": "Tenses, if-clauses, articles – with exercises", "Zeitraum": "Period", "Ziel: so viel behalten": "Goal: retain this much", "Zu viel Material auf einmal – lade weniger Seiten hoch.": "Too much material at once – upload fewer pages.", "Zu viele Anfragen – kurz warten und nochmal versuchen.": "Too many requests – wait a moment and try again.", "Zufällig": "Random", "Zufällig aus allen": "Random from all", "Zufällige Personen und Zeiten": "Random persons and tenses", "Zuletzt {0} % · {1}": "Last {0} % · {1}", "Zum Kalender": "Add to calendar", "Zurück": "Back", "Zurücksetzen": "Reset", "am {0}": "on {0}", "aus deinen Karten": "from your cards", "beginnt mit s + Konsonant, z, gn, ps …": "starts with s + consonant, z, gn, ps …", "beide Richtungen": "both directions", "deine Antwort: {0}": "your answer: {0}", "die KI kann sie ergänzen": "the AI can fill them in", "erkannte Einträge": "recognised entries", "erkannter Eintrag": "recognised entry", "fällig": "due", "gerade eben": "just now", "gestern": "yesterday", "heute": "today", "iPhone ↔ iPad": "iPhone ↔ iPad", "iPhone-Web-Apps können sich nicht selbst zu einer Uhrzeit melden. Am zuverlässigsten ist ein täglicher Kalender-Termin mit Hinweis – PLM erstellt ihn für dich.": "iPhone web apps can’t notify you at a set time by themselves. The most reliable option is a daily calendar event with an alert – PLM creates it for you.", "in {0} Mon.": "in {0} mo", "in {0} T.": "in {0} d", "keine": "none", "keine Zeit": "no tense", "mit Artikel": "with article", "morgen": "tomorrow", "männlich": "masculine", "neue Karte": "new card", "neue Karten": "new cards", "nicht aktiv": "not active", "noch nie": "never", "nur Deutsch →": "German → only", "nur Deutsch → {0}": "German → {0} only", "nur {0} → Deutsch": "{0} → German only", "optional": "optional", "regelmäßig": "regular", "schon in {0}": "already in {0}", "tippe auf „Ändern“, um sie einzutragen, oder richte den KI-Assistenten ein": "tap “Edit” to enter them, or set up the AI assistant", "um {0}": "at {0}", "und im Gist": "and in the Gist", "unregelmäßig": "irregular", "verneint (!)": "negative (!)", "vor {0} Min.": "{0} min ago", "vor {0} Tagen": "{0} days ago", "weiblich": "feminine", "wie capire → capisco": "like capire → capisco", "wird abgefragt": "is asked", "z. B. Ich fahre morgen nach Rom.": "e.g. Ich fahre morgen nach Rom.", "z. B. Kurs A2": "e.g. Course A2", "z. B. Polnisch": "e.g. Polish", "z. B. Reisen": "e.g. Travel", "z. B. Trapassato prossimo": "e.g. Trapassato prossimo", "z. B. andare": "e.g. andare", "z. B. das Haus": "e.g. das Haus", "z. B. essere, andare, capire": "e.g. essere, andare, capire", "z. B. gehen; fahren": "e.g. gehen; fahren", "z. B. go": "e.g. go", "z. B. go, take, be": "e.g. go, take, be", "z. B. la casa": "e.g. la casa", "z. B. to look forward to": "e.g. to look forward to", "{0} Anhören": "{0} Listen", "{0} Formen ergänzt – bitte kurz prüfen": "{0} forms added – please check them", "{0} Fotos": "{0} photos", "{0} J": "{0} y", "{0} Karten": "{0} cards", "{0} Karten importieren": "Import {0} cards", "{0} Min.": "{0} min", "{0} Mo": "{0} mo", "{0} Std. {1} Min.": "{0} h {1} min", "{0} Stimme testen": "{0} Test voice", "{0} T": "{0} d", "{0} Wo": "{0} wk", "{0} Zeilen erkannt. Wähle, welche Spalte was ist.": "{0} rows recognised. Choose which column is which.", "{0} auf Englisch.": "{0} in English.", "{0} aus anderen Projekten übernommen": "{0} taken over from other projects", "{0} ausgewählt": "{0} selected", "{0} ergänzt": "{0} filled in", "{0} erkannt – unter Importieren prüfen": "{0} recognised – review them under Import", "{0} fällig{1}": "{0} due{1}", "{0} geladen – los geht's!": "{0} loaded – let’s go!", "{0} gelöscht": "{0} deleted", "{0} hinzugefügt": "{0} added", "{0} in den nächsten {1} Tagen": "{0} in the next {1} days", "{0} in ein anderes Projekt oder Thema": "{0} to another project or topic", "{0} in {1} Tagen{2} · {3} Min.": "{0} in {1} days{2} · {3} min", "{0} in „{1}“ angelegt": "{0} created in “{1}”", "{0} löschen?": "Delete {0}?", "{0} neu": "{0} new", "{0} neue Karten": "{0} new cards", "{0} neue pro Tag · {1}": "{0} new per day · {1}", "{0} noch nicht gelernt": "{0} not learned yet", "{0} noch nicht gelernt – in Ruhe durchlesen und anhören": "{0} not learned yet – read and listen at your own pace", "{0} schon vorhanden": "{0} already there", "{0} sicher": "{0} known", "{0} sicher · {1} im Lernen · {2} neu": "{0} known · {1} learning · {2} new", "{0} von {1} richtig": "{0} of {1} correct", "{0} warten auf Prüfung ›": "{0} waiting for review ›", "{0} {1} · ca. {2} Min.": "{0} {1} · approx. {2} min", "{0} · Satz": "{0} · Sentence", "{0} · aktiv: {1}": "{0} · active: {1}", "{0} · aus Fotos, Kurs-PDFs oder Listen werden Karten": "{0} · photos, course PDFs or lists become cards", "{0} · gemischte Fragen: Übersetzen, Auswahl, Lückensätze, Verbformen und Sätze bauen. Am Ende gibt es eine Auswertung – der Wiederholungsplan bleibt unverändert.": "{0} · mixed questions: translating, multiple choice, gap sentences, verb forms and building sentences. You get a result at the end – the review schedule stays unchanged.", "{0} · jedes Paket wird ein Projekt": "{0} · every pack becomes a project", "{0} · {1} % sicher": "{0} · {1} % known", "{0} · {1} neu · ca. {2} Min.": "{0} · {1} new · approx. {2} min", "{0} übernehmen": "Add {0}", "{0} – aus Bausteinen oder frei tippen, mit Korrektur": "{0} – from word tiles or typed freely, with correction", "{0}: PLM fragt zufällige Personen ab – schnell tippen, sofortiges Feedback. Ändert den Wiederholungsplan nicht.": "{0}: PLM asks random persons – type fast, instant feedback. Doesn’t change the review schedule.", "{0}: {1} fällig": "{0}: {1} due", "{0}:00 Uhr": "{0}:00", "{0}Mehrere richtige Antworten mit ; trennen. Optionales in Klammern: (to) cope with.": "{0}Separate several correct answers with ; – optional parts in brackets: (to) cope with.", "{0}{1} · Konjugation": "{0}{1} · Conjugation", "{0}{1} · {2} Wiederholungen · angelegt {3}": "{0}{1} · {2} reviews · created {3}", "{0}{1}: Du siehst einen deutschen Satz und baust ihn auf {2} – aus Wort-Bausteinen oder frei getippt. PLM korrigiert Wort für Wort.": "{0}{1}: you see a German sentence and build it in {2} – from word tiles or typed freely. PLM corrects word by word.", "· KI: {0} Tokens": "· AI: {0} tokens", "· Passato prossimo mit essere": "· Passato prossimo with essere", "· nächste Wiederholung {0}": "· next review {0}", "· {0} % gewusst": "· {0} % correct", "· {0} % sicher": "· {0} % known", "· {0} neu": "· {0} new", "· {0} noch neu": "· {0} still new", "· {0} sicher": "· {0} known", "· Üben": "· Practise", "Ändern": "Edit", "Öffne die Datei und tippe auf „Hinzufügen“": "Open the file and tap “Add”", "Ø {0} pro Tag · {1} % gewusst · {2} neue Karten · {3}": "Ø {0} per day · {1} % correct · {2} new cards · {3}", "Üben": "Practise", "Üben ·": "Practice ·", "Üben: {0}": "Practise: {0}", "Übersetze ins {0}e": "Translate into {0}", "Übersetzung (Hinweis)": "Translation (hint)", "Übersetzung des Beispiels": "Translation of the example", "Übersetzung fehlt": "Translation missing", "Übersetzung ist": "translation is", "Übersetzungen sind": "translations are", "Übung · {0}": "Exercise · {0}", "Übungsrunde": "Practice round", "– bei großen PDFs einige Minuten": "– a few minutes for large PDFs", "– neue Karten pro Tag ist auf 0": "– new cards per day is set to 0", "– neuer Rekord!": "– new record!", "– zusätzlich in deinem GitHub-Gist": "– plus in your GitHub Gist", "„Lernen“ nimmt die neuen Wörter in deinen Wiederholungsplan auf (so viele pro Tag, wie eingestellt). „Durchgehen“ zeigt sie nur als Karten, ohne Plan.": "“Learn” adds the new words to your review schedule (as many per day as set). “Go through” only shows them as cards, without a schedule.", "„{0}“ als Karte anlegen ›": "Create “{0}” as a card ›", "„{0}“ ist kein italienischer Infinitiv (-are, -ere, -ire, -arsi …).": "“{0}” isn’t an Italian infinitive (-are, -ere, -ire, -arsi …).", "„{0}“ ist kein lesbares Bild (HEIC bitte als JPEG teilen)": "“{0}” isn’t a readable image (please share HEIC as JPEG)", "„{0}“ wurde nicht erkannt.": "“{0}” wasn’t recognised.", "„{0}“: bitte eine Zahl zwischen {1} und {2}.": "“{0}”: please enter a number between {1} and {2}.", "‹ Zurück": "‹ Back", "→ Deutsch": "→ German", "↻ Synchronisiere …": "↻ Syncing …", "⇄ Seiten tauschen": "⇄ Swap sides", "⇄ Sprachen tauschen": "⇄ Swap languages", "▶ Lernen": "▶ Learn", "▶ Lernen ({0})": "▶ Learn ({0})", "⚠ Sync: {0}": "⚠ Sync: {0}", "⚡ Formen schnell üben": "⚡ Quick form practice", "✓ Synchronisiert {0}": "✓ Synced {0}", "✓ {0} im Projekt": "✓ {0} in the project", "📷 Foto aufnehmen / wählen": "📷 Take / choose photo", "🔥 {0} in Folge gelernt{1}": "🔥 {0} in a row{1}", "Keine Sprachausgabe – Lautstärke und Stumm-Schalter prüfen": "No speech output – check the volume and the mute switch", "Kein passendes Verb gefunden": "No matching verb found", "meintest du …?": "did you mean …?", "Kurs": "Course", "{0}: weiter mit {1} · {2}": "{0}: continue with {1} · {2}", "Schritt für Schritt von A1 bis B2: Wörter, Grammatik, eigene Sätze, Gespräche": "Step by step from A1 to B2: words, grammar, your own sentences, conversations", "Kurs A1 – B2": "Course A1 – B2", "Grammatik aus dem Kurs und Verben in allen Zeitformen": "Grammar from the course and verbs in every tense", "Jedes Verb in allen wichtigen Zeitformen – auch mit Übersetzung suchen": "Every verb in all the main tenses – you can also search by meaning", "Kurs {0}: Grammatik": "Course {0}: grammar", "Lektion {0} · {1}": "Lesson {0} · {1}", "Für {0} gibt es noch keine automatische Konjugation. Eigene Verbkarten mit Formen kannst du unter Konjugation anlegen.": "There's no automatic conjugation for {0} yet. You can create your own verb cards with forms under Conjugation.", "Meintest du:": "Did you mean:", "Passato prossimo mit avere oder essere": "Passato prossimo with avere or essere", "Passé composé mit être": "Passé composé with être", "„{0}“ ist {1} von {2}": "“{0}” is {1} of {2}", "Deine Karte öffnen ›": "Open your card ›", "+ Als Karte lernen": "+ Learn as a card", "z. B. essere, bevo, trinken": "e.g. essere, bevo, to drink", "z. B. go, went, gehen": "e.g. go, went, gehen", "z. B. tener, tengo, haben": "e.g. tener, tengo, to have", "z. B. être, suis, sein": "e.g. être, suis, to be", "Infinitiv, Verbform oder Übersetzung eingeben": "Type an infinitive, a verb form or a translation", "Vorschläge": "Suggestions", "Das Verb ist schon in deinen Karten": "This verb is already in your cards", "„{0}“ ist jetzt eine Karte im Projekt „Verben“": "“{0}” is now a card in the project “Verbs”", "fehlt: {0}": "missing: {0}", "Der Kurs konnte nicht geladen werden – bist du online?": "The course couldn't be loaded – are you online?", "A1 bis B2 – Wörter, Grammatik, Übungen und Gespräche": "A1 to B2 – words, grammar, exercises and conversations", "Lektionen mit dem KI-Assistenten erstellen": "Create lessons with the AI assistant", "{0} von {1} Lektionen · weiter: {2} {3}": "{0} of {1} lessons · next: {2} {3}", "Alle {0} Lektionen geschafft": "All {0} lessons done", "Alle Wörter dieser Lektion sind schon im Wiederholungsplan – weiter mit der Übung": "All words of this lesson are already in your review plan – go on with the exercise", "Was heißt …?": "What's the word?", "Hören": "Listening", "Schreiben": "Writing", "Satz bauen": "Build the sentence", "Wörter": "Words", "Übung": "Exercise", "Gespräch": "Conversation", "Schritt für Schritt von A1 bis B2": "Step by step from A1 to B2", "Kurs wird geladen …": "Loading the course …", "Niveau": "Level", "+ Neue Lektion mit KI": "+ New lesson with AI", "Der KI-Assistent schreibt eine weitere {0}-Lektion zu einem Thema deiner Wahl": "The AI assistant writes another {0} lesson on a topic of your choice", "Für {0} gibt es noch keinen fertigen Kurs": "There's no ready-made course for {0} yet", "Lass dir vom KI-Assistenten Lektionen erstellen – mit Wörtern, Grammatik, Übungen und einem Gespräch zum Mitspielen.": "Let the AI assistant create lessons for you – with words, grammar, exercises and a conversation to play along.", "Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kannst du dir Lektionen für jede Sprache erstellen lassen.": "With the AI assistant (Settings › AI assistant) you can have lessons created for any language.", "Start": "Start", "Lektion {0}": "Lesson {0}", "Alle Lektionen in {0} geschafft – mach den Abschlusstest!": "All lessons in {0} done – take the final test!", "Lektionen": "Lessons", "Lektion": "Lesson", "KI": "AI", "Für dieses Niveau gibt es noch keine Lektionen.": "There are no lessons for this level yet.", "Abschlusstest {0}": "Final test {0}", "24 gemischte Aufgaben aus allen Lektionen": "24 mixed tasks from all lessons", "Wörter & Sätze": "Words & sentences", "{0} Wörter · {1} Sätze – anhören, lesen, dann lernen": "{0} words · {1} sentences – listen, read, then learn", "Alle {0} Wörter zeigen": "Show all {0} words", "Nützliche Sätze": "Useful sentences", "▶ Wiederholen": "▶ Review", "„Lernen“ nimmt die Wörter in deinen Wiederholungsplan auf (Projekt „{0}“).": "“Learn” adds the words to your review plan (project “{0}”).", "✎ Grammatik üben": "✎ Practise grammar", "Mehr in der Theorie ›": "More in the theory ›", "Bestes Ergebnis: {0} % – ab 70 % gilt die Übung als geschafft": "Best result: {0} % – from 70 % the exercise counts as done", "Gemischte Aufgaben: Wörter, Hören, Schreiben, Sätze, Grammatik": "Mixed tasks: words, listening, writing, sentences, grammar", "Nochmal üben": "Practise again", "Übung starten": "Start the exercise", "Gespräch: {0}": "Conversation: {0}", "🔊 Anhören": "🔊 Listen", "💬 Mitspielen": "💬 Play along", "⇄ Rollen tauschen": "⇄ Swap roles", "✦ Frei sprechen (KI)": "✦ Free conversation (AI)", "✓ Lektion geschafft": "✓ Lesson done", "KI-Lektion löschen": "Delete AI lesson", "Karten, die du schon gelernt hast, bleiben erhalten": "Cards you've already learned are kept", "Zur Lektion ›": "To the lesson ›", "Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)": "You need the AI assistant for this (Settings › AI assistant)", "Neue {0}-Lektion": "New {0} lesson", "Der KI-Assistent schreibt eine Lektion für {0} auf Niveau {1}: Wörter mit Beispielsätzen, Grammatik, Übungen und ein Gespräch zum Mitspielen. Kostet meist 1–3 Cent.": "The AI assistant writes a {0} lesson at level {1}: words with example sentences, grammar, exercises and a conversation to play along. Usually costs 1–3 cents.", "Erstellen": "Create", "Thema (optional)": "Topic (optional)", "z. B. Arzttermin, Bewerbungsgespräch, Fußball": "e.g. doctor's appointment, job interview, football", "KI schreibt die Lektion …": "The AI is writing the lesson …", "{0} Zeichen erhalten": "{0} characters received", "Das dauert etwa eine halbe Minute.": "This takes about half a minute.", "Neue Lektion: {0}": "New lesson: {0}", "dein Name": "your name", "deine Stadt": "your city", "dein Land": "your country", "dein Beruf": "your job", "dein Alter": "your age", "ein Gericht": "a dish", "ein Tag": "a day", "eine Uhrzeit": "a time", "eine Zahl": "a number", "frei wählbar": "your choice", "Du": "You", "Gegenüber": "Partner", "Text ausblenden (Hörverstehen)": "Hide the text (listening practice)", "Mitspielen": "Play along", "Rollen getauscht": "Roles swapped", "Gespräch zu Ende": "End of the conversation", "{0} von {1} Sätzen richtig": "{0} of {1} sentences right", "💬 Normale Rolle": "💬 Normal role", "⏸ Pause": "⏸ Pause", "▶ Weiter abspielen": "▶ Continue", "Nächster Satz ›": "Next sentence ›", "Du sagst:": "You say:", "„…“ = {0}": "“…” = {0}", "Tipp: {0} …": "Hint: {0} …", "So kannst du es sagen:": "This is how you can say it:", "Nicht ganz": "Not quite", "⌨ Tippen": "⌨ Type", "Deine Antwort": "Your answer", "Auf {0} antworten …": "Answer in {0} …", "Sprechen": "Speak", "Bausteine": "Word tiles", "Tipp": "Hint", "Lösung": "Solution", "{0} von {1} ohne Fehler": "{0} of {1} without mistakes", "Frei sprechen": "Free conversation", "schreibt …": "is typing …", "Senden": "Send", "Lektion gelöscht": "Lesson deleted", "Imperativ im Alltag": "Everyday imperatives", "Aufforderungen, Bitten und Verbote – du, Sie, ihr und wir; mit Pronomen (Dimmi! Fammi vedere! Non dirglielo!) und kurzer Erklärung": "Commands, requests and prohibitions – tu, Lei, voi and noi; with pronouns (Dimmi! Fammi vedere! Non dirglielo!) and a short explanation", "Alltagssätze 2": "Everyday sentences 2", "Noch mehr ganze Sätze: Bahn & Flughafen, Hotel, Wohnung, Bank & Ämter, Notfall, Ausgehen, Dating & Gefühle, Uni, Telefon, Wetter und zu Gast bei Freunden": "Even more whole sentences: train & airport, hotel, flat, bank & offices, emergencies, going out, dating & feelings, uni, phone, weather and visiting friends", "du: Aufforderungen": "tu: commands", "du: Verbote mit Pronomen": "tu: prohibitions with pronouns", "Sie (Lei): höflich": "Lei: polite", "ihr (voi) und wir (noi)": "voi and noi", "Bahn & Flughafen": "Train & airport", "Hotel": "Hotel", "Wohnung & Vermieter": "Flat & landlord", "Bank, Post & Ämter": "Bank, post office & authorities", "Notfall": "Emergency", "Ausgehen": "Going out", "Dating & Gefühle": "Dating & feelings", "Uni": "Uni", "Telefon & Nachrichten": "Phone & messages", "Wetter & Smalltalk": "Weather & small talk", "Zu Gast bei Freunden": "Visiting friends", "Everyday Sentences 2": "Everyday Sentences 2", "Noch mehr ganze Sätze: Uni & Seminar, Vorstellungsgespräch, Arzt & Apotheke, Wohnung, Beschwerden, Ausgehen, Gefühle & Meinung, Telefon und höflich widersprechen": "Even more whole sentences: uni & seminars, job interviews, doctor & pharmacy, flat, complaints, going out, feelings & opinions, phone and disagreeing politely", "Uni & Seminar": "Uni & seminars", "Vorstellungsgespräch": "Job interview", "Wohnung": "Flat", "Beschwerden & Kundenservice": "Complaints & customer service", "Gefühle & Meinung": "Feelings & opinions", "Höflich widersprechen": "Disagreeing politely", "Die wichtigsten Wörter für Alltag, Essen, Reisen, Uni und Arbeit – mit Beispielsatz": "The most important words for everyday life, food, travel, uni and work – with example sentences", "Ganze Sätze für Bar & Restaurant, Einkaufen, Fitnessstudio, Unterwegs, Smalltalk, Verabredungen, Arbeit, Wohnung und Arzt": "Whole sentences for bars & restaurants, shopping, the gym, getting around, small talk, making plans, work, home and the doctor", "Die 60 häufigsten Verben mit allen Zeitformen – Presente, Indefinido, Imperfecto, Futuro, Subjuntivo und mehr": "The 60 most common verbs in every tense – presente, indefinido, imperfecto, futuro, subjuntivo and more", "Bar & Restaurant": "Bar & restaurant", "Verabreden": "Making plans", "Arbeit & Uni": "Work & uni", "Ganze Sätze für Café & Restaurant, Einkaufen, Fitnessstudio, Unterwegs, Smalltalk, Verabredungen, Arbeit, Wohnung und Arzt": "Whole sentences for cafés & restaurants, shopping, the gym, getting around, small talk, making plans, work, home and the doctor", "Die 60 häufigsten Verben mit allen Zeitformen – Présent, Passé composé, Imparfait, Futur, Conditionnel, Subjonctif": "The 60 most common verbs in every tense – présent, passé composé, imparfait, futur, conditionnel, subjonctif", "Café & Restaurant": "Café & restaurant", "Sprachkurs A1": "Language course A1", "Sprachkurs A2": "Language course A2", "Sprachkurs B1": "Language course B1", "Sprachkurs B2": "Language course B2", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – europäisches Portugiesisch, brasilianische Varianten in der Notiz": "The most important words for everyday life, food, travel and meeting people – European Portuguese, Brazilian variants in the notes", "Ganze Sätze für Café & Restaurant, Einkaufen, Unterwegs, Kennenlernen, Verabredungen, Arzt und Fitnessstudio": "Whole sentences for cafés & restaurants, shopping, getting around, meeting people, making plans, the doctor and the gym", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – mit de/het und Beispielsätzen": "The most important words for everyday life, food, travel and meeting people – with de/het and example sentences", "Die wichtigsten Wörter für Alltag, Essen, Reisen und Begegnungen – mit en/ett und Beispielsätzen": "The most important words for everyday life, food, travel and meeting people – with en/ett and example sentences", "Kennenlernen": "Meeting people", "Diese Stimme ignoriert das Sprechtempo (iOS). Sätze kommen langsam Wort für Wort – für einzelne Wörter eine andere Stimme probieren: Spracheinstellungen › Stimme.": "This voice ignores the speaking rate (iOS). Sentences now come slowly word by word – for single words, try another voice: language settings › Voice.", "Sprachführer": "Phrasebook", "{0} Sprachen · Vorstellen, Basics, Beleidigungen – zum Anhören": "{0} languages · introductions, basics, insults – to listen to", "Vorstellen, Basics, Beleidigungen – schnell nachschlagen und anhören": "Introductions, basics, insults – look up and listen quickly", "„{0}“ ist noch nicht dabei.": "“{0}” isn't included yet.", "✦ „{0}“ mit KI erstellen": "✦ Create “{0}” with AI", "Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kann PLM jede weitere Sprache erstellen.": "With the AI assistant (Settings › AI assistant) PLM can create any other language.", "{0} Sprachen · Vorstellen, Basics, Beleidigungen – mit Aussprache zum Anhören": "{0} languages · introductions, basics, insults – with pronunciation to listen to", "Sprache suchen …": "Search languages …", "Sprache suchen": "Search languages", "Als Karte lernen": "Learn as a card", "Für diesen Bereich gibt es hier noch nichts.": "Nothing here for this section yet.", "von der KI erstellt": "created by AI", "Bereich": "Section", "Dein Name (für „Ich heiße …“)": "Your name (for “My name is …”)", "z. B. Anna": "e.g. Anna", "Umschrift für Deutschsprachige: GROSS = betonte Silbe. Am genauesten ist das Anhören – 🐢 spricht langsam.": "The pronunciation guide is written for German speakers: CAPITALS = stressed syllable. Listening is the most accurate – 🐢 speaks slowly.", "Auf diesem Gerät ist noch keine {0}-Stimme installiert – iPhone: Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen.": "No {0} voice is installed on this device yet – iPhone: Settings › Accessibility › Spoken Content › Voices.", "Tipp: Mit „+ Sprache“ auf der Startseite kannst du Sätze auch als Karten lernen, wenn PLM die Sprache kennt.": "Tip: add the language with “+ Language” on the home screen to learn phrases as cards (if PLM supports it).", "KI-Sprache löschen": "Delete AI language", "Ist schon in deinen Karten": "Already in your cards", "„{0}“ ist jetzt eine Karte im Projekt „Sprachführer“": "“{0}” is now a card in the project “Phrasebook”", "KI schreibt „{0}“ …": "The AI is writing “{0}” …", "Diese Sprache hat die KI nicht erkannt – Schreibweise prüfen.": "The AI didn't recognise this language – check the spelling.", "Gelöscht": "Deleted", "Erst ein Wort eintragen": "Enter a word first", "Vorstellen": "Introduce", "Basics": "Basics", "Beleidigungen": "Insults"};
 function T(s, a) {
   let r = UI === "en" && Object.prototype.hasOwnProperty.call(UI_EN, s) ? UI_EN[s] : s;
   if (a) r = r.replace(/\{(\d+)\}/g, (_, i) => (a[i] == null ? "" : a[i]));
@@ -583,7 +620,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListe
     <div class="newcat" id="cNewTopic" hidden><input id="cNewTopicName" maxlength="40" placeholder="Neues Thema, z. B. Reisen" aria-label="Neues Thema"><button type="button" class="btn" id="cNewTopicAdd">OK</button></div>
     <div class="field">
       <label class="label" for="cTg" id="cTgLabel">Italienisch</label>
-      <input id="cTg" class="bigin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="200">
+      <div class="inrow"><input id="cTg" class="bigin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="200"><button type="button" class="th-say" id="cSay" data-action="say-input" aria-label="Anhören"></button><button type="button" class="th-say" id="cSaySlow" data-action="say-input" data-arg="slow" aria-label="Langsam anhören"></button></div>
       <span class="hint" id="cTgHint"></span>
     </div>
     <div class="field"><label class="label" for="cDe" id="cDeLabel">Deutsch</label><input id="cDe" autocomplete="off" maxlength="200"></div>
@@ -5322,6 +5359,905 @@ cueillir|pflücken|to pick|
 accueillir|empfangen|to welcome|
 `;
 
+/* ================= Phrasebook ("Sprachführer") data =================
+   pb(code, BCP-47 tag, flag, German name, English name, own name, intro, basics, insults)
+   intro / basics: "key|text|pronunciation|note" – the meaning comes from PB_KEYS (same for every language).
+   insults: "text|pronunciation|German|English|level 1–3|note".
+   Pronunciation: Latin-script languages get a respelling for German speakers, the stressed syllable in CAPITALS;
+   other scripts get their usual romanization (pinyin, Hepburn, Revised Romanization …). */
+const PHRASEBOOK = [], PB_TAGS = {};
+const PB_CATS = [
+  { id: "intro", icon: "👋", t: TB("Vorstellen", "Introduce"), d: TB("Begrüßen, Namen sagen, woher du kommst – das erste Gespräch.", "Say hello, your name, where you're from – the first conversation.") },
+  { id: "basics", icon: "🧭", t: TB("Basics", "Basics"), d: TB("Danke, bitte, Toilette, Bier – was man auf Reisen immer braucht.", "Thanks, please, toilet, beer – what you always need when travelling.") },
+  { id: "insults", icon: "🤬", t: TB("Beleidigungen", "Insults"), d: TB("Flüche und Beleidigungen von harmlos bis derb – zum Verstehen und Mitlachen. Benutzen auf eigene Gefahr 😉", "Swear words and insults from mild to strong – to understand and laugh along. Use at your own risk 😉") }
+];
+const PB_KEYS = {
+  intro: [["hello", TB("Hallo!", "Hello!")], ["name", TB("Ich heiße …", "My name is …")], ["askname", TB("Wie heißt du?", "What's your name?")], ["from", TB("Ich komme aus Deutschland.", "I'm from Germany.")],
+    ["nice", TB("Freut mich!", "Nice to meet you!")], ["how", TB("Wie geht's?", "How are you?")], ["fine", TB("Gut, danke. Und dir?", "Fine, thanks. And you?")], ["learn", TB("Ich lerne gerade {L}.", "I'm learning {L}.")], ["bye", TB("Tschüss! Bis bald!", "Bye! See you!")]],
+  basics: [["thanks", TB("Danke!", "Thank you!")], ["please", TB("Bitte.", "Please.")], ["sorry", TB("Entschuldigung!", "Sorry! / Excuse me!")], ["yes", TB("Ja", "Yes")], ["no", TB("Nein", "No")],
+    ["nounder", TB("Ich verstehe nicht.", "I don't understand.")], ["english", TB("Sprichst du Englisch?", "Do you speak English?")], ["toilet", TB("Wo ist die Toilette?", "Where's the toilet?")],
+    ["price", TB("Wie viel kostet das?", "How much is it?")], ["beer", TB("Ein Bier, bitte!", "A beer, please!")], ["cheers", TB("Prost!", "Cheers!")], ["help", TB("Hilfe!", "Help!")]]
+};
+function pb(code, tag, flag, de, en, native, intro, basics, insults) { PHRASEBOOK.push({ code, tag, flag, de, en, native, intro, basics, insults }); PB_TAGS[code] = tag; }
+
+pb("it", "it-IT", "🇮🇹", "Italienisch", "Italian", "Italiano", `
+hello|Ciao!|TSCHAA-o
+name|Mi chiamo …|mi KJAA-mo
+askname|Come ti chiami?|KO-me ti KJAA-mi
+from|Vengo dalla Germania.|WENG-go dal-la dscher-MAA-nja
+nice|Piacere!|pja-TSCHEE-re
+how|Come stai?|KO-me STAI
+fine|Bene, grazie. E tu?|BEE-ne, GRAT-tsje. e TU
+learn|Sto imparando l'italiano.|sto im-pa-RAN-do li-ta-LJAA-no
+bye|Ciao, a presto!|TSCHAA-o, a PRES-to`, `
+thanks|Grazie!|GRAT-tsje
+please|Per favore.|per fa-WOO-re
+sorry|Scusa!|SKUU-sa|zu Fremden: Scusi!
+yes|Sì|si
+no|No|no
+nounder|Non capisco.|non ka-PIS-ko
+english|Parli inglese?|PAR-li ing-GLEE-se
+toilet|Dov'è il bagno?|do-WE il BAN-jo
+price|Quanto costa?|KWAN-to KOS-ta
+beer|Una birra, per favore!|U-na BIR-ra, per fa-WOO-re
+cheers|Salute! / Cin cin!|sa-LUU-te / tschin TSCHIN
+help|Aiuto!|a-JUU-to`, `
+Merda!|MER-da|Scheiße!|Shit!|2|
+Che palle!|ke PAL-le|Wie nervig! / So ein Mist!|What a drag!|1|wörtlich „Was für Eier!“
+Cazzo!|KAT-tso|Verdammt! / Scheiße!|Fuck! / Damn!|3|Allzweck-Fluch, sehr häufig
+Idiota!|i-DJOO-ta|Idiot!|Idiot!|2|
+Stai zitto!|stai TSIT-to|Halt die Klappe!|Shut up!|2|zu einer Frau: Stai zitta!
+Stronzo!|STRON-tso|Arschloch!|Asshole!|3|
+Stronza!|STRON-tsa|Miststück! / Blöde Kuh!|Bitch!|3|
+Vaffanculo!|waf-fan-KUU-lo|Leck mich! / Verpiss dich!|Fuck off!|3|
+Sei fuori di testa!|sei FUO-ri di TES-ta|Du spinnst!|You're nuts!|1|`);
+
+pb("en", "en-GB", "🇬🇧", "Englisch", "English", "English", `
+hello|Hello!|he-LOU
+name|My name is …|mai NEIM is
+askname|What's your name?|wots jor NEIM
+from|I'm from Germany.|aim from DSCHÖR-me-ni
+nice|Nice to meet you!|NAIS tu MIET ju
+how|How are you?|hau AR ju
+fine|Fine, thanks. And you?|FAIN, thänks. änd JU
+learn|I'm learning English.|aim LÖR-ning ING-lisch
+bye|Bye! See you!|BAI! SIE ju`, `
+thanks|Thank you!|THÄNK ju|th wie im Englischen: Zunge zwischen die Zähne
+please|Please.|plies
+sorry|Sorry! / Excuse me!|SO-ri / iks-KJUUS mi
+yes|Yes|jes
+no|No|nou
+nounder|I don't understand.|ai dount an-der-STÄND
+toilet|Where's the toilet?|wers the TOI-let|britisch locker: Where's the loo?
+price|How much is it?|hau MATSCH is it
+beer|A beer, please!|e BIER, plies|im Pub: A pint, please!
+cheers|Cheers!|tschiers
+help|Help!|help`, `
+Shit!|schit|Scheiße!|Shit!|2|
+Damn it!|DÄM it|Verdammt!|Damn it!|1|
+Bloody hell!|BLA-di HEL|Verdammt nochmal!|Bloody hell!|1|typisch britisch
+Idiot!|I-di-ot|Idiot!|Idiot!|2|
+Shut up!|schat AP|Halt die Klappe!|Shut up!|2|
+Piss off!|pis OF|Verpiss dich!|Piss off!|2|britisch
+Wanker!|WÄNG-ker|Wichser!|Wanker!|3|britisch, sehr häufig
+Arsehole!|ARS-houl|Arschloch!|Arsehole!|3|amerikanisch: asshole
+Bitch!|bitsch|Miststück! / Schlampe!|Bitch!|3|`);
+
+pb("es", "es-ES", "🇪🇸", "Spanisch", "Spanish", "Español", `
+hello|¡Hola!|O-la
+name|Me llamo …|me JAA-mo
+askname|¿Cómo te llamas?|KO-mo te JAA-mas
+from|Soy de Alemania.|soi de a-le-MAA-nja
+nice|¡Encantado!|en-kan-TAA-do|als Frau: ¡Encantada!
+how|¿Qué tal?|ke TAL
+fine|Bien, gracias. ¿Y tú?|BJEN, GRA-thjas. i TU|c vor i/e wie engl. „th“ (in Lateinamerika wie s)
+learn|Estoy aprendiendo español.|es-TOI a-pren-DJEN-do es-pa-NJOL
+bye|¡Adiós! ¡Hasta luego!|a-DJOS. AS-ta LUE-go`, `
+thanks|¡Gracias!|GRA-thjas
+please|Por favor.|por fa-BOR
+sorry|¡Perdón!|per-DON
+yes|Sí|si
+no|No|no
+nounder|No entiendo.|no en-TJEN-do
+english|¿Hablas inglés?|AA-blas ing-GLES
+toilet|¿Dónde está el baño?|DON-de es-TA el BA-njo
+price|¿Cuánto cuesta?|KWAN-to KWES-ta
+beer|¡Una cerveza, por favor!|U-na ther-BE-tha, por fa-BOR
+cheers|¡Salud!|sa-LUD
+help|¡Socorro!|so-KOR-ro`, `
+¡Mierda!|MJER-da|Scheiße!|Shit!|2|
+¡Joder!|cho-DER|Verdammt! / Scheiße!|Fuck! / Damn!|3|in Spanien ständig zu hören
+¡Qué tonto!|ke TON-to|Wie dumm! / Du Dummkopf!|How stupid!|1|
+¡Imbécil!|im-BE-thil|Idiot!|Idiot!|2|
+¡Cállate!|KA-ja-te|Halt die Klappe!|Shut up!|2|
+¡Gilipollas!|chi-li-PO-jas|Vollidiot! / Arschloch!|Dickhead!|3|typisch Spanien
+¡Cabrón!|ka-BRON|Mistkerl!|Bastard!|3|unter Freunden auch fast liebevoll
+¡Zorra!|THOR-ra|Miststück! / Schlampe!|Bitch!|3|
+¡Vete a la mierda!|BE-te a la MJER-da|Verpiss dich!|Piss off!|3|
+¡Pendejo!|pen-DE-cho|Idiot! / Arschloch!|Asshole! / Idiot!|3|vor allem Mexiko`);
+
+pb("fr", "fr-FR", "🇫🇷", "Französisch", "French", "Français", `
+hello|Salut !|sa-LÜ|höflicher: Bonjour ! (bõ-SCHUR)
+name|Je m'appelle …|sche ma-PELL
+askname|Tu t'appelles comment ?|tü ta-PELL ko-MÃ
+from|Je viens d'Allemagne.|sche wjẽ dal-MANJ
+nice|Enchanté !|ã-schã-TE|als Frau gleich ausgesprochen: Enchantée
+how|Ça va ?|sa WA
+fine|Ça va bien, merci. Et toi ?|sa wa BJẼ, mer-SI. e TWA
+learn|J'apprends le français.|scha-PRÃ le frã-SE
+bye|Salut, à plus !|sa-LÜ, a PLÜS`, `
+thanks|Merci !|mer-SI
+please|S'il vous plaît.|sil wu PLE|zu Freunden: S'il te plaît
+sorry|Pardon !|par-DÕ
+yes|Oui|wi
+no|Non|nõ
+nounder|Je ne comprends pas.|sche ne kõ-PRÃ PA
+english|Tu parles anglais ?|tü PARL ã-GLE
+toilet|Où sont les toilettes ?|u sõ le twa-LETT
+price|C'est combien ?|se kõ-BJẼ
+beer|Une bière, s'il vous plaît !|ün BJER, sil wu PLE
+cheers|Santé !|sã-TE
+help|Au secours !|o se-KUR`, `
+Zut !|süt|Mist!|Darn!|1|harmlos, eher altmodisch
+Merde !|MERD|Scheiße!|Shit!|2|
+Putain !|pü-TẼ|Verdammt! / Scheiße!|Fuck!|3|Allzweck-Fluch, extrem häufig
+Crétin !|kre-TẼ|Idiot! / Trottel!|Moron!|2|
+Tais-toi !|te TWA|Sei still!|Be quiet!|1|
+Ta gueule !|ta GÖL|Halt die Fresse!|Shut up!|3|
+Connard !|ko-NAR|Arschloch!|Asshole!|3|zu einer Frau: Connasse !
+Salope !|sa-LOP|Miststück! / Schlampe!|Bitch!|3|
+Va te faire voir !|wa te fer WUAR|Hau ab! / Leck mich!|Get lost!|2|`);
+
+pb("pt", "pt-PT", "🇵🇹", "Portugiesisch", "Portuguese", "Português", `
+hello|Olá!|o-LA
+name|Chamo-me …|SCHA-mu-me|Brasilien: Meu nome é …
+askname|Como te chamas?|KO-mu te SCHA-masch|Brasilien: Qual é o seu nome?
+from|Sou da Alemanha.|so da a-le-MA-nja
+nice|Muito prazer!|MUĨ-tu pra-SER
+how|Tudo bem?|TU-du BÃĨ
+fine|Bem, obrigado. E tu?|bãĩ, o-bri-GA-du. i TU|als Frau: obrigada
+learn|Estou a aprender português.|schto a a-pren-DER pur-tu-GESCH|Brasilien: Estou aprendendo português.
+bye|Adeus! Até logo!|a-DE-usch. a-TE LO-gu`, `
+thanks|Obrigado!|o-bri-GA-du|als Frau: Obrigada!
+please|Por favor.|pur fa-WOR
+sorry|Desculpe!|desch-KUL-pe
+yes|Sim|sĩ
+no|Não|nãu
+nounder|Não percebo.|nãu per-SE-bu|Brasilien: Não entendo.
+english|Falas inglês?|FA-lasch ĩ-GLESCH
+toilet|Onde é a casa de banho?|ON-de E a KA-sa de BA-nju|Brasilien: Onde fica o banheiro?
+price|Quanto custa?|KWAN-tu KUSCH-ta
+beer|Uma cerveja, por favor!|U-ma ser-WE-scha, pur fa-WOR
+cheers|Saúde!|sa-U-de
+help|Socorro!|su-KO-rru`, `
+Caramba!|ka-RAM-ba|Mensch! / Verflixt!|Darn it!|1|
+Merda!|MER-da|Scheiße!|Shit!|2|
+Porra!|PO-rra|Verdammt! / Scheiße!|Damn! / Fuck!|2|in Portugal und Brasilien sehr häufig
+Idiota!|i-DJO-ta|Idiot!|Idiot!|2|
+Cala-te!|KA-la-te|Halt den Mund!|Shut up!|2|Brasilien: Cala a boca!
+Otário!|o-TA-rju|Trottel!|Sucker! / Fool!|2|vor allem Brasilien
+Cabrão!|ka-BRÃU|Mistkerl! / Arschloch!|Bastard!|3|typisch Portugal
+Vaca!|WA-ka|Miststück! / Blöde Kuh!|Bitch!|3|wörtlich „Kuh“
+Vai à merda!|wai a MER-da|Verpiss dich!|Piss off!|3|`);
+
+pb("nl", "nl-NL", "🇳🇱", "Niederländisch", "Dutch", "Nederlands", `
+hello|Hoi! / Hallo!|hoi / HA-lo
+name|Ik heet …|ik HEET
+askname|Hoe heet je?|hu HEET je
+from|Ik kom uit Duitsland.|ik kom öit DÖITS-lant
+nice|Leuk je te ontmoeten!|LÖÖK je te ont-MU-ten
+how|Hoe gaat het?|hu CHAAT et|g wie „ch“ in „ach“
+fine|Goed, dank je. En met jou?|chut, DANK je. en met JAU
+learn|Ik leer Nederlands.|ik leer NEE-der-lants
+bye|Doei! Tot ziens!|dui. tot SIENS`, `
+thanks|Dank je wel!|DANK je wel
+please|Alsjeblieft.|als-je-BLIEFT|zu Fremden: Alstublieft
+sorry|Sorry! / Pardon!|SO-ri / par-DON
+yes|Ja|ja
+no|Nee|nee
+nounder|Ik begrijp het niet.|ik be-CHREIP et niet
+english|Spreek je Engels?|spreek je ENG-els
+toilet|Waar is de wc?|waar is de wee-SEE
+price|Hoeveel kost dat?|hu-WEEL kost dat
+beer|Een biertje, alsjeblieft!|en BIER-tje, als-je-BLIEFT
+cheers|Proost!|proost
+help|Help!|help`, `
+Shit!|schit|Scheiße!|Shit!|1|wird im Niederländischen ständig benutzt
+Sukkel!|SÖK-kel|Trottel!|Loser! / Dummy!|1|
+Verdomme!|wer-DOM-me|Verdammt!|Damn it!|2|
+Hou je bek!|hau je BEK|Halt die Klappe!|Shut up!|2|
+Rot op!|rot OP|Hau ab! / Verpiss dich!|Piss off!|2|
+Lul!|löl|Idiot! / Depp!|Prick!|2|wörtlich „Schwanz“
+Trut!|tröt|Blöde Kuh! / Zicke!|Bitch!|2|
+Klootzak!|KLOOT-sak|Arschloch! / Mistkerl!|Asshole!|3|
+Kut!|köt|Scheiße! (derb)|Fuck!|3|sehr derb`);
+
+pb("sv", "sv-SE", "🇸🇪", "Schwedisch", "Swedish", "Svenska", `
+hello|Hej!|hej
+name|Jag heter …|ja HEE-ter
+askname|Vad heter du?|wa HEE-ter dü
+from|Jag kommer från Tyskland.|ja KOM-mer fron TÜSK-land
+nice|Trevligt att träffas!|TREEW-lit at TREF-fas
+how|Hur mår du?|hür MOR dü
+fine|Bra, tack. Och du?|BRAA, tack. ok DÜ
+learn|Jag lär mig svenska.|ja LÄR mej SWEN-ska
+bye|Hej då!|hej DO`, `
+thanks|Tack!|tack
+please|Snälla.|SNEL-la|beim Bestellen sagt man meist einfach „…, tack“
+sorry|Förlåt! / Ursäkta!|för-LOT / ür-SCHEK-ta
+yes|Ja|ja
+no|Nej|nej
+nounder|Jag förstår inte.|ja för-STOR IN-te
+english|Pratar du engelska?|PRAA-tar dü ENG-el-ska
+toilet|Var är toaletten?|war är to-a-LET-ten
+price|Hur mycket kostar det?|hür MÜK-ke KOS-tar de
+beer|En öl, tack!|en ÖÖL, tack
+cheers|Skål!|skool
+help|Hjälp!|jelp`, `
+Fan!|faan|Verdammt!|Damn!|2|wörtlich „der Teufel“
+Skit!|schiit|Scheiße!|Shit!|2|
+Jävlar!|JEW-lar|Verdammt nochmal!|Damn it!|2|
+Idiot!|i-di-OOT|Idiot!|Idiot!|2|
+Håll käften!|holl SCHEF-ten|Halt die Klappe!|Shut up!|2|
+Dra åt helvete!|dra ot HEL-we-te|Fahr zur Hölle!|Go to hell!|3|
+Din jävel!|din JEE-wel|Du Mistkerl!|You bastard!|3|
+Subba!|SÖB-ba|Miststück! / Schlampe!|Bitch!|3|`);
+
+pb("no", "nb-NO", "🇳🇴", "Norwegisch", "Norwegian", "Norsk", `
+hello|Hei!|hei
+name|Jeg heter …|jei HEE-ter
+askname|Hva heter du?|wa HEE-ter dü
+from|Jeg kommer fra Tyskland.|jei KOM-mer fra TÜSK-lan
+nice|Hyggelig å treffe deg!|HÜG-ge-li o TREF-fe dei
+how|Hvordan går det?|WUR-dan gor de
+fine|Bra, takk. Og du?|BRAA, takk. o DÜ
+learn|Jeg lærer norsk.|jei LÄÄ-rer NORSCHK
+bye|Ha det!|HAA de`, `
+thanks|Takk!|takk
+please|Vær så snill.|wär so SNILL
+sorry|Unnskyld!|ÜN-schül
+yes|Ja|ja
+no|Nei|nei
+nounder|Jeg forstår ikke.|jei for-STOR IK-ke
+english|Snakker du engelsk?|SNAK-ker dü ENG-elsk
+toilet|Hvor er toalettet?|wur är to-a-LET-te
+price|Hva koster det?|wa KOS-ter de
+beer|En øl, takk!|en ÖL, takk
+cheers|Skål!|skool
+help|Hjelp!|jelp`, `
+Pokker!|POK-ker|Mist! / Verflixt!|Darn!|1|harmlos
+Faen!|FAA-en|Verdammt! / Scheiße!|Damn! / Fuck!|2|wörtlich „der Teufel“, sehr häufig
+Dritt!|dritt|Scheiße!|Shit!|2|
+Hold kjeft!|holl SCHEFT|Halt die Klappe!|Shut up!|2|
+Kom deg vekk!|kom dei WEKK|Hau ab!|Get lost!|2|
+Jævla idiot!|JEW-la i-di-OOT|Verdammter Idiot!|Bloody idiot!|3|
+Drittsekk!|DRITT-sekk|Arschloch! / Mistkerl!|Asshole!|3|wörtlich „Scheißsack“
+Kjerring!|SCHÄR-ring|Alte Hexe! / Miststück!|Bitch!|3|`);
+
+pb("da", "da-DK", "🇩🇰", "Dänisch", "Danish", "Dansk", `
+hello|Hej!|hai
+name|Jeg hedder …|jai HEDH-er|dh = weiches, gelispeltes d
+askname|Hvad hedder du?|wä HEDH-er du
+from|Jeg kommer fra Tyskland.|jai KOM-mer fra TÜSK-lan
+nice|Hyggeligt at møde dig!|HÜG-ge-lit a MÖÖ-dhe dai
+how|Hvordan går det?|wo-DAN gor de
+fine|Godt, tak. Og dig?|got, TAK. o DAI
+learn|Jeg lærer dansk.|jai LÄÄ-a dansk
+bye|Hej hej! Vi ses!|hai HAI. wi SEES`, `
+thanks|Tak!|tak
+please|Vær så venlig.|wär so WEN-li
+sorry|Undskyld!|ON-skül
+yes|Ja|ja
+no|Nej|nai
+nounder|Jeg forstår det ikke.|jai fo-STOR de IG-ge
+english|Taler du engelsk?|TAA-ler du ENG-elsk
+toilet|Hvor er toilettet?|wor är toa-LET-tet
+price|Hvad koster det?|wä KOS-ter de
+beer|En øl, tak!|en ÖL, tak
+cheers|Skål!|skol
+help|Hjælp!|jelp`, `
+Pis!|pis|Mist! / Scheiße!|Damn! / Shit!|1|sehr häufig, eher mild
+Lort!|lort|Scheiße!|Shit!|2|
+For fanden!|fo FAN-en|Verdammt nochmal!|Damn it!|2|wörtlich „zum Teufel“
+Idiot!|i-di-OOT|Idiot!|Idiot!|2|
+Hold kæft!|holl KEFT|Halt die Klappe!|Shut up!|2|
+Skrid!|skridh|Hau ab!|Get lost!|2|
+Røvhul!|RÖW-hul|Arschloch!|Asshole!|3|
+Kælling!|KEL-ling|Miststück! / Schlampe!|Bitch!|3|`);
+
+pb("fi", "fi-FI", "🇫🇮", "Finnisch", "Finnish", "Suomi", `
+hello|Moi! / Hei!|moi / hei|im Finnischen ist immer die erste Silbe betont
+name|Minun nimeni on …|MI-nun NI-me-ni on
+askname|Mikä sinun nimesi on?|MI-kä SI-nun NI-me-si on
+from|Olen Saksasta.|O-len SAK-sas-ta
+nice|Hauska tavata!|HAUS-ka TA-wa-ta
+how|Mitä kuuluu?|MI-tä KUU-luu
+fine|Hyvää, kiitos. Entä sinulle?|HÜ-wää, KII-tos. EN-tä SI-nul-le
+learn|Opiskelen suomea.|O-pis-ke-len SUO-me-a
+bye|Moikka! Nähdään!|MOIK-ka. NÄH-dään`, `
+thanks|Kiitos!|KII-tos
+please|Ole hyvä.|O-le HÜ-wä|beim Bestellen sagt man meist „…, kiitos“
+sorry|Anteeksi!|AN-teek-si
+yes|Kyllä|KÜL-lä
+no|Ei|ei
+nounder|En ymmärrä.|en ÜM-mär-rä
+english|Puhutko englantia?|PU-hut-ko ENG-lan-ti-a
+toilet|Missä on vessa?|MIS-sä on WES-sa
+price|Paljonko tämä maksaa?|PAL-jon-ko TÄ-mä MAK-saa
+beer|Yksi olut, kiitos!|ÜK-si O-lut, KII-tos
+cheers|Kippis!|KIP-pis
+help|Apua!|A-pu-a`, `
+Perkele!|PER-ke-le|Verdammt! / Teufel nochmal!|Damn it!|2|der finnische Fluch schlechthin
+Paska!|PAS-ka|Scheiße!|Shit!|2|
+Idiootti!|I-di-oot-ti|Idiot!|Idiot!|2|
+Ääliö!|ÄÄ-li-ö|Trottel!|Moron!|2|
+Turpa kiinni!|TUR-pa KIIN-ni|Halt die Fresse!|Shut up!|3|
+Painu helvettiin!|PAI-nu HEL-wet-tiin|Fahr zur Hölle!|Go to hell!|3|
+Voi vittu!|woi WIT-tu|Verdammte Scheiße!|Fucking hell!|3|sehr derb, aber häufig
+Narttu!|NART-tu|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“`);
+
+/* Phrasebook: Central & Eastern Europe, Greece, Turkey */
+pb("pl", "pl-PL", "🇵🇱", "Polnisch", "Polish", "Polski", `
+hello|Cześć!|tschestsch|im Polnischen ist fast immer die vorletzte Silbe betont
+name|Mam na imię …|mam na I-mje
+askname|Jak masz na imię?|jak masch na I-mje
+from|Jestem z Niemiec.|JES-tem s NJE-mjets
+nice|Miło mi!|MI-wo mi
+how|Jak się masz?|jak schje MASCH
+fine|Dobrze, dziękuję. A ty?|DOB-sche, dschjen-KU-je. a TÜ
+learn|Uczę się polskiego.|U-tsche schje pol-SKJE-go
+bye|Cześć! Na razie!|tschestsch. na RA-sche`, `
+thanks|Dziękuję!|dschjen-KU-je
+please|Proszę.|PRO-sche
+sorry|Przepraszam!|psche-PRA-scham
+yes|Tak|tak
+no|Nie|nje
+nounder|Nie rozumiem.|nje ro-SU-mjem
+english|Mówisz po angielsku?|MU-wisch po an-GJEL-sku
+toilet|Gdzie jest toaleta?|gdsche jest to-a-LE-ta
+price|Ile to kosztuje?|I-le to kosch-TU-je
+beer|Jedno piwo, proszę!|JED-no PI-wo, PRO-sche
+cheers|Na zdrowie!|na SDRO-wje
+help|Pomocy!|po-MO-tsü`, `
+Cholera!|cho-LE-ra|Verdammt!|Damn!|1|harmlos
+Kurde!|KUR-de|Mist!|Damn!|1|entschärfte Form von „kurwa“
+Gówno!|GUW-no|Scheiße!|Shit!|2|
+Idiota!|i-DJO-ta|Idiot!|Idiot!|2|
+Debil!|DE-bil|Vollidiot!|Moron!|2|
+Zamknij się!|SAMK-nij schje|Halt die Klappe!|Shut up!|2|
+Spadaj!|SPA-daj|Hau ab!|Get lost!|2|
+Kurwa!|KUR-wa|Verdammt! / Scheiße!|Fuck!|3|der polnische Allzweck-Fluch – sehr häufig, aber derb
+Suka!|SU-ka|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“`);
+
+pb("cs", "cs-CZ", "🇨🇿", "Tschechisch", "Czech", "Čeština", `
+hello|Ahoj!|A-hoi|im Tschechischen ist immer die erste Silbe betont
+name|Jmenuju se …|JME-nu-ju se
+askname|Jak se jmenuješ?|jak se JME-nu-jesch
+from|Jsem z Německa.|jsem s NJE-mets-ka
+nice|Těší mě!|TJE-schii mnje
+how|Jak se máš?|jak se MAASCH
+fine|Dobře, díky. A ty?|DOB-rsche, DII-ki. a TI|ř klingt wie ein gerolltes r und sch gleichzeitig
+learn|Učím se česky.|U-tschiim se TSCHES-ki
+bye|Ahoj! Měj se!|A-hoi. MNJEJ se`, `
+thanks|Děkuju!|DJE-ku-ju
+please|Prosím.|PRO-siim
+sorry|Promiň!|PRO-minj
+yes|Ano|A-no
+no|Ne|ne
+nounder|Nerozumím.|NE-ro-su-miim
+english|Mluvíš anglicky?|MLU-wiisch ANG-lits-ki
+toilet|Kde je záchod?|gde je SAA-chot
+price|Kolik to stojí?|KO-lik to STO-jii
+beer|Jedno pivo, prosím!|JED-no PI-wo, PRO-siim
+cheers|Na zdraví!|na SDRA-wii
+help|Pomoc!|PO-mots`, `
+Sakra!|SAK-ra|Verdammt!|Damn!|1|
+Vole!|WO-le|Alter! / Du Idiot!|Dude! / Idiot!|1|unter Freunden auch einfach „Alter“
+Hovno!|HOW-no|Scheiße! / Mist!|Shit!|2|
+Kretén!|KRE-teen|Idiot! / Trottel!|Moron!|2|
+Debil!|DE-bil|Vollidiot!|Moron!|2|
+Kráva!|KRAA-wa|Blöde Kuh! / Miststück!|Bitch!|2|wörtlich „Kuh“
+Táhni!|TAAH-nji|Hau ab!|Get lost!|2|
+Drž hubu!|drsch HU-bu|Halt die Klappe!|Shut up!|3|
+Do prdele!|do PR-de-le|Verdammte Scheiße!|Fuck! / Damn it!|3|wörtlich „in den Arsch“`);
+
+pb("hr", "hr-HR", "🇭🇷", "Kroatisch", "Croatian", "Hrvatski", `
+hello|Bok!|bok
+name|Zovem se …|SO-wem se
+askname|Kako se zoveš?|KA-ko se SO-wesch
+from|Ja sam iz Njemačke.|ja sam is NJE-matsch-ke
+nice|Drago mi je!|DRA-go mi je
+how|Kako si?|KA-ko si
+fine|Dobro, hvala. A ti?|DOB-ro, HWA-la. a TI
+learn|Učim hrvatski.|U-tschim HRWAT-ski
+bye|Bok! Vidimo se!|bok. WI-di-mo se`, `
+thanks|Hvala!|HWA-la
+please|Molim.|MO-lim
+sorry|Oprosti!|OP-ros-ti
+yes|Da|da
+no|Ne|ne
+nounder|Ne razumijem.|ne ra-SU-mi-jem
+english|Govoriš li engleski?|GO-wo-risch li ENG-les-ki
+toilet|Gdje je WC?|gdje je WE-tse
+price|Koliko košta?|KO-li-ko KOSCH-ta
+beer|Jedno pivo, molim!|JED-no PI-wo, MO-lim
+cheers|Živjeli!|SCHIW-je-li
+help|Upomoć!|U-po-motsch`, `
+Budala!|bu-DA-la|Dummkopf!|Fool!|1|
+Majmune!|MAJ-mu-ne|Du Affe!|You monkey!|1|
+Sranje!|SRA-nje|Scheiße!|Shit!|2|
+Jebiga!|JE-bi-ga|Scheiß drauf! / Verdammt!|Fuck it!|2|sehr häufig, fast schon ein Achselzucken
+Kreten!|KRE-ten|Idiot!|Moron!|2|
+Šuti!|SCHU-ti|Sei still! / Halt den Mund!|Shut up!|2|
+Kučka!|KUTSCH-ka|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“
+Odjebi!|od-JE-bi|Verpiss dich!|Fuck off!|3|`);
+
+pb("hu", "hu-HU", "🇭🇺", "Ungarisch", "Hungarian", "Magyar", `
+hello|Szia!|SI-jo|immer die erste Silbe betont; a klingt fast wie o, s wie sch, sz wie s
+name|A nevem …|o NE-wem
+askname|Hogy hívnak?|hodj HIIW-nok
+from|Németországból jöttem.|NEE-met-or-saag-bool JÖT-tem
+nice|Örülök, hogy megismerhetlek!|Ö-rü-lök, hodj MEG-isch-mer-het-lek
+how|Hogy vagy?|hodj WODJ
+fine|Jól, köszönöm. És te?|jool, KÖ-sö-nöm. eesch TE
+learn|Magyarul tanulok.|MO-djo-rul TO-nu-lok
+bye|Szia! Viszlát!|SI-jo. WIS-laat`, `
+thanks|Köszönöm!|KÖ-sö-nöm
+please|Kérem.|KEE-rem
+sorry|Bocsánat!|BO-tschaa-not
+yes|Igen|I-gen
+no|Nem|nem
+nounder|Nem értem.|nem EER-tem
+english|Beszélsz angolul?|BE-seels ON-go-lul
+toilet|Hol van a mosdó?|hol won o MOSCH-doo
+price|Mennyibe kerül?|MEN-nji-be KE-rül
+beer|Egy sört kérek!|edj SCHÖRT KEE-rek
+cheers|Egészségedre!|E-gees-schee-ged-re
+help|Segítség!|SCHE-giit-scheeg`, `
+A francba!|o FRONTS-bo|Verdammt!|Damn it!|1|
+Hülye!|HÜ-je|Blödmann! / Idiot!|Idiot!|2|
+Szar!|sor|Scheiße!|Shit!|2|
+Barom!|BO-rom|Trottel! / Rindvieh!|Moron!|2|
+Fogd be!|fogd BE|Halt die Klappe!|Shut up!|2|
+Menj a fenébe!|menj o FE-nee-be|Geh zum Teufel!|Go to hell!|2|
+Seggfej!|SCHEGG-fei|Arschloch!|Asshole!|3|wörtlich „Arschkopf“
+Kurva!|KUR-wo|Scheiße! / Hure!|Fuck! / Bitch!|3|als Fluch und Beleidigung, sehr derb`);
+
+pb("ro", "ro-RO", "🇷🇴", "Rumänisch", "Romanian", "Română", `
+hello|Salut!|sa-LUT
+name|Mă numesc …|me nu-MESK|ă klingt wie das e in „bitte“
+askname|Cum te cheamă?|kum te KJA-me
+from|Sunt din Germania.|sunt din dscher-MA-ni-a
+nice|Încântat!|ün-kün-TAT|î/â: ein dumpfes „ü“ ohne Lippenrundung
+how|Ce faci?|tsche FATSCH
+fine|Bine, mulțumesc. Tu?|BI-ne, mul-tsu-MESK. TU
+learn|Învăț română.|ün-WETS ro-MÜ-ne
+bye|Pa! Ne vedem!|pa. ne we-DEM`, `
+thanks|Mulțumesc!|mul-tsu-MESK
+please|Te rog.|te ROG
+sorry|Scuze!|SKU-se
+yes|Da|da
+no|Nu|nu
+nounder|Nu înțeleg.|nu ün-tse-LEG
+english|Vorbești engleză?|wor-BESCHT en-GLE-se
+toilet|Unde este toaleta?|UN-de JES-te to-a-LE-ta
+price|Cât costă?|küt KOS-te
+beer|O bere, te rog!|o BE-re, te ROG
+cheers|Noroc!|no-ROK
+help|Ajutor!|a-schu-TOR`, `
+La naiba!|la NAI-ba|Verdammt!|Damn it!|1|
+Fir-ar să fie!|FI-rar se FI-e|Verflixt nochmal!|Damn it all!|1|
+Rahat!|ra-HAT|Scheiße!|Shit!|2|
+Idiotule!|i-di-O-tu-le|Du Idiot!|You idiot!|2|
+Prostule!|PROS-tu-le|Du Dummkopf!|You fool!|2|
+Taci!|tatsch|Sei still!|Shut up!|2|
+Du-te dracului!|DU-te DRA-ku-lui|Geh zum Teufel!|Go to hell!|3|
+Cățea!|ke-TSEA|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“`);
+
+pb("el", "el-GR", "🇬🇷", "Griechisch", "Greek", "Ελληνικά", `
+hello|Γεια σου!|JA su|zu mehreren oder höflich: Γεια σας! (JA sas)
+name|Με λένε …|me LE-ne
+askname|Πώς σε λένε;|pos se LE-ne|; ist im Griechischen das Fragezeichen
+from|Είμαι από τη Γερμανία.|I-me a-PO ti jer-ma-NI-a
+nice|Χάρηκα!|CHA-ri-ka
+how|Τι κάνεις;|ti KA-nis
+fine|Καλά, ευχαριστώ. Εσύ;|ka-LA, ef-cha-ri-STO. e-SI
+learn|Μαθαίνω ελληνικά.|ma-THE-no e-li-ni-KA|th wie im Englischen
+bye|Γεια! Τα λέμε!|JA. ta LE-me`, `
+thanks|Ευχαριστώ!|ef-cha-ri-STO
+please|Παρακαλώ.|pa-ra-ka-LO
+sorry|Συγγνώμη!|sig-GNO-mi
+yes|Ναι|ne|Achtung: „ne“ heißt ja!
+no|Όχι|O-chi
+nounder|Δεν καταλαβαίνω.|den ka-ta-la-WE-no
+english|Μιλάς αγγλικά;|mi-LAS ang-gli-KA
+toilet|Πού είναι η τουαλέτα;|pu I-ne i tu-a-LE-ta
+price|Πόσο κάνει;|PO-so KA-ni
+beer|Μία μπίρα, παρακαλώ!|MI-a BI-ra, pa-ra-ka-LO
+cheers|Στην υγειά μας!|stin i-JA mas
+help|Βοήθεια!|wo-I-thi-a`, `
+Βλάκα!|WLA-ka|Idiot!|Idiot!|2|
+Σκατά!|ska-TA|Scheiße!|Shit!|2|
+Γαμώτο!|ga-MO-to|Verdammt!|Damn it! / Fuck!|2|sehr häufig
+Μαλάκα!|ma-LA-ka|Wichser! / Idiot!|Wanker! / Dude!|2|unter Freunden auch „Alter“ – im Streit eine Beleidigung
+Σκάσε!|SKA-se|Halt die Klappe!|Shut up!|2|
+Άι στο διάολο!|AI sto DJA-o-lo|Geh zum Teufel!|Go to hell!|2|
+Άντε γαμήσου!|AN-de ga-MI-su|Fick dich!|Fuck off!|3|
+Σκύλα!|SKI-la|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“`);
+
+pb("ru", "ru-RU", "🇷🇺", "Russisch", "Russian", "Русский", `
+hello|Привет!|pri-WJET|höflich: Здравствуйте! (SDRAST-wuj-tje)
+name|Меня зовут …|mi-NJA sa-WUT
+askname|Как тебя зовут?|kak ti-BJA sa-WUT
+from|Я из Германии.|ja is ger-MA-ni-i
+nice|Очень приятно!|O-tschen pri-JAT-na
+how|Как дела?|kak dji-LA
+fine|Хорошо, спасибо. А у тебя?|cha-ra-SCHO, spa-SI-ba. a u ti-BJA
+learn|Я учу русский язык.|ja u-TSCHU RUS-ki ji-SÜK
+bye|Пока!|pa-KA`, `
+thanks|Спасибо!|spa-SI-ba
+please|Пожалуйста.|pa-SCHAL-sta
+sorry|Извините!|is-wi-NI-tje
+yes|Да|da
+no|Нет|njet
+nounder|Я не понимаю.|ja nje pa-ni-MA-ju
+english|Ты говоришь по-английски?|tü ga-wa-RISCH pa-an-GLI-ski
+toilet|Где туалет?|gdje tu-a-LJET
+price|Сколько это стоит?|SKOL-ka E-ta STO-it
+beer|Одно пиво, пожалуйста!|ad-NO PI-wa, pa-SCHAL-sta
+cheers|За здоровье!|sa sda-ROW-je
+help|Помогите!|pa-ma-GI-tje`, `
+Блин!|blin|Mist!|Damn!|1|wörtlich „Pfannkuchen“ – harmloser Ersatz für ein derbes Wort
+Чёрт!|tschort|Verdammt! / Teufel!|Damn!|1|
+Дурак!|du-RAK|Dummkopf! / Idiot!|Fool!|1|zu einer Frau: Дура! (DU-ra)
+Дерьмо!|djer-MO|Scheiße!|Shit!|2|
+Заткнись!|sat-KNIS|Halt die Klappe!|Shut up!|2|
+Отвали!|at-wa-LI|Hau ab! / Lass mich in Ruhe!|Get lost!|2|
+Козёл!|ka-SJOL|Mistkerl!|Jerk!|2|wörtlich „Ziegenbock“
+Сука!|SU-ka|Miststück! / Schlampe!|Bitch!|3|auch als derber Fluch benutzt`);
+
+pb("uk", "uk-UA", "🇺🇦", "Ukrainisch", "Ukrainian", "Українська", `
+hello|Привіт!|pry-WIT
+name|Мене звати …|me-NE SWA-ty
+askname|Як тебе звати?|jak te-BE SWA-ty
+from|Я з Німеччини.|ja s ni-MET-tschy-ny
+nice|Дуже приємно!|DU-sche pry-JEM-no
+how|Як справи?|jak SPRA-wy
+fine|Добре, дякую. А в тебе?|DOB-re, DJA-ku-ju. a w TE-be
+learn|Я вчу українську мову.|ja wtschu uk-ra-JIN-sku MO-wu
+bye|Бувай!|bu-WAJ`, `
+thanks|Дякую!|DJA-ku-ju
+please|Будь ласка.|bud LAS-ka
+sorry|Вибачте!|WY-batsch-te
+yes|Так|tak
+no|Ні|ni
+nounder|Я не розумію.|ja ne ro-su-MI-ju
+english|Ти розмовляєш англійською?|ty ros-mow-LJA-jesch an-HLIJ-sko-ju
+toilet|Де туалет?|de tu-a-LET
+price|Скільки це коштує?|SKIL-ky tse KOSCH-tu-je
+beer|Одне пиво, будь ласка!|od-NE PY-wo, bud LAS-ka
+cheers|Будьмо!|BUD-mo
+help|Допоможіть!|do-po-mo-SCHIT`, `
+Чорт!|tschort|Verdammt!|Damn!|1|
+Холера!|cho-LE-ra|Verflixt! / Pest!|Damn it!|1|
+Дурень!|DU-ren|Dummkopf!|Fool!|1|
+Бовдур!|BOW-dur|Trottel!|Dolt!|1|
+Лайно!|laj-NO|Scheiße!|Shit!|2|
+Замовкни!|sa-MOWK-ny|Halt den Mund!|Shut up!|2|
+Йди геть!|jdy HET|Hau ab!|Get lost!|2|
+Сука!|SU-ka|Miststück! / Schlampe!|Bitch!|3|`);
+
+pb("tr", "tr-TR", "🇹🇷", "Türkisch", "Turkish", "Türkçe", `
+hello|Merhaba!|MER-ha-ba
+name|Benim adım …|be-NIM a-DIM|ı ist ein dumpfes i, fast wie das e in „bitte“
+askname|Adın ne?|a-DIN NE
+from|Almanya'dan geliyorum.|al-MAN-ja-dan ge-li-JO-rum
+nice|Memnun oldum!|mem-NUN ol-DUM
+how|Nasılsın?|na-SIL-sin
+fine|İyiyim, teşekkürler. Sen?|i-JI-jim, te-schek-kür-LER. SEN
+learn|Türkçe öğreniyorum.|TÜRK-tsche öö-re-ni-JO-rum
+bye|Hoşça kal!|HOSCH-tscha KAL`, `
+thanks|Teşekkürler!|te-schek-kür-LER
+please|Lütfen.|LÜT-fen
+sorry|Pardon!|par-DON|förmlicher: Özür dilerim!
+yes|Evet|e-WET
+no|Hayır|HA-jir
+nounder|Anlamıyorum.|an-LA-mi-jo-rum
+english|İngilizce biliyor musun?|in-gi-LIS-dsche bi-li-JOR mu-sun
+toilet|Tuvalet nerede?|tu-wa-LET NE-re-de
+price|Bu ne kadar?|bu NE ka-dar
+beer|Bir bira, lütfen!|bir BI-ra, LÜT-fen
+cheers|Şerefe!|sche-re-FE
+help|İmdat!|im-DAT`, `
+Kahretsin!|KAH-ret-sin|Verdammt!|Damn it!|1|
+Aptal!|ap-TAL|Dummkopf!|Fool!|1|
+Eşek!|e-SCHEK|Esel! / Trottel!|Donkey! / Dumbass!|1|
+Bok!|bok|Scheiße!|Shit!|2|
+Salak!|sa-LAK|Idiot! / Depp!|Idiot!|2|
+Kes sesini!|KES se-si-NI|Halt die Klappe!|Shut up!|2|
+Siktir git!|SIK-tir GIT|Verpiss dich!|Fuck off!|3|
+Orospu!|o-ROS-pu|Hure! / Schlampe!|Bitch! / Whore!|3|sehr beleidigend`);
+
+/* Phrasebook: Middle East, South & East Asia */
+pb("ar", "ar-SA", "🇸🇦", "Arabisch", "Arabic", "العربية", `
+hello|مرحبا!|MAR-ha-ba
+name|اسمي …|IS-mi
+askname|ما اسمك؟|mas-MUK|zu einer Frau: ما اسمكِ؟ (mas-MUKI)
+from|أنا من ألمانيا.|A-na min al-MA-nja
+nice|تشرفنا!|ta-schar-RAF-na
+how|كيف حالك؟|KEIF HA-lak
+fine|بخير، شكراً. وأنت؟|bi-CHEIR, SCHUK-ran. wa AN-ta
+learn|أنا أتعلم العربية.|A-na a-ta-AL-lam al-a-ra-BIY-ya
+bye|مع السلامة!|MA-a as-sa-LA-ma`, `
+thanks|شكراً!|SCHUK-ran
+please|من فضلك.|min FAD-lak
+sorry|آسف!|AA-sif|als Frau: آسفة (AA-sifa)
+yes|نعم|NA-am
+no|لا|la
+nounder|لا أفهم.|la AF-ham
+english|هل تتكلم الإنجليزية؟|hal ta-ta-KAL-lam al-in-gli-SIY-ya
+toilet|أين الحمام؟|EI-na al-ham-MAM
+price|بكم هذا؟|bi-KAM HA-tha
+beer|بيرة، من فضلك!|BI-ra, min FAD-lak
+cheers|في صحتك!|fi SIH-ha-tak
+help|النجدة!|an-NADSCH-da`, `
+تبا!|TAB-ban|Verdammt!|Damn!|1|
+يا أهبل!|ja AH-bal|Du Trottel!|You fool!|1|
+يا حمار!|ja hi-MAAR|Du Esel!|You donkey!|2|
+يا غبي!|ja gha-BI|Du Idiot!|You idiot!|2|
+اسكت!|US-kut|Halt die Klappe!|Shut up!|2|
+روح من هون!|ruh min HON|Hau ab!|Get lost!|2|levantinisch (Syrien, Libanon, Jordanien)
+خرا!|CHA-ra|Scheiße!|Shit!|3|umgangssprachlich, derb
+يا كلب!|ja KALB|Du Hund!|You dog!|3|sehr beleidigend`);
+
+pb("he", "he-IL", "🇮🇱", "Hebräisch", "Hebrew", "עברית", `
+hello|שלום!|scha-LOM
+name|קוראים לי …|kor-IM li
+askname|איך קוראים לך?|eich kor-IM le-CHA|zu einer Frau: איך קוראים לָך? (eich kor-IM lach)
+from|אני מגרמניה.|a-NI mi-ger-MAN-ja
+nice|נעים מאוד!|na-IM me-OD
+how|מה שלומך?|ma schlom-CHA|zu einer Frau: מה שלומֵך? (ma schlo-MECH)
+fine|טוב, תודה. ואתה?|TOW, to-DA. we-a-TA
+learn|אני לומד עברית.|a-NI lo-MED iw-RIT|als Frau: לומדת (lo-ME-det)
+bye|ביי! להתראות!|bai. le-hit-ra-OT`, `
+thanks|תודה!|to-DA
+please|בבקשה.|be-wa-ka-SCHA
+sorry|סליחה!|sli-CHA
+yes|כן|ken
+no|לא|lo
+nounder|אני לא מבין.|a-NI lo me-WIN|als Frau: מבינה (me-wi-NA)
+english|אתה מדבר אנגלית?|a-TA me-da-BER ANG-lit
+toilet|איפה השירותים?|EI-fo ha-sche-ru-TIM
+price|כמה זה עולה?|KA-ma se o-LE
+beer|בירה אחת, בבקשה!|BI-ra a-CHAT, be-wa-ka-SCHA
+cheers|לחיים!|le-CHAI-im
+help|הצילו!|ha-TSI-lu`, `
+טמבל!|TEM-bel|Trottel!|Dummy!|1|
+אידיוט!|i-DJOT|Idiot!|Idiot!|2|
+חרא!|CHA-ra|Scheiße!|Shit!|2|aus dem Arabischen übernommen
+סתום!|STOM|Halt die Klappe!|Shut up!|2|zu einer Frau: סתמי! (STI-mi)
+יא מניאק!|ja man-JAK|Du Mistkerl!|You jerk!|2|
+יא זבל!|ja SE-wel|Du Stück Müll!|You piece of trash!|2|
+לך לעזאזל!|lech la-a-sa-SEL|Geh zum Teufel!|Go to hell!|2|
+כלבה!|kal-BA|Miststück! / Schlampe!|Bitch!|3|wörtlich „Hündin“`);
+
+pb("hi", "hi-IN", "🇮🇳", "Hindi", "Hindi", "हिन्दी", `
+hello|नमस्ते!|na-MAS-te
+name|मेरा नाम … है।|ME-ra NAAM … hä
+askname|आपका नाम क्या है?|AAP-ka NAAM kja hä
+from|मैं जर्मनी से हूँ।|mä DSCHAR-ma-ni se HUU
+nice|आपसे मिलकर ख़ुशी हुई!|AAP-se MIL-kar chu-SCHI hu-I
+how|आप कैसे हैं?|aap KÄ-se hä
+fine|मैं ठीक हूँ, धन्यवाद। और आप?|mä THIIK huu, DHAN-ja-waad. aur AAP
+learn|मैं हिन्दी सीख रहा हूँ।|mä HIN-di SIICH ra-HA huu|als Frau: सीख रही हूँ (ra-HI)
+bye|फिर मिलेंगे!|phir mi-LEN-ge`, `
+thanks|शुक्रिया!|schuk-RI-ja|förmlicher: धन्यवाद (DHAN-ja-waad)
+please|कृपया।|KRIP-ja
+sorry|माफ़ कीजिए!|MAAF KII-dschi-e
+yes|हाँ|haa
+no|नहीं|na-HII
+nounder|मुझे समझ नहीं आया।|MU-dsche SA-madsch na-HII AA-ja
+english|क्या आप अंग्रेज़ी बोलते हैं?|kja aap ang-RE-si BOL-te hä
+toilet|टॉयलेट कहाँ है?|TOI-let ka-HAA hä
+price|यह कितने का है?|je KIT-ne ka hä
+beer|एक बियर, प्लीज़!|ek BI-jar, pliis
+cheers|चीयर्स!|tschi-JERS
+help|बचाओ!|ba-TSCHAA-o`, `
+बकवास!|bak-WAAS|Quatsch! / Blödsinn!|Nonsense!|1|
+पागल!|PAA-gal|Verrückter!|Crazy!|1|
+उल्लू का पट्ठा!|UL-lu ka PAT-tha|Trottel!|Fool!|1|wörtlich „Sohn einer Eule“
+बेवकूफ़!|bew-KUUF|Dummkopf!|Idiot!|2|
+चुप कर!|tschup KAR|Halt die Klappe!|Shut up!|2|
+कमीना!|ka-MII-na|Mistkerl!|Bastard!|2|
+भाड़ में जा!|BHAAR mẽ dschaa|Geh zum Teufel!|Go to hell!|2|
+कुत्ती!|KUT-ti|Miststück!|Bitch!|3|wörtlich „Hündin“`);
+
+pb("zh", "zh-CN", "🇨🇳", "Chinesisch", "Chinese", "中文", `
+hello|你好！|nǐ hǎo|Umschrift: Pinyin – die Striche zeigen den Ton (ā hoch, á steigend, ǎ tief, à fallend)
+name|我叫…|wǒ jiào …
+askname|你叫什么名字？|nǐ jiào shénme míngzi
+from|我是德国人。|wǒ shì Déguó rén
+nice|很高兴认识你！|hěn gāoxìng rènshi nǐ
+how|你好吗？|nǐ hǎo ma
+fine|我很好，谢谢。你呢？|wǒ hěn hǎo, xièxie. nǐ ne
+learn|我在学中文。|wǒ zài xué Zhōngwén
+bye|再见！|zàijiàn`, `
+thanks|谢谢！|xièxie
+please|请。|qǐng
+sorry|对不起！|duìbuqǐ
+yes|对|duì|„ja, stimmt“ – oft wiederholt man einfach das Verb der Frage
+no|不是|bú shì
+nounder|我听不懂。|wǒ tīng bu dǒng
+english|你会说英语吗？|nǐ huì shuō Yīngyǔ ma
+toilet|厕所在哪里？|cèsuǒ zài nǎlǐ
+price|这个多少钱？|zhège duōshao qián
+beer|请来一瓶啤酒！|qǐng lái yì píng píjiǔ
+cheers|干杯！|gānbēi
+help|救命！|jiùmìng`, `
+笨蛋！|bèndàn|Dummkopf!|Idiot!|1|
+傻瓜！|shǎguā|Trottel!|Fool!|1|
+闭嘴！|bìzuǐ|Halt den Mund!|Shut up!|2|
+滚！|gǔn|Hau ab! / Verschwinde!|Get lost!|2|
+神经病！|shénjīngbìng|Du Spinner!|Psycho! / Nutcase!|2|wörtlich „Nervenkrankheit“
+靠！|kào|Mist! / Verdammt!|Damn!|2|sehr häufig im Alltag
+他妈的！|tā mā de|Verdammte Scheiße!|Damn it! / Fuck!|3|wörtlich „seine Mutter“
+贱人！|jiànrén|Miststück!|Bitch!|3|`);
+
+pb("ja", "ja-JP", "🇯🇵", "Japanisch", "Japanese", "日本語", `
+hello|こんにちは！|konnichiwa|Umschrift: Hepburn – j wie in „Dschungel“, sh wie sch, ō = langes o
+name|…です。|… desu|das u am Ende ist fast stumm: „dess“
+askname|お名前は？|o-namae wa?
+from|ドイツから来ました。|Doitsu kara kimashita
+nice|はじめまして！|hajimemashite
+how|元気ですか？|genki desu ka?
+fine|元気です。ありがとう。あなたは？|genki desu. arigatō. anata wa?
+learn|日本語を勉強しています。|nihongo o benkyō shite imasu
+bye|またね！|mata ne|förmlich: さようなら (sayōnara)`, `
+thanks|ありがとう！|arigatō|höflicher: ありがとうございます (arigatō gozaimasu)
+please|お願いします。|onegai shimasu
+sorry|すみません！|sumimasen
+yes|はい|hai
+no|いいえ|iie
+nounder|わかりません。|wakarimasen
+english|英語を話せますか？|eigo o hanasemasu ka?
+toilet|トイレはどこですか？|toire wa doko desu ka?
+price|いくらですか？|ikura desu ka?
+beer|ビールをください！|bīru o kudasai
+cheers|乾杯！|kanpai
+help|助けて！|tasukete`, `
+バカ！|baka|Idiot! / Dummkopf!|Idiot!|1|
+アホ！|aho|Trottel!|Dummy!|1|vor allem in Osaka und Kansai
+うるさい！|urusai|Sei still! / Du nervst!|Shut up! / So annoying!|1|
+くそ！|kuso|Scheiße! / Mist!|Shit! / Damn!|2|
+ちくしょう！|chikushō|Verdammt!|Damn it!|2|
+黙れ！|damare|Halt die Klappe!|Shut up!|2|
+ふざけるな！|fuzakeru na|Verarsch mich nicht! / Was soll das?|Don't mess with me!|2|
+消えろ！|kiero|Verschwinde!|Get lost!|3|`);
+
+pb("ko", "ko-KR", "🇰🇷", "Koreanisch", "Korean", "한국어", `
+hello|안녕하세요!|annyeonghaseyo|Umschrift: Revised Romanization – eo wie offenes o, eu wie dumpfes ü
+name|저는 …입니다.|jeoneun … imnida
+askname|이름이 뭐예요?|ireumi mwoyeyo?
+from|독일에서 왔어요.|dogireseo wasseoyo
+nice|만나서 반가워요!|mannaseo bangawoyo
+how|잘 지내요?|jal jinaeyo?
+fine|잘 지내요, 감사해요. 그쪽은요?|jal jinaeyo, gamsahaeyo. geujjogeunyo?
+learn|한국어를 배우고 있어요.|hangugeoreul baeugo isseoyo
+bye|안녕히 가세요!|annyeonghi gaseyo|wenn du gehst und der andere bleibt: 안녕히 계세요 (gyeseyo)`, `
+thanks|감사합니다!|gamsahamnida
+please|주세요.|juseyo|„bitte geben Sie mir …“
+sorry|죄송합니다!|joesonghamnida
+yes|네|ne
+no|아니요|aniyo
+nounder|이해 못 했어요.|ihae mot haesseoyo
+english|영어 할 수 있어요?|yeongeo hal su isseoyo?
+toilet|화장실이 어디예요?|hwajangsiri eodiyeyo?
+price|얼마예요?|eolmayeyo?
+beer|맥주 하나 주세요!|maekju hana juseyo
+cheers|건배!|geonbae
+help|도와주세요!|dowajuseyo`, `
+바보!|babo|Dummkopf!|Fool!|1|
+미쳤어?|michyeosseo?|Spinnst du?|Are you crazy?|1|
+짜증나!|jjajeungna|Wie nervig!|So annoying!|1|
+젠장!|jenjang|Verdammt!|Damn!|2|
+닥쳐!|dakchyeo|Halt die Klappe!|Shut up!|2|
+꺼져!|kkeojyeo|Verschwinde!|Get lost!|2|
+개새끼!|gaesaekki|Mistkerl!|Son of a bitch!|3|wörtlich „Hundewelpe“
+씨발!|ssibal|Fuck!|Fuck!|3|sehr derb, aber oft zu hören`);
+
+pb("th", "th-TH", "🇹🇭", "Thailändisch", "Thai", "ไทย", `
+hello|สวัสดีครับ!|sà-wàt-dii khráp|Thai hat Töne. Männer beenden Sätze mit ครับ (khráp), Frauen mit ค่ะ (khâ)
+name|ผมชื่อ…ครับ|phŏm chûue … khráp|als Frau: ฉันชื่อ…ค่ะ (chăn chûue … khâ)
+askname|คุณชื่ออะไรครับ?|khun chûue a-rai khráp
+from|ผมมาจากเยอรมันครับ|phŏm maa jàak yer-ra-man khráp
+nice|ยินดีที่ได้รู้จักครับ!|yin-dii thîi dâai rúu-jàk khráp
+how|สบายดีไหมครับ?|sa-baai dii măi khráp
+fine|สบายดีครับ ขอบคุณ แล้วคุณล่ะ?|sa-baai dii khráp, khàwp-khun. láew khun lâ
+learn|ผมกำลังเรียนภาษาไทยครับ|phŏm gam-lang rian phaa-săa thai khráp
+bye|ลาก่อนครับ!|laa gàwn khráp`, `
+thanks|ขอบคุณครับ!|khàwp-khun khráp
+please|กรุณา|ga-ru-naa|im Alltag eher: „ขอ … หน่อย“ (khăw … nàwy)
+sorry|ขอโทษครับ!|khăw-thôht khráp
+yes|ใช่ครับ|châi khráp
+no|ไม่ใช่ครับ|mâi châi khráp
+nounder|ผมไม่เข้าใจครับ|phŏm mâi khâo-jai khráp
+english|พูดภาษาอังกฤษได้ไหมครับ?|phûut phaa-săa ang-grìt dâai măi khráp
+toilet|ห้องน้ำอยู่ที่ไหนครับ?|hâwng-náam yùu thîi-năi khráp
+price|เท่าไหร่ครับ?|thâo-rài khráp
+beer|ขอเบียร์หนึ่งขวดครับ!|khăw bia nùeng khùat khráp
+cheers|ชนแก้ว!|chon gâew
+help|ช่วยด้วย!|chûai dûai`, `
+บ้า!|bâa|Verrückt! / Spinner!|Crazy!|1|
+โง่!|ngôh|Dumm!|Stupid!|1|
+หุบปาก!|hùp bpàak|Halt die Klappe!|Shut up!|2|
+ไอ้บ้า!|âi bâa|Du Idiot! / Du Spinner!|You idiot!|2|
+ไอ้ควาย!|âi khwaai|Du Trottel!|You moron!|2|wörtlich „Büffel“
+เวรเอ๊ย!|wen oei|Verdammt!|Damn it!|2|
+ไปให้พ้น!|bpai hâi phón|Verschwinde!|Get lost!|2|
+ไอ้เหี้ย!|âi hîa|Mistkerl!|Bastard!|3|wörtlich „Waran“ – sehr derb`);
+
+pb("vi", "vi-VN", "🇻🇳", "Vietnamesisch", "Vietnamese", "Tiếng Việt", `
+hello|Xin chào!|sin TSCHAU|Vietnamesisch hat Töne – die Akzente zeigen sie, daher unbedingt anhören
+name|Tôi tên là …|toi ten la
+askname|Bạn tên là gì?|ban ten la SI
+from|Tôi đến từ Đức.|toi den tu DUK
+nice|Rất vui được gặp bạn!|rat WUI duok GAP ban
+how|Bạn khỏe không?|ban KHOE khong
+fine|Tôi khỏe, cảm ơn. Còn bạn?|toi KHOE, kam ÖN. kon BAN
+learn|Tôi đang học tiếng Việt.|toi dang hok tieng WIET
+bye|Tạm biệt!|tam BIET`, `
+thanks|Cảm ơn!|kam ÖN
+please|Làm ơn.|lam ÖN
+sorry|Xin lỗi!|sin LOI
+yes|Vâng|wang|im Süden eher: Dạ (ja)
+no|Không|khong
+nounder|Tôi không hiểu.|toi khong HIEU
+english|Bạn nói tiếng Anh không?|ban noi tieng ANH khong
+toilet|Nhà vệ sinh ở đâu?|nja we sinh ö DAU
+price|Bao nhiêu tiền?|bau njieu TIEN
+beer|Cho tôi một bia!|tscho toi mot BIA
+cheers|Một, hai, ba, dô!|mot, hai, ba, JO
+help|Cứu tôi với!|küu toi WOI`, `
+Đồ ngốc!|do NGOK|Dummkopf!|Idiot!|1|
+Điên à?|dien A|Spinnst du?|Are you crazy?|1|
+Ngu!|ngu|Dumm!|Stupid!|2|
+Chết tiệt!|tschet TIET|Verdammt!|Damn it!|2|
+Im đi!|im DI|Sei still!|Shut up!|2|
+Cút đi!|kut DI|Hau ab!|Get lost!|2|
+Khốn nạn!|khon NAN|Mistkerl!|Bastard!|3|
+Đồ chó!|do TSCHO|Du Hund!|You dog!|3|`);
+
+pb("id", "id-ID", "🇮🇩", "Indonesisch", "Indonesian", "Bahasa Indonesia", `
+hello|Halo!|HA-lo
+name|Nama saya …|NA-ma SA-ja
+askname|Siapa nama kamu?|si-A-pa NA-ma KA-mu
+from|Saya dari Jerman.|SA-ja DA-ri DSCHER-man
+nice|Senang bertemu dengan kamu!|se-NANG ber-TE-mu DE-ngan KA-mu
+how|Apa kabar?|A-pa KA-bar
+fine|Baik, terima kasih. Kamu?|ba-IK, te-RI-ma KA-sih. KA-mu
+learn|Saya sedang belajar bahasa Indonesia.|SA-ja se-DANG be-LA-dschar ba-HA-sa in-do-NE-sja
+bye|Sampai jumpa!|SAM-pai DSCHUM-pa`, `
+thanks|Terima kasih!|te-RI-ma KA-sih
+please|Tolong.|TO-long
+sorry|Maaf!|MA-af
+yes|Ya|ja
+no|Tidak|TI-dak
+nounder|Saya tidak mengerti.|SA-ja TI-dak me-NGER-ti
+english|Bisa bahasa Inggris?|BI-sa ba-HA-sa ING-gris
+toilet|Di mana kamar kecil?|di MA-na KA-mar ke-TSCHIL
+price|Berapa harganya?|be-RA-pa har-GA-nja
+beer|Satu bir, ya!|SA-tu BIR, ja
+cheers|Bersulang!|ber-SU-lang
+help|Tolong!|TO-long`, `
+Bodoh!|BO-doh|Dumm! / Dummkopf!|Stupid!|1|
+Gila!|GI-la|Verrückt! / Wahnsinn!|Crazy!|1|
+Sialan!|si-A-lan|Verdammt!|Damn it!|2|
+Diam!|DI-am|Sei still!|Shut up!|2|
+Tai!|tai|Scheiße!|Shit!|2|
+Pergi sana!|PER-gi SA-na|Hau ab!|Go away!|2|
+Brengsek!|BRENG-sek|Mistkerl!|Jerk! / Bastard!|3|
+Anjing!|AN-dsching|Verdammt!|Damn! / Fuck!|3|wörtlich „Hund“ – als Fluch sehr derb`);
+
 (() => {
 /* ================= Basics ================= */
 const KEYS = {
@@ -5481,7 +6417,7 @@ const langOf = (code) => langs().find((l) => l.code === code) || null;
 /* built-in project and topic names (starter packs) are shown in the app language; the stored name stays */
 const dn = (name) => (name ? T(name) : name);
 const lname = (L) => (L ? T(L.name) : "");
-const langName = (code) => lname(langOf(code) || { name: code });
+const langName = (code) => { const L = langOf(code); if (L) return lname(L); const p = typeof pbFind === "function" ? pbFind(code) : null; return p ? (UI === "en" ? p.en : p.de) : code; };
 const cardsOf = (code) => state.cards.filter((c) => c.lang === code);
 const hasGenderedNouns = (L) => L && ["it", "es", "fr", "pt"].includes(L.code);
 const meaningName = (c) => (c.ml ? MEANING_LANGS[c.ml] : T("Deutsch"));
@@ -5667,19 +6603,25 @@ const VOICE_SAMPLE = {
   nl: ["Hallo! Hoe gaat het? Vandaag oefenen we een beetje Nederlands.", "Goedemorgen, leuk je te ontmoeten!"],
   sv: ["Hej! Hur mår du? I dag övar vi lite svenska.", "God morgon, trevligt att träffas!"]
 };
-const langTag = (code) => { const L = langOf(code); return (L && L.tts) || code; };
+/* BCP-47 tag for speech: the language settings first, then the phrasebook languages (Japanese, Polish …) */
+const langTag = (code) => { const L = langOf(code); return (L && L.tts) || (typeof PB_TAGS !== "undefined" && PB_TAGS[code]) || code; };
+/* Some systems name a language differently: Norwegian nb/no, Hebrew he/iw, Indonesian id/in */
+const LANG_ALIAS = { nb: ["nb", "no", "nn"], no: ["nb", "no", "nn"], he: ["he", "iw"], iw: ["he", "iw"], id: ["id", "in"], in: ["id", "in"] };
 function voicesFor(code) {
   if (!voices.length) loadVoices();
-  const base = langTag(code).slice(0, 2).toLowerCase();
-  return voices.filter((v) => (v.lang || "").replace("_", "-").toLowerCase().startsWith(base));
+  const base = langTag(code).slice(0, 2).toLowerCase(), ok = LANG_ALIAS[base] || [base];
+  return voices.filter((v) => ok.includes((v.lang || "").replace("_", "-").toLowerCase().slice(0, 2)));
 }
-const NOVELTY = /compact|eloquence|novelty|bad news|good news|bells|bubbles|jester|whisper|zarvox|trinoids|superstar|organ|boing|cellos|albert|bahh|wobble|fred|junior|ralph|kathy|grandma|grandpa|rocko|shelley|flo|reed|sandy/;
+/* Robotic or joke voices (macOS/iOS "Eloquence" and novelty voices) – they mispronounce a lot */
+const NOVELTY = /eloquence|novelty|speech\.synthesis\.voice\.|bad news|good news|bells|bubbles|jester|whisper|zarvox|trinoids|superstar|organ|boing|cellos|albert|bahh|wobble|\bfred\b|junior|ralph|kathy|grandma|grandpa|rocko|shelley|\bflo\b|\breed\b|sandy|\beddy\b/;
 function voiceScore(v, tag) {
   let s = 0;
-  const lang = (v.lang || "").replace("_", "-").toLowerCase(), id = `${v.voiceURI} ${v.name}`.toLowerCase();
-  if (lang === tag.toLowerCase()) s += 10;
+  const lang = (v.lang || "").replace("_", "-").toLowerCase(), id = `${v.voiceURI} ${v.name}`.toLowerCase(), t = tag.toLowerCase();
+  if (lang === t) s += 10;
+  else if (t.startsWith("zh") && /hk|yue/.test(lang)) s -= 6; // Cantonese is a different language
   if (/premium/.test(id)) s += 6; else if (/enhanced|erweitert|verbessert|neural|natural|online/.test(id)) s += 4;
-  if (NOVELTY.test(id)) s -= 8;
+  if (NOVELTY.test(id)) s -= 30;
+  if (v.localService) s += 1;
   if (v.default) s += 1;
   return s;
 }
@@ -5691,7 +6633,26 @@ function pickVoice(code) {
 /* curUtter keeps the utterance referenced – Safari otherwise drops it and never finishes speaking */
 let speakTimer = 0, speakWatch = 0, curUtter = null, speakBtn = null; // eslint-disable-line no-unused-vars
 const noVoiceWarned = new Set();
-const speakText = (text) => String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>]+>/g, "").replace(/\s+[–—→⟶]\s+/g, ", ").replace(/\s\/\s/g, ", ").replace(/[…_]+/g, " ").replace(/\s+/g, " ").trim();
+/* What the voice reads: no gaps, tags, arrows or slashes; "italiano/a" → "italiano, italiana", "he/she/it" → "he, she, it",
+   "(m.)" and other grammar labels dropped, dictionary abbreviations written out (qc → qualcosa, sth → something) */
+const SPEAK_ABBR = {
+  it: [[/\bqc\b\.?/g, "qualcosa"], [/\bqn\b\.?/g, "qualcuno"]],
+  en: [[/\bsth\b\.?/g, "something"], [/\bsb's\b/g, "somebody's"], [/\bsb\b\.?/g, "somebody"]],
+  fr: [[/\bqqch\b\.?/g, "quelque chose"], [/\bqqn\b\.?/g, "quelqu'un"]],
+  es: [[/\balgn\b\.?/g, "alguien"], [/\balgo\b\.?/g, "algo"]]
+};
+function speakText(text, code) {
+  let t = String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>]+>/g, "");
+  t = t.replace(/\((?:\s*(?:m|f|n|pl|sg|Pl|Sg|inf|ugs|umg|fam|form|formell|informell|coll|lit|wörtl|m\/f|f\/m)\.?\s*[,;]?)+\)/g, " ");
+  for (const [re, w] of SPEAK_ABBR[(code || "").slice(0, 2)] || []) t = t.replace(re, w);
+  /* gender endings: italiano/a, cansado/a, español/a, tedesco/a */
+  t = t.replace(/(^|[^\p{L}/])(\p{L}{3,})\/(a|e|i|o|as|es|os)(?![\p{L}/])/giu, (m, pre, a, b) => {
+    const replace = /[aeiou]$/i.test(a);
+    return `${pre}${a}, ${replace ? a.slice(0, -1) + b : a + b}`;
+  });
+  t = t.replace(/(\p{L})\/(?=\p{L})/gu, "$1, ");
+  return t.replace(/\s+[–—→⟶]\s+/g, ", ").replace(/([?!.]),/g, "$1").replace(/\s\/\s/g, ", ").replace(/[…_~]+/g, " ").replace(/\s+([,.;:!?])/g, (m, p) => ((code || "").startsWith("fr") && /[;:!?]/.test(p) ? m : p)).replace(/\s+/g, " ").replace(/^[,\s]+|[,\s]+$/g, "").trim();
+}
 /* Play sound even with the ring/silent switch off (iOS 17+), where the browser supports it */
 function audioPlayback() { try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch { /* not supported */ } }
 function speakMark(btn, on) { if (btn && btn.classList) btn.classList.toggle("speaking", on); }
@@ -5733,7 +6694,7 @@ function speak(text, code, o) {
   o = o || {};
   const ss = window.speechSynthesis;
   if (!ss || !text) return false;
-  const clean = speakText(text);
+  const clean = speakText(text, code);
   if (!clean) return false;
   audioPlayback();
   const parts = o.slow ? slowChunks(clean) : [clean];
@@ -6167,10 +7128,13 @@ function cardRow(c) {
   const title = c.type === "cloze" ? parseCloze(c.tg).text : c.tg;
   const sub = [c.de, c.type === "word" && c.pos && c.pos !== "s" ? POS[c.pos] : "", dn(c.topic)].filter(Boolean).join(" · ");
   const dt = stt === "new" || stt === "susp" ? "" : dueText(c);
-  return `<button class="row nochev" data-action="card" data-arg="${esc(c.id)}"${state.sel ? ` aria-pressed="${on}"` : ""}>
+  const row = `<button class="row nochev" data-action="card" data-arg="${esc(c.id)}"${state.sel ? ` aria-pressed="${on}"` : ""}>
     ${state.sel ? `<span class="checkc${on ? " on" : ""}" aria-hidden="true">${on ? "✓" : ""}</span>` : badgeTxt((stripArt(c.tg) || "?").slice(0, 2), L ? L.color : "#8E8E96")}
     <span class="main"><span class="t1">${esc(title)}${tags}</span><span class="t2">${esc(sub)}</span></span>
     <span class="val">${dt ? `<small>${esc(dt)}</small>` : ""}</span></button>`;
+  /* 🔊 next to every card: hear it any time, without starting a session */
+  if (state.sel || !canSpeak()) return row;
+  return `<div class="crow">${row}<button type="button" class="csay" data-action="say-card" data-arg="${esc(c.id)}" aria-label="${T("Anhören")}">${ICON_SPEAK}</button></div>`;
 }
 function selToolbar() {
   if (state.sel) return `<div class="seltools"><button class="more" data-action="sel-all">${T("Alle auswählen")}</button><button class="more" data-action="sel-cancel">${T("Abbrechen")}</button></div>`;
@@ -6270,6 +7234,7 @@ function viewHub() {
     ${n && !syncOn() && (lastBackupDays() == null ? n >= 30 && Date.now() - Math.min(...state.cards.map((c) => c.created)) > 7 * 864e5 : lastBackupDays() > 14) ? `<button class="notice" data-action="export-json">${T("Letztes Backup: {0} · Jetzt sichern ›", [esc(lastBackupText())])}</button>` : ""}
     <nav class="tiles" aria-label="${T("Sprachen")}">${tiles}<button class="tile dash" data-action="add-lang"><span class="tile-l"><span class="tile-t" style="font-size:20px;color:var(--muted)">${T("+ Sprache")}</span><span class="tile-s">${T("Spanisch, Französisch, Portugiesisch …")}</span></span><span></span><span class="chev" aria-hidden="true">›</span></button></nav>
     <button class="coursetile" data-action="course-any"><span class="tile-l"><span class="tile-t">${T("Kurs")}</span><span class="tile-s">${esc(hubCourseLine())}</span></span><span class="lvchips" aria-hidden="true">${LEVELS.map((x) => `<i>${x}</i>`).join("")}</span><span class="chev" aria-hidden="true">›</span></button>
+    <button class="coursetile pbtile" data-action="nav" data-arg="phrasebook"><span class="tile-l"><span class="tile-t">${T("Sprachführer")}</span><span class="tile-s">${T("{0} Sprachen · Vorstellen, Basics, Beleidigungen – zum Anhören", [num(pbAll().length)])}</span></span><span class="pbflags" aria-hidden="true">🇯🇵🇬🇷🇵🇱🇹🇷</span><span class="chev" aria-hidden="true">›</span></button>
     <div class="minitiles">
       <button class="mtile" data-action="build-any"><span class="tile-t">${T("Sätze bauen")}</span>${sentences ? `<span class="tile-v">${num(sentences)}</span><span class="tile-s">${T("Sätze aus deinen Wörtern")}</span>` : `<span class="tile-s">${T("Sätze bilden und korrigieren lassen")}</span>`}</button>
       <button class="mtile" data-action="drill-any"><span class="tile-t">${T("Konjugation")}</span>${verbs ? `<span class="tile-v">${num(verbs)}</span><span class="tile-s">${T("Verben – Formen üben")}</span>` : `<span class="tile-s">${T("Verbformen trainieren")}</span>`}</button>
@@ -6337,6 +7302,7 @@ function viewLang(v) {
     <section class="sec" aria-labelledby="hPrac">
       <div class="sechead"><h2 class="sectitle" id="hPrac">${T("Üben")}</h2></div>
       ${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}
+      ${pbFind(L.code) ? navRow("pblang", L.code, T("Sprachführer"), T("Vorstellen, Basics, Beleidigungen – schnell nachschlagen und anhören"), "", badgeTxt("💬", L.color)) : ""}
       ${theoryLangs().some((x) => x.code === L.code) ? navRow("nav", "theory", T("Theorie & Grammatik"), L.code === "it" ? T("Artikel, Zeitformen, Konjugation – mit Übungen") : L.code === "en" ? T("Zeitformen, if-Sätze, Artikel – mit Übungen") : T("Grammatik aus dem Kurs und Verben in allen Zeitformen"), "", badgeTxt("§", L.color), lp) : ""}
       ${cs.length ? navRow("nav", "newwords", T("Neue Wörter ansehen"), T("Wörter, die noch nicht gelernt sind – lesen und anhören"), (() => { const k = newCardsOf(L.code).length; return k ? `<small>${num(k)}</small>` : ""; })(), badgeTxt("Aa", L.color), lp) : ""}
       ${navRow("build", L.code, T("Sätze bauen"), sb ? T("{0} – aus Bausteinen oder frei tippen, mit Korrektur", [plural(sb, T("Satz"), T("Sätze"))]) : T("Sätze entstehen aus Beispielsätzen und Satzkarten"), "", badgeTxt("✎", L.color))}
@@ -7335,6 +8301,7 @@ function openCard(card, preset) {
   fillDecks(code, deck);
   fillTopics(code, deck, topic);
   $("cTg").value = card ? card.tg : (preset.tg || "");
+  $("cSay").innerHTML = ICON_SPEAK; $("cSaySlow").innerHTML = ICON_SLOW; $("cSay").hidden = $("cSaySlow").hidden = !canSpeak();
   $("cDe").value = card ? card.de : (preset.de || "");
   $("cEx").value = card ? card.ex : ""; $("cExDe").value = card ? card.exDe : ""; $("cNote").value = card ? card.note : "";
   $("cMore").open = !!(card && (card.ex || card.note));
@@ -8028,6 +8995,137 @@ function quizKey(ev) {
 }
 document.addEventListener("keydown", quizKey);
 document.addEventListener("submit", (e) => { if (e.target && e.target.id === "quizForm") { e.preventDefault(); quizAnswer({ typed: ($("quizIn") || {}).value }); } if (e.target && e.target.id === "conjForm") { e.preventDefault(); const t = topView(); t.p = { ...(t.p || {}), verb: ($("conjIn") || {}).value || "" }; render(); } });
+
+/* ================= Phrasebook ("Sprachführer") =================
+   Many languages, three quick sections each: introduce yourself, survival basics, insults & swearing.
+   Every phrase: native text, a pronunciation guide, the meaning, 🔊 and 🐢. Languages that are not built in
+   can be written by the AI assistant and are kept on this device. */
+const PB_LEVEL = { 1: ["🟢", TB("harmlos", "mild")], 2: ["🟡", TB("frech", "rude")], 3: ["🔴", TB("derb", "strong")] };
+function pbCustom() { try { const a = JSON.parse(lsGet("plm.pb.custom") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } }
+function pbSaveCustom(a) { lsSet("plm.pb.custom", JSON.stringify(a)); for (const p of a) PB_TAGS[p.code] = PB_TAGS[p.code] || p.tag; }
+for (const p of pbCustom()) PB_TAGS[p.code] = PB_TAGS[p.code] || p.tag;
+const pbAll = () => PHRASEBOOK.concat(pbCustom());
+const pbFind = (code) => pbAll().find((p) => p.code === code) || null;
+const pbName = (p) => (UI === "en" ? p.en : p.de);
+const pbSort = (a) => a.slice().sort((x, y) => pbName(x).localeCompare(pbName(y), LOC));
+/* phrase lines → items: intro/basics "key|text|pron", insults "text|pron|de|en|level|note" */
+function pbItems(p, cat) {
+  const name = (lsGet("plm.pbName") || "").trim();
+  const fill = (t) => (name ? t.replace(/…/g, name) : t);
+  if (cat === "insults") {
+    const lines = Array.isArray(p.insults) ? p.insults : String(p.insults || "").split("\n").filter((l) => l.trim()).map((l) => { const f = l.split("|"); return { t: f[0], pron: f[1], de: f[2], en: f[3], lvl: Number(f[4]) || 2, note: f[5] || "" }; });
+    return lines.map((x) => ({ t: x.t, pron: x.pron || "", mean: UI === "en" ? x.en || x.de : x.de, lvl: x.lvl || 2, note: UI === "en" ? "" : x.note || "" })).sort((a, b) => a.lvl - b.lvl); // mild first
+  }
+  const map = new Map();
+  if (Array.isArray(p[cat])) for (const x of p[cat]) map.set(x.key, x);
+  else for (const l of String(p[cat] || "").split("\n")) { const f = l.split("|"); if (f.length >= 2 && f[0].trim()) map.set(f[0].trim(), { t: f[1].trim(), pron: (f[2] || "").trim(), note: (f[3] || "").trim() }); }
+  return (PB_KEYS[cat] || []).filter(([k]) => map.has(k)).map(([k, tb]) => {
+    const x = map.get(k);
+    return { key: k, t: fill(x.t), pron: x.pron || "", mean: L10(tb).replace("{L}", pbName(p)), raw: x.t, note: UI === "en" ? "" : x.note || "" };
+  });
+}
+function pbListHTML() {
+  const q = normAns(state.pbQ || "").trim();
+  const all = pbSort(pbAll()), hit = (p) => !q || [p.de, p.en, p.native, p.code].some((s) => normAns(s || "").includes(q));
+  const list = all.filter(hit);
+  let last = "", out = "";
+  for (const p of list) {
+    const letter = pbName(p).charAt(0).toUpperCase();
+    if (!q && letter !== last) { out += `<div class="pbletter">${esc(letter)}</div>`; last = letter; }
+    out += `<button class="row" data-action="pblang" data-arg="${esc(p.code)}"><span class="badge pbflag" aria-hidden="true">${esc(p.flag || "🌐")}</span>
+      <span class="main"><span class="t1">${esc(pbName(p))}${p.ai ? `<span class="tag">${T("KI")}</span>` : ""}</span><span class="t2">${esc(p.native || "")}</span></span><span class="val"></span><span class="chev" aria-hidden="true">›</span></button>`;
+  }
+  const raw = (state.pbQ || "").trim();
+  if (!list.length) out += `<p class="hint" style="margin:14px 0">${T("„{0}“ ist noch nicht dabei.", [esc(raw)])}</p>`;
+  if (raw && aiOn()) out += `<button class="btn primary" style="width:100%;margin-top:12px" data-action="pb-ai" data-arg="${esc(raw)}">${T("✦ „{0}“ mit KI erstellen", [esc(raw)])}</button>`;
+  else if (!list.length) out += `<p class="hint">${T("Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kann PLM jede weitere Sprache erstellen.")}</p>`;
+  return out;
+}
+function viewPhrasebook() {
+  return `${backBar()}
+    <h1 class="vtitle">${T("Sprachführer")}</h1>
+    <p class="meta">${T("{0} Sprachen · Vorstellen, Basics, Beleidigungen – mit Aussprache zum Anhören", [num(pbAll().length)])}</p>
+    <label class="searchbar">${ICON_SEARCH}<input id="pbQ" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${T("Sprache suchen …")}" value="${esc(state.pbQ || "")}" aria-label="${T("Sprache suchen")}"></label>
+    <div id="pbList" class="pblist-langs">${pbListHTML()}</div>`;
+}
+function pbSay(text, code) {
+  if (!canSpeak()) return "";
+  return `<button type="button" class="th-say" data-action="th-say" data-arg="${esc(text)}" data-p="${esc(code)}" aria-label="${T("Anhören")}">${ICON_SPEAK}</button><button type="button" class="th-say slow" data-action="th-say-slow" data-arg="${esc(text)}" data-p="${esc(code)}" aria-label="${T("Langsam anhören")}">${ICON_SLOW}</button>`;
+}
+function pbListBody(p, cat) {
+  const items = pbItems(p, cat), mine = !!langOf(p.code);
+  const row = (x, i) => `<div class="pbi">
+      <div class="pbi-main"><span class="pbi-t" lang="${esc(p.tag || p.code)}">${esc(x.t)}</span>${x.pron && x.pron !== x.t ? `<span class="pbi-p">${esc(x.pron)}</span>` : ""}
+        <span class="pbi-m">${x.lvl ? `<span class="pblvl" title="${esc(L10(PB_LEVEL[x.lvl][1]))}">${PB_LEVEL[x.lvl][0]} ${esc(L10(PB_LEVEL[x.lvl][1]))}</span> ` : ""}${esc(x.mean)}</span>
+        ${x.note ? `<small class="pbi-n">${esc(x.note)}</small>` : ""}</div>
+      <div class="pbi-b">${pbSay(x.t, p.code)}${mine ? `<button type="button" class="th-say" data-action="pb-add" data-arg="${i}" aria-label="${T("Als Karte lernen")}">+</button>` : ""}</div></div>`;
+  return items.map(row).join("") || `<p class="hint">${T("Für diesen Bereich gibt es hier noch nichts.")}</p>`;
+}
+function viewPbLang(v) {
+  const p = pbFind(v.p);
+  if (!p) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
+  const cat = PB_CATS.some((c) => c.id === state.pbCat) ? state.pbCat : "intro";
+  const mine = !!langOf(p.code), catT = PB_CATS.find((c) => c.id === cat);
+  return `${backBar()}
+    <div class="pbhead"><span class="pbbig" aria-hidden="true">${esc(p.flag || "🌐")}</span><div><h1 class="vtitle">${esc(pbName(p))}</h1><p class="meta">${esc(p.native || "")}${p.ai ? ` · ${T("von der KI erstellt")}` : ""}</p></div></div>
+    <div class="seg three pbcats" role="group" aria-label="${T("Bereich")}">${PB_CATS.map((c) => `<button data-action="pb-cat" data-arg="${c.id}" aria-pressed="${c.id === cat}">${c.icon} ${esc(L10(c.t))}</button>`).join("")}</div>
+    <p class="hint pbdesc">${esc(L10(catT.d))}</p>
+    ${cat === "intro" ? `<label class="field pbname"><span class="label">${T("Dein Name (für „Ich heiße …“)")}</span><input id="pbName" autocomplete="given-name" maxlength="30" value="${esc(lsGet("plm.pbName") || "")}" placeholder="${T("z. B. Anna")}"></label>` : ""}
+    <div class="pblist">${pbListBody(p, cat)}</div>
+    <p class="hint pbfoot">${T("Umschrift für Deutschsprachige: GROSS = betonte Silbe. Am genauesten ist das Anhören – 🐢 spricht langsam.")}${!pickVoice(p.code) && canSpeak() ? `<br>${T("Auf diesem Gerät ist noch keine {0}-Stimme installiert – iPhone: Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen.", [esc(pbName(p))])}` : ""}</p>
+    ${mine ? "" : `<p class="hint">${T("Tipp: Mit „+ Sprache“ auf der Startseite kannst du Sätze auch als Karten lernen, wenn PLM die Sprache kennt.")}</p>`}
+    ${p.ai ? `<button class="btn danger" data-action="pb-del" data-arg="${esc(p.code)}" style="margin-top:14px">${T("KI-Sprache löschen")}</button>` : ""}`;
+}
+function pbAddCard(i) {
+  const top = topView(), p = pbFind(top.p), cat = state.pbCat || "intro";
+  if (!p || !langOf(p.code)) return;
+  const x = pbItems(p, cat)[Number(i)]; if (!x) return;
+  const key = sameKey({ lang: p.code, type: "word", tg: x.t }), exists = state.cards.find((c) => sameKey(c) === key);
+  if (exists) { toast(T("Ist schon in deinen Karten")); return; }
+  const c = normCard({ lang: p.code, type: "word", tg: x.t, de: x.mean || "", ml: UI === "en" ? "en" : undefined, pos: "s", deck: "Sprachführer", topic: L10(PB_CATS.find((c2) => c2.id === cat).t), note: x.note || "" });
+  if (!c) return;
+  state.cards.push(c); reindex(); save();
+  toast(T("„{0}“ ist jetzt eine Karte im Projekt „Sprachführer“", [x.t]));
+}
+/* ---------- AI: write a phrasebook page for any other language ---------- */
+const PB_ITEM = { type: "object", additionalProperties: false, required: ["key", "text", "pron"], properties: { key: { type: "string" }, text: { type: "string" }, pron: { type: "string" } } };
+const AI_PB_SCHEMA = { type: "object", additionalProperties: false, required: ["code", "bcp47", "flag", "name_de", "name_en", "native_name", "intro", "basics", "insults"],
+  properties: { code: { type: "string" }, bcp47: { type: "string" }, flag: { type: "string" }, name_de: { type: "string" }, name_en: { type: "string" }, native_name: { type: "string" },
+    intro: { type: "array", items: PB_ITEM }, basics: { type: "array", items: PB_ITEM },
+    insults: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "pron", "german", "english", "level", "note"], properties: { text: { type: "string" }, pron: { type: "string" }, german: { type: "string" }, english: { type: "string" }, level: { type: "integer" }, note: { type: "string" } } } } } };
+async function aiPbGen(query) {
+  if (!aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)")); return; }
+  const job = { n: 0 }; state.aiJob = job;
+  const paint = () => { if (state.aiJob !== job) return; $("studyIn").innerHTML = `<div class="st-top"><button class="mbtn" data-action="ai-job-cancel" aria-label="${T("Abbrechen")}">✕</button><div class="st-prog"><span class="indet"></span></div><span></span><span></span></div>
+    <div class="st-done"><span class="label">${T("Sprachführer")}</span><h1 class="vtitle">${T("KI schreibt „{0}“ …", [esc(query)])}</h1><p class="hint">${job.n ? T("{0} Zeichen erhalten", [num(job.n)]) : T("Das dauert etwa eine halbe Minute.")}</p></div>`; };
+  $("study").hidden = false; document.body.style.overflow = "hidden"; paint();
+  const finish = () => { if (state.aiJob === job) { state.aiJob = null; $("study").hidden = true; document.body.style.overflow = ""; } };
+  const keys = (cat) => PB_KEYS[cat].map(([k, tb]) => `${k} = "${tb.en.replace("{L}", "<the language>")}"`).join("; ");
+  const system = `You write one page of a pocket phrasebook for German speakers. The user names a language (possibly in German, possibly with a typo). Identify it; if it is not a real human language, return empty arrays.
+- code: ISO 639-1 code if there is one (else 639-3), lower case. bcp47: the tag a speech synthesizer would use (e.g. "sw-KE"). flag: one flag emoji of a country where it is widely spoken. name_de / name_en: the language name in German and English. native_name: its own name.
+- intro: one item for each key: ${keys("intro")}. Where a name goes, write "…".
+- basics: one item for each key: ${keys("basics")}.
+- text: natural, everyday, correct, in the language's usual script. pron: for Latin-script languages a simple respelling for German speakers with the stressed syllable in CAPITALS (e.g. Italian "Mi chiamo" → "mi KJAA-mo"); for other scripts the standard romanization (with tones or stress marks where usual).
+- insults: 8 common, real-life swear words and insults, from mild to coarse (like "shit", "idiot", "shut up", "bitch", "damn it"), with German and English meaning, level 1 = mild, 2 = rude, 3 = strong, and a short German note (literal meaning or where it's used, may be empty). No slurs against any group (ethnicity, religion, sexuality, disability), nothing about violence.`;
+  try {
+    const r = await aiCall({ system, content: `Language: ${query}`, schema: AI_PB_SCHEMA, maxTokens: 6000, effort: "low", onText: (n) => { job.n = n; paint(); } });
+    if (state.aiJob !== job) return;
+    finish();
+    const d = r.json || {};
+    if (!(d.intro || []).length && !(d.basics || []).length) throw new Error(T("Diese Sprache hat die KI nicht erkannt – Schreibweise prüfen."));
+    let code = String(d.code || "x").toLowerCase().replace(/[^a-z-]/g, "").slice(0, 8) || "x";
+    if (PHRASEBOOK.some((p) => p.code === code)) { go("pblang", code); return; }
+    const one = (s) => clean1(String(s || "")).slice(0, 200);
+    const p = { code, ai: true, tag: one(d.bcp47) || code, flag: one(d.flag).slice(0, 8) || "🌐", de: one(d.name_de) || query, en: one(d.name_en) || query, native: one(d.native_name),
+      intro: (d.intro || []).map((x) => ({ key: one(x.key), t: one(x.text), pron: one(x.pron) })), basics: (d.basics || []).map((x) => ({ key: one(x.key), t: one(x.text), pron: one(x.pron) })),
+      insults: (d.insults || []).slice(0, 12).map((x) => ({ t: one(x.text), pron: one(x.pron), de: one(x.german), en: one(x.english), lvl: Math.min(3, Math.max(1, Number(x.level) || 2)), note: one(x.note) })) };
+    pbSaveCustom(pbCustom().filter((x) => x.code !== code).concat([p]));
+    state.pbQ = ""; state.pbCat = "intro";
+    go("pblang", code);
+  } catch (e) { if (state.aiJob === job) { finish(); toast(e.message); } }
+}
+Object.assign(VIEWS, { phrasebook: viewPhrasebook, pblang: viewPbLang });
+Object.assign(VIEW_LABEL, { phrasebook: T("Sprachführer"), pblang: T("Sprachführer") });
 
 /* ================= Course: guided lessons A1 → B2 =================
    Built-in courses live in course/<code>.js (loaded on demand, cached offline) and call courseReg().
@@ -8846,6 +9944,14 @@ document.addEventListener("click", (ev) => {
     case "speak-table": { const c = cardById(top.p), L = c && langOf(c.lang); if (!c) break; const t = L.tenses.find((x) => x.n === arg) || {}, labels = tenseLabels(L, t); speak(c.tables[arg].map((f, i) => (t.given ? f : `${(labels[i] || "").split("/")[0]} ${f}`)).join(", "), c.lang); break; }
     case "say": speak(arg, studyLang(), { btn: a }); break;
     case "say-slow": speak(arg, studyLang(), { slow: true, btn: a }); break;
+    case "th-say-slow": speak(arg, a.dataset.p || viewLangCode(), { slow: true, btn: a }); break;
+    case "pblang": state.pbCat = "intro"; go("pblang", arg); break;
+    case "pb-cat": state.pbCat = arg; render(); break;
+    case "pb-add": pbAddCard(arg); break;
+    case "pb-ai": aiPbGen(arg); break;
+    case "pb-del": pbSaveCustom(pbCustom().filter((x) => x.code !== arg)); toast(T("Gelöscht")); goBack(); break;
+    case "say-card": { const c = cardById(arg); if (c) speak(c.tg, c.lang, { btn: a }); break; }
+    case "say-input": { const v = $("cTg").value.trim(); if (v) speak(v, $("cLang").value, { slow: arg === "slow", btn: a }); else toast(T("Erst ein Wort eintragen")); break; }
     case "voice-test": speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][0] : (cardsOf(arg)[0] || {}).tg || langName(arg), arg, { btn: a }); break;
     case "voice-try": { const sel = $("fs-voice"), L = langOf(arg); if (L && sel) { const old = L.voice; L.voice = sel.value; speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][1] : (cardsOf(arg)[0] || {}).tg || lname(L), arg, { btn: a }); L.voice = old; } break; }
     case "mic": micStart(arg); break;
@@ -8951,6 +10057,7 @@ document.addEventListener("change", (ev) => {
 });
 let qTimer = 0;
 let conjTimer = 0;
+let pbNameTimer = 0;
 document.addEventListener("input", (ev) => {
   const t = ev.target;
   if (t.id === "q") {
@@ -8960,6 +10067,8 @@ document.addEventListener("input", (ev) => {
   if (t.id === "impText" && state.imp) state.imp.text = t.value;
   if (t.id === "cTg" && state.cType === "verb") $("cIscWrap").hidden = !/ire$/.test(normAns(t.value));
   if (t.id === "conjIn") { clearTimeout(conjTimer); conjTimer = setTimeout(updateConjSug, 60); }
+  if (t.id === "pbQ") { state.pbQ = t.value; clearTimeout(qTimer); qTimer = setTimeout(() => { const r = $("pbList"); if (r) r.innerHTML = pbListHTML(); }, 80); }
+  if (t.id === "pbName") { lsSet("plm.pbName", t.value.trim()); clearTimeout(pbNameTimer); pbNameTimer = setTimeout(() => { const host = document.querySelector(".pblist"), p = pbFind(topView().p); if (host && p) host.innerHTML = pbListBody(p, state.pbCat || "intro"); }, 250); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target && e.target.id === "q") e.target.blur(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeSheetsAnimated(); });
