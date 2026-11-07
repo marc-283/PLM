@@ -59,6 +59,7 @@ function openCard(card, preset) {
   fillDecks(code, deck);
   fillTopics(code, deck, topic);
   $("cTg").value = card ? card.tg : (preset.tg || "");
+  $("cSay").innerHTML = ICON_SPEAK; $("cSaySlow").innerHTML = ICON_SLOW; $("cSay").hidden = $("cSaySlow").hidden = !canSpeak();
   $("cDe").value = card ? card.de : (preset.de || "");
   $("cEx").value = card ? card.ex : ""; $("cExDe").value = card ? card.exDe : ""; $("cNote").value = card ? card.note : "";
   $("cMore").open = !!(card && (card.ex || card.note));
@@ -263,9 +264,14 @@ function addLang(code) {
   if (langOf(code)) return;
   state.settings.langs.push(defaultLang(code)); touchSettings(); closeSheets(); go("lang", code); toast(T("{0} hinzugefügt", [lname(PRESETS[code])]));
 }
+const QUAL_TXT = () => ({ 2: " · Premium", 1: ` · ${T("Erweitert")}`, 0: ` · ${T("einfach")}` });
 function voiceOpts(code) {
-  const tag = langTag(code), list = voicesFor(code).slice().sort((a, b) => voiceScore(b, tag) - voiceScore(a, tag));
-  return [["", T("Automatisch{0}", [list[0] ? ` (${list[0].name})` : ""])]].concat(list.map((v) => [v.voiceURI, `${v.name} · ${v.lang}`]));
+  const tag = langTag(code), list = voicesFor(code).slice().sort((a, b) => voiceScore(b, tag) - voiceScore(a, tag)), q = QUAL_TXT();
+  return [["", T("Automatisch{0}", [list[0] ? ` (${list[0].name})` : ""])]].concat(list.map((v) => [v.voiceURI, `${v.name} · ${v.lang}${q[voiceQual(v)] || ""}`]));
+}
+function cvoiceOpts(code) {
+  const list = gVoices(code);
+  return [["", T("Automatisch{0}", [list[0] ? ` (${gVoiceLabel(list[0])})` : ""])]].concat(list.map((v) => [v.n, gVoiceLabel(v)]));
 }
 function openLangSettings(code) {
   const L = langOf(code); if (!L) return;
@@ -278,14 +284,15 @@ function openLangSettings(code) {
       { k: "active", label: T("Abgefragte Zeiten"), type: "chips", opts: L.tenses.map((t) => [t.n, t.n]) },
       { k: "persons", label: T("Personen (mit Komma getrennt)"), ph: "io, tu, lui/lei …" },
       { k: "tts", label: T("Aussprache-Sprache"), type: "select", opts: TTS_LIST.concat([["", T("keine")]]).concat(TTS_LIST.some(([c]) => c === L.tts) || !L.tts ? [] : [[L.tts, L.tts]]), half: true },
-      { k: "voice", label: T("Stimme"), type: "select", opts: voiceOpts(code), half: true },
+      { k: "voice", label: ttsOn() ? T("iPhone-Stimme (offline)") : T("Stimme"), type: "select", opts: voiceOpts(code), half: true },
+      ...(ttsOn() && gVoices(code).length ? [{ k: "cvoice", label: T("Online-Stimme"), type: "select", opts: cvoiceOpts(code), sub: T("Neural2 und WaveNet sprechen besonders deutlich, Chirp3-HD klingt am natürlichsten.") }] : []),
       { k: "addTense", label: T("Weitere Zeit hinzufügen"), ph: T("z. B. Trapassato prossimo"), max: 40 }
     ],
     extra: canSpeak() ? `<div class="btnrow"><button type="button" class="btn" data-action="voice-try" data-arg="${esc(code)}">${T("{0} Stimme testen", [ICON_SPEAK])}</button></div>` : "",
-    values: { name: L.name, newPerDay: L.newPerDay, dirs: L.dirs, order: L.order, active: L.active, persons: L.persons.join(", "), tts: L.tts, voice: L.voice },
+    values: { name: L.name, newPerDay: L.newPerDay, dirs: L.dirs, order: L.order, active: L.active, persons: L.persons.join(", "), tts: L.tts, voice: L.voice, cvoice: L.cvoice },
     validate: (v) => (!v.name ? T("Gib der Sprache einen Namen.") : ""),
     onSave: (v) => {
-      Object.assign(L, { name: v.name.slice(0, 30), newPerDay: v.newPerDay, dirs: v.dirs, order: v.order, active: v.active, persons: v.persons.split(",").map((x) => x.trim()).filter(Boolean), tts: v.tts, voice: v.voice });
+      Object.assign(L, { name: v.name.slice(0, 30), newPerDay: v.newPerDay, dirs: v.dirs, order: v.order, active: v.active, persons: v.persons.split(",").map((x) => x.trim()).filter(Boolean), tts: v.tts, voice: v.voice, cvoice: v.cvoice != null ? v.cvoice : L.cvoice });
       if (v.addTense && !L.tenses.some((t) => t.n === v.addTense)) { L.tenses.push({ n: v.addTense }); L.active.push(v.addTense); }
       touchSettings(); render(); toast(T("Gespeichert"));
     },

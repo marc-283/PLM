@@ -518,3 +518,42 @@ details.more[open] summary { margin-bottom: 12px; }
 .talk-right { display: flex; gap: 8px; align-items: center; font-size: 17px; font-weight: 600; color: var(--pos); }
 .talk-done { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .th-listened { font-weight: 600; color: var(--ink); }
+
+/* 🔊 next to each card in lists and in the card editor */
+.crow { position: relative; }
+.crow > .row { padding-right: 54px; }
+.csay { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--raised); color: var(--accent); display: grid; place-items: center; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.csay svg { width: 20px; height: 20px; pointer-events: none; }
+.csay:active { transform: translateY(-50%) scale(0.92); background: rgba(255, 232, 58, 0.18); }
+.inrow { display: flex; gap: 8px; align-items: center; }
+.inrow input { flex: 1; min-width: 0; }
+.inrow .th-say { width: 44px; height: 44px; }
+
+/* Phrasebook */
+.pbtile { margin-top: 10px; border-color: var(--line); background: linear-gradient(135deg, rgba(63, 169, 255, 0.14), rgba(63, 169, 255, 0.03) 60%), var(--surface); }
+.pbtile .tile-t { color: #3FA9FF; }
+.pbflags { font-size: 20px; letter-spacing: 2px; white-space: nowrap; }
+.pblist-langs { margin-top: 12px; }
+.pbletter { font-family: var(--f-display); font-weight: 800; font-size: 13px; letter-spacing: 0.08em; color: var(--accent); padding: 14px 0 2px; border-bottom: 1px solid var(--line); }
+.badge.pbflag { font-size: 24px; background: var(--raised); }
+.pbhead { display: flex; align-items: center; gap: 14px; }
+.pbbig { font-size: 46px; line-height: 1; }
+.pbhead .vtitle { margin: 0; }
+.pbhead .meta { margin: 6px 0 0; }
+.pbcats { margin-top: 14px; }
+.pbcats button { font-size: 13.5px; padding-left: 4px; padding-right: 4px; }
+.pbdesc { margin: 10px 0 4px; }
+.pbname { margin: 10px 0 4px; }
+.pblist { display: flex; flex-direction: column; }
+.pbi { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.pbi-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pbi-t { font-size: 19px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.pbi-p { font-size: 14px; color: var(--accent); font-style: italic; overflow-wrap: anywhere; }
+.pbi-m { font-size: 14.5px; color: var(--muted); }
+.pbi-n { font-size: 12.5px; color: var(--faint); }
+.pblvl { font-size: 12px; font-weight: 600; color: var(--ink); background: var(--raised); border-radius: 999px; padding: 1px 7px; margin-right: 4px; white-space: nowrap; }
+.pbi-b { display: flex; gap: 6px; align-items: center; }
+.pbi-b .th-say { width: 40px; height: 40px; font-size: 20px; font-weight: 700; }
+.pbfoot { margin-top: 16px; }
+.warnline { border-left: 3px solid var(--accent); padding: 2px 0 2px 11px; }
+.steps code { font-size: 13px; overflow-wrap: anywhere; background: var(--raised); color: var(--ink); padding: 1px 5px; border-radius: 6px; }

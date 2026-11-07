@@ -83,7 +83,7 @@ function normLang(l) {
     newPerDay: Number.isFinite(l.newPerDay) ? clamp(Math.round(l.newPerDay), 0, 200) : 15,
     dirs: ["both", "f", "r"].includes(l.dirs) ? l.dirs : "both",
     order: l.order === "random" ? "random" : "seq",
-    voice: typeof l.voice === "string" ? l.voice : ""
+    voice: typeof l.voice === "string" ? l.voice : "", cvoice: typeof l.cvoice === "string" ? l.cvoice : ""
   };
 }
 function normSettings(s) {
@@ -156,7 +156,7 @@ const langOf = (code) => langs().find((l) => l.code === code) || null;
 /* built-in project and topic names (starter packs) are shown in the app language; the stored name stays */
 const dn = (name) => (name ? T(name) : name);
 const lname = (L) => (L ? T(L.name) : "");
-const langName = (code) => lname(langOf(code) || { name: code });
+const langName = (code) => { const L = langOf(code); if (L) return lname(L); const p = typeof pbFind === "function" ? pbFind(code) : null; return p ? (UI === "en" ? p.en : p.de) : code; };
 const cardsOf = (code) => state.cards.filter((c) => c.lang === code);
 const hasGenderedNouns = (L) => L && ["it", "es", "fr", "pt"].includes(L.code);
 const meaningName = (c) => (c.ml ? MEANING_LANGS[c.ml] : T("Deutsch"));
@@ -342,22 +342,30 @@ const VOICE_SAMPLE = {
   nl: ["Hallo! Hoe gaat het? Vandaag oefenen we een beetje Nederlands.", "Goedemorgen, leuk je te ontmoeten!"],
   sv: ["Hej! Hur mår du? I dag övar vi lite svenska.", "God morgon, trevligt att träffas!"]
 };
-const langTag = (code) => { const L = langOf(code); return (L && L.tts) || code; };
+/* BCP-47 tag for speech: the language settings first, then the phrasebook languages (Japanese, Polish …) */
+const langTag = (code) => { const L = langOf(code); return (L && L.tts) || (typeof PB_TAGS !== "undefined" && PB_TAGS[code]) || code; };
+/* Some systems name a language differently: Norwegian nb/no, Hebrew he/iw, Indonesian id/in */
+const LANG_ALIAS = { nb: ["nb", "no", "nn"], no: ["nb", "no", "nn"], he: ["he", "iw"], iw: ["he", "iw"], id: ["id", "in"], in: ["id", "in"] };
 function voicesFor(code) {
   if (!voices.length) loadVoices();
-  const base = langTag(code).slice(0, 2).toLowerCase();
-  return voices.filter((v) => (v.lang || "").replace("_", "-").toLowerCase().startsWith(base));
+  const base = langTag(code).slice(0, 2).toLowerCase(), ok = LANG_ALIAS[base] || [base];
+  return voices.filter((v) => ok.includes((v.lang || "").replace("_", "-").toLowerCase().slice(0, 2)));
 }
-const NOVELTY = /compact|eloquence|novelty|bad news|good news|bells|bubbles|jester|whisper|zarvox|trinoids|superstar|organ|boing|cellos|albert|bahh|wobble|fred|junior|ralph|kathy|grandma|grandpa|rocko|shelley|flo|reed|sandy/;
+/* Robotic or joke voices (macOS/iOS "Eloquence" and novelty voices) – they mispronounce a lot */
+const NOVELTY = /eloquence|novelty|speech\.synthesis\.voice\.|bad news|good news|bells|bubbles|jester|whisper|zarvox|trinoids|superstar|organ|boing|cellos|albert|bahh|wobble|\bfred\b|junior|ralph|kathy|grandma|grandpa|rocko|shelley|\bflo\b|\breed\b|sandy|\beddy\b/;
 function voiceScore(v, tag) {
   let s = 0;
-  const lang = (v.lang || "").replace("_", "-").toLowerCase(), id = `${v.voiceURI} ${v.name}`.toLowerCase();
-  if (lang === tag.toLowerCase()) s += 10;
+  const lang = (v.lang || "").replace("_", "-").toLowerCase(), id = `${v.voiceURI} ${v.name}`.toLowerCase(), t = tag.toLowerCase();
+  if (lang === t) s += 10;
+  else if (t.startsWith("zh") && /hk|yue/.test(lang)) s -= 6; // Cantonese is a different language
   if (/premium/.test(id)) s += 6; else if (/enhanced|erweitert|verbessert|neural|natural|online/.test(id)) s += 4;
-  if (NOVELTY.test(id)) s -= 8;
+  if (NOVELTY.test(id)) s -= 30;
+  if (v.localService) s += 1;
   if (v.default) s += 1;
   return s;
 }
+/* 2 premium, 1 enhanced, 0 compact (iOS/macOS name it in the voice id), -1 unknown */
+function voiceQual(v) { const id = `${v.voiceURI} ${v.name}`.toLowerCase(); return /premium/.test(id) ? 2 : /enhanced|erweitert|verbessert|neural|natural/.test(id) ? 1 : /compact|kompakt/.test(id) ? 0 : -1; }
 function pickVoice(code) {
   const L = langOf(code), tag = langTag(code), list = voicesFor(code);
   if (L && L.voice) { const v = list.find((x) => x.voiceURI === L.voice); if (v) return v; }
@@ -366,9 +374,30 @@ function pickVoice(code) {
 /* curUtter keeps the utterance referenced – Safari otherwise drops it and never finishes speaking */
 let speakTimer = 0, speakWatch = 0, curUtter = null, speakBtn = null; // eslint-disable-line no-unused-vars
 const noVoiceWarned = new Set();
-const speakText = (text) => String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>]+>/g, "").replace(/\s+[–—→⟶]\s+/g, ", ").replace(/\s\/\s/g, ", ").replace(/[…_]+/g, " ").replace(/\s+/g, " ").trim();
-/* Play sound even with the ring/silent switch off (iOS 17+), where the browser supports it */
-function audioPlayback() { try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch { /* not supported */ } }
+/* What the voice reads: no gaps, tags, arrows or slashes; "italiano/a" → "italiano, italiana", "he/she/it" → "he, she, it",
+   "(m.)" and other grammar labels dropped, dictionary abbreviations written out (qc → qualcosa, sth → something) */
+const SPEAK_ABBR = {
+  it: [[/\bqc\b\.?/g, "qualcosa"], [/\bqn\b\.?/g, "qualcuno"]],
+  en: [[/\bsth\b\.?/g, "something"], [/\bsb's\b/g, "somebody's"], [/\bsb\b\.?/g, "somebody"]],
+  fr: [[/\bqqch\b\.?/g, "quelque chose"], [/\bqqn\b\.?/g, "quelqu'un"]],
+  es: [[/\balgn\b\.?/g, "alguien"], [/\balgo\b\.?/g, "algo"]]
+};
+function speakText(text, code) {
+  let t = String(text).replace(/\{\{|\}\}/g, "").replace(/<[^>]+>/g, "");
+  t = t.replace(/\((?:\s*(?:m|f|n|pl|sg|Pl|Sg|inf|ugs|umg|fam|form|formell|informell|coll|lit|wörtl|m\/f|f\/m)\.?\s*[,;]?)+\)/g, " ");
+  for (const [re, w] of SPEAK_ABBR[(code || "").slice(0, 2)] || []) t = t.replace(re, w);
+  /* gender endings: italiano/a, cansado/a, español/a, tedesco/a */
+  t = t.replace(/(^|[^\p{L}/])(\p{L}{3,})\/(a|e|i|o|as|es|os)(?![\p{L}/])/giu, (m, pre, a, b) => {
+    const replace = /[aeiou]$/i.test(a);
+    return `${pre}${a}, ${replace ? a.slice(0, -1) + b : a + b}`;
+  });
+  t = t.replace(/(\p{L})\/(?=\p{L})/gu, "$1, ");
+  t = t.replace(/\s+[–—→⟶]\s+/g, ", ").replace(/([?!.]),/g, "$1").replace(/\s\/\s/g, ", ").replace(/[…_~]+/g, " ").replace(/\s+([,.;:!?])/g, (m, p) => ((code || "").startsWith("fr") && /[;:!?]/.test(p) ? m : p)).replace(/\s+/g, " ").replace(/^[,\s]+|[,\s]+$/g, "").trim();
+  /* A closing full stop: voices then finish the word with a falling tone instead of cutting the last sound short
+     (not after a number – "3." would be read as an ordinal in many languages) */
+  if (!t || /[\p{P}\p{N}]$/u.test(t) || /\p{sc=Thai}$/u.test(t)) return t;
+  return t + (/[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}]$/u.test(t) ? "。" : /\p{sc=Devanagari}$/u.test(t) ? "।" : ".");
+}
 function speakMark(btn, on) { if (btn && btn.classList) btn.classList.toggle("speaking", on); }
 /* Slow mode: a clearly lower rate, relative to the normal speaking rate */
 const slowRate = () => Math.max(0.35, Math.min(0.55, (state.settings.rate || 0.9) * 0.6));
@@ -403,14 +432,20 @@ function noteRate(voice, slow, ms, chars) {
   if (med(s.s) < med(s.n) * 1.15) { if (!lsGet(key)) { lsSet(key, "1"); toast(T("Diese Stimme ignoriert das Sprechtempo (iOS). Sätze kommen langsam Wort für Wort – für einzelne Wörter eine andere Stimme probieren: Spracheinstellungen › Stimme."), 7000); } }
   else if (lsGet(key)) lsSet(key, "");
 }
-/* o: { slow, quiet, onend, btn } – btn gets a "speaking" ring while the voice talks */
+/* o: { slow, quiet, onend, btn } – btn gets a "speaking" ring while the voice talks.
+   Online voice (real audio, also in silent mode) when set up, otherwise the device voice. */
 function speak(text, code, o) {
   o = o || {};
-  const ss = window.speechSynthesis;
-  if (!ss || !text) return false;
-  const clean = speakText(text);
+  if (!text) return false;
+  const clean = speakText(text, code);
   if (!clean) return false;
-  audioPlayback();
+  if (speakBtn && speakBtn !== o.btn) speakMark(speakBtn, false);
+  if (cloudReady(code)) { cloudSpeak(clean, code, o); return true; }
+  return deviceSpeak(clean, code, o);
+}
+function deviceSpeak(clean, code, o) {
+  const ss = window.speechSynthesis;
+  if (!ss) return false;
   const parts = o.slow ? slowChunks(clean) : [clean];
   const mk = (txt) => {
     const u = new SpeechSynthesisUtterance(txt);
@@ -449,18 +484,19 @@ function speak(text, code, o) {
       if (started || ended || curUtter !== first) return;
       if (ss.speaking && !ss.paused) return;
       try { ss.cancel(); if (ss.paused) ss.resume(); for (const x of build()) ss.speak(x); } catch { /* ignore */ }
-      watch = speakWatch = setTimeout(() => { if (!started && !ended) { done(); if (!o.quiet) toast(T("Keine Sprachausgabe – Lautstärke und Stumm-Schalter prüfen")); } }, 2500);
+      watch = speakWatch = setTimeout(() => { if (!started && !ended) { done(); if (!o.quiet) toast(T("Keine Sprachausgabe – Lautstärke prüfen")); } }, 2500);
     }, 650);
   } catch { done(); return false; }
   return true;
 }
-function stopSpeak() { try { clearTimeout(speakTimer); clearTimeout(speakWatch); speakMark(speakBtn, false); speakBtn = null; if (window.speechSynthesis) speechSynthesis.cancel(); } catch { /* ignore */ } }
+function stopSpeak() { try { clearTimeout(speakTimer); clearTimeout(speakWatch); speakMark(speakBtn, false); speakBtn = null; vpStop(); if (window.speechSynthesis) speechSynthesis.cancel(); } catch { /* ignore */ } }
 /* iOS only plays speech after a user gesture – unlock it on the first touch */
 let ttsUnlocked = false;
 function unlockTTS() {
-  if (ttsUnlocked || !window.speechSynthesis) return;
+  if (ttsUnlocked) return;
   ttsUnlocked = true;
-  audioPlayback();
+  if (ttsOn()) vpUnlock(); // the clip player, too – auto-read words then also play after a short delay
+  if (!window.speechSynthesis) return;
   try { const u = new SpeechSynthesisUtterance(""); u.volume = 0; speechSynthesis.speak(u); } catch { /* ignore */ }
 }
 document.addEventListener("touchend", unlockTTS, { capture: true, once: true });

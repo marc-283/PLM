@@ -31,7 +31,9 @@ function viewSettings() {
       <label class="check"><input type="checkbox" id="setSpeak" data-action="setting"${S.autoSpeak ? " checked" : ""}><span>${T("Fremdsprache automatisch vorlesen")}</span></label>
       <label class="field"><span class="label">${T("Sprechtempo")}</span>${sel("setRate", S.rate, [[0.8, T("Langsam")], [0.9, T("Etwas langsamer – empfohlen")], [1, T("Normal")], [1.1, T("Schnell")]])}</label>
       ${canSpeak() ? `<div class="btnrow">${langs().map((L) => `<button class="btn" data-action="voice-test" data-arg="${esc(L.code)}">${ICON_SPEAK} ${esc(lname(L))}</button>`).join("")}</div>
-      <p>${T("Die Stimme pro Sprache wählst du in den Spracheinstellungen. Bessere Stimmen lädst du auf dem iPhone unter <b>Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen</b> (z. B. Italienisch „Alice“ oder „Federica“ in der Version „Erweitert“). Nichts zu hören? Lautstärke hoch, Stummschalter prüfen.")}</p>`
+      ${weakVoiceHint()}
+      <p>${T("Die Stimme pro Sprache wählst du in den Spracheinstellungen. Bessere Stimmen lädst du auf dem iPhone unter <b>Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen</b> (z. B. Italienisch „Alice“ oder „Federica“ in der Version „Erweitert“). Nichts zu hören? Lautstärke hoch, während PLM spricht.")}</p>
+      <p>${T("Im <b>Stumm-Modus</b> schaltet das iPhone seine eigenen Stimmen stumm – das lässt sich von einer App aus nicht ändern. Die Online-Stimmen unten sind echte Aufnahmen und daher auch dann zu hören.")}</p>`
         : `<p>${T("Dieser Browser kann nicht vorlesen.")}</p>`}
       <p>${canListen() ? T("Mit dem Mikrofon-Knopf auf der Kartenrückseite sprichst du nach – PLM prüft per Spracherkennung, ob du verstanden wurdest.") : T("Nachsprechen mit Mikrofon wird in diesem Browser nicht unterstützt. Auf dem iPhone funktioniert es in Safari, wenn „Diktieren“ eingeschaltet ist (Einstellungen › Allgemein › Tastatur).")}</p></section>
     <section class="card"><h2>${T("Erinnerung")}</h2>
@@ -50,6 +52,7 @@ function viewSettings() {
         <div class="field"><label class="label" for="syncToken">${T("GitHub-Token")}</label><input id="syncToken" class="psel" style="background-image:none" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ghp_…"></div>
         <div class="btnrow"><button class="btn primary" data-action="sync-connect">${T("Verbinden")}</button></div>`}
       ${sy.error ? `<p class="neg">${esc(sy.error)}</p>` : ""}</section>
+    ${ttsCard()}
     <section class="card" id="secAi"><h2>${T("KI-Assistent (optional)")}</h2>
       <p>${T("Mit einem eigenen Claude-API-Schlüssel wertet PLM Fotos und Kurs-PDFs schlau aus: Projekte und Themen, deutsche Übersetzungen, Beispielsätze, Verbtabellen und Lückensätze. Außerdem gibt die KI beim Sätzebauen Feedback. Ohne Schlüssel erkennt PLM Wortlisten und Tabellen direkt auf dem Gerät.")}</p>
       ${ai.key ? `<p>${T("Schlüssel: <b>{0}</b>", [esc(maskKey(ai.key))])}</p>
@@ -70,3 +73,49 @@ function viewSettings() {
     <footer class="motto"><span>Sometimes I feel like giving up.</span><span>Then I remember I have a lot of people to prove wrong.</span></footer>`;
 }
 VIEWS.settings = viewSettings;
+/* Languages whose best installed device voice is a "compact" one – these mumble and swallow sounds */
+function weakVoiceHint() {
+  if (!canSpeak() || !voices.length) return "";
+  const weak = langs().filter((L) => L.tts && !cloudReady(L.code)).filter((L) => { const v = pickVoice(L.code); return v && voiceQual(v) === 0; });
+  if (!weak.length) return "";
+  return `<p class="warnline">${T("Für <b>{0}</b> ist nur eine einfache iPhone-Stimme installiert – die verschluckt eher mal Laute. Besser: unter <b>Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen › {1}</b> eine Stimme mit „Erweitert“ oder „Premium“ laden (über WLAN), danach PLM neu öffnen.", [esc(weak.map((L) => lname(L)).join(", ")), esc(lname(weak[0]))])}</p>`;
+}
+function ttsCard() {
+  const c = ttsCfg(), n = ttsVoiceList().length;
+  const intro = `<section class="card" id="secTts"><h2>${T("Online-Stimmen (optional)")}</h2>
+      <p>${T("Natürliche Stimmen von Muttersprachlern (Google) statt der iPhone-Stimme: Sie klingen deutlich besser, sprechen jedes Wort ganz aus und sind auch im <b>Stumm-Modus</b> über den Lautsprecher zu hören. Jedes Wort wird nur einmal geladen und bleibt auf dem Gerät – danach geht es auch offline.")}</p>`;
+  const foot = `<p class="hint">${T("Der Schlüssel bleibt nur auf diesem Gerät und wird nicht synchronisiert. Zum Vorlesen gehen die Wörter an Google. Ohne Internet liest bei noch nie gehörten Wörtern die iPhone-Stimme.")}</p></section>`;
+  if (!c.key) {
+    return `${intro}
+      <ol class="steps">
+        <li>${T("Auf <b>console.cloud.google.com</b> mit deinem Google-Konto anmelden und oben ein neues Projekt anlegen (z. B. „PLM“).")}</li>
+        <li>${T("Für das Projekt die <b>Abrechnung</b> aktivieren (Kreditkarte nötig). Jeden Monat ist mindestens 1 Mio. Zeichen gratis – das sind rund 50.000 Wörter und Sätze. Tipp: unter <i>Budgets und Benachrichtigungen</i> ein Budget von 1 € mit Warnung anlegen.")}</li>
+        <li>${T("Unter <b>APIs und Dienste › Bibliothek</b> nach „Cloud Text-to-Speech API“ suchen und <b>Aktivieren</b> tippen.")}</li>
+        <li>${T("Unter <b>APIs und Dienste › Anmeldedaten</b> auf <i>Anmeldedaten erstellen › API-Schlüssel</i> tippen. Den Schlüssel einschränken: bei <i>Websites</i> {0} eintragen, bei <i>API-Einschränkungen</i> nur die „Cloud Text-to-Speech API“.", [`<code>${esc(location.origin)}/*</code>`])}</li>
+        <li>${T("Den Schlüssel (beginnt mit AIza…) kopieren und hier einfügen.")}</li>
+      </ol>
+      <div class="field"><label class="label" for="ttsKey">${T("Google-API-Schlüssel")}</label><input id="ttsKey" class="psel" style="background-image:none" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…"></div>
+      <div class="btnrow"><button class="btn primary" data-action="tts-save">${T("Speichern und testen")}</button></div>
+      ${foot}`;
+  }
+  setTimeout(() => { ttsClipCount().then((k) => { const el = $("ttsClips"); if (el) el.textContent = T("{0} Aufnahmen auf dem Gerät", [num(k)]); }); }, 0);
+  return `${intro}
+      <p>${T("Schlüssel: <b>{0}</b>", [esc(maskKey(c.key))])}</p>
+      <label class="check"><input type="checkbox" id="setTts" data-action="setting"${c.on ? " checked" : ""}><span>${T("Online-Stimmen verwenden")}</span></label>
+      ${c.err ? `<p class="neg">${esc(c.err)}</p>` : n ? "" : `<p class="neg">${T("Noch nicht verbunden – bitte „Testen“ tippen.")}</p>`}
+      <p class="hint">${n ? `${T("{0} Stimmen", [num(n)])} · ` : ""}${T("diesen Monat {0} Zeichen geladen (gratis: mindestens 1 Mio.)", [num(ttsCharsThisMonth())])} · <span id="ttsClips"></span></p>
+      <div class="btnrow"><button class="btn" data-action="tts-test">${T("Testen")}</button><button class="btn${state.armed === "tts-clear" ? " armed" : ""}" data-action="tts-clear">${state.armed === "tts-clear" ? T("Wirklich löschen?") : T("Aufnahmen löschen")}</button><button class="btn danger${state.armed === "tts-off" ? " armed" : ""}" data-action="tts-off">${state.armed === "tts-off" ? T("Wirklich entfernen?") : T("Schlüssel entfernen")}</button></div>
+      <p class="hint">${T("Welche Stimme pro Sprache spricht, stellst du in den Spracheinstellungen ein (Sprache › ⚙︎ › Online-Stimme).")}</p>
+      ${foot}`;
+}
+function ttsTest() {
+  const c = ttsCfg();
+  if (!c.key) return;
+  toast(T("Verbinde mit Google …"));
+  ttsLoadVoices(c.key).then((list) => {
+    ttsWarned = false; render();
+    const code = (langs()[0] || {}).code || "it";
+    toast(T("Online-Stimmen bereit – {0} Stimmen", [num(list.length)]));
+    if (cloudReady(code)) speak(VOICE_SAMPLE[code] ? VOICE_SAMPLE[code][1] : langName(code), code);
+  }).catch((e) => { ttsSave({ err: e.message }); render(); toast(e.message, 7000); });
+}

@@ -20,6 +20,7 @@ Updates: Dateien im Repository ersetzen – seit 1.3 gehört auch der Ordner `co
 - **🔊 an jeder Karte** – in allen Kartenlisten und im Karten-Editor (dort auch 🐢), ohne eine Lernrunde zu starten.
 - **Verb nachschlagen** – jedes Verb in allen wichtigen Zeitformen (Italienisch, Spanisch, Französisch; Englisch mit Stammformen). Schon beim Tippen erscheinen Vorschläge mit Übersetzung („beb“ → *bere – trinken*); du kannst auch eine konjugierte Form („bevo“, „went“, „suis“) oder die deutsche Bedeutung („trinken“) eingeben.
 - **Aussprache überall** – jeder 🔊-Knopf in Theorie, Tabellen, Beispielen und Kurs liest vor. PLM nimmt die beste installierte Stimme der Sprache (erweiterte vor Standardstimme, nie Roboter- oder Spaßstimmen) und liest sauber vor: „italiano/a“ → „italiano, italiana“, „he/she/it“ → „he, she, it“, Grammatik-Kürzel wie (m.) werden weggelassen, „qc/sth“ ausgeschrieben. 🐢 spricht langsam und Sätze in kleinen Stücken.
+- **Online-Stimmen (optional)** – natürliche Google-Stimmen von Muttersprachlern (Neural2/WaveNet/Chirp 3 HD) statt der iPhone-Stimme: klingen besser, sprechen jedes Wort ganz aus und sind auch im Stumm-Modus zu hören. Jede Aufnahme wird nur einmal geladen und bleibt auf dem Gerät, danach geht sie auch offline. Stimme pro Sprache wählbar; ohne Internet oder Schlüssel liest die iPhone-Stimme.
 - **Neue Wörter ansehen** – alle noch nicht gelernten Wörter zum Durchlesen und Anhören, nach Projekt und Thema.
 - **Lernkarten mit Umdrehen** – vorne nur das Wort oder der Satz, Tippen dreht die Karte; hinten Übersetzung, Beispielsatz mit Übersetzung und Notiz. Neue Karten genauso.
 - **Aussprache** – großer Lautsprecher-Knopf (normal und langsam), auch für den Beispielsatz. Mikrofon-Knopf: du sprichst nach, PLM zeigt Wort für Wort, was erkannt wurde.
@@ -56,7 +57,8 @@ Ein Foto kostet meist unter 1 Cent, ein PDF mit 10 Seiten einige Cent. Der Schl�
 ## Hinweise
 
 - **Stimmen:** Bessere Stimmen unter iOS *Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Italienisch* laden (z. B. „Alice (Erweitert)“). Die Stimme pro Sprache wählst du in den Spracheinstellungen von PLM.
-- **Lautsprecher im Stumm-Modus:** Das iPhone schaltet Vorlesen aus Web-Apps stumm, wenn der Stumm-Schalter (bzw. Aktionstaste / „Stummmodus“) an ist – mit Kopfhörern war es trotzdem zu hören. PLM spielt deshalb beim Vorlesen kurz einen stillen Ton ab, der den Lautsprecher freigibt (*Einstellungen → Aussprache → Auch im Stumm-Modus über den Lautsprecher*, standardmäßig an). Musik aus einer anderen App wird dabei angehalten. Bleibt es trotzdem still: Stumm-Modus kurz ausschalten und die Lautstärke hochdrehen, während PLM spricht.
+- **Stumm-Modus:** Im Stumm-Modus schaltet das iPhone seine eigenen Stimmen stumm – das kann keine App ändern. Die **Online-Stimmen** (Einstellungen → Online-Stimmen) sind echte Aufnahmen und daher auch dann über den Lautsprecher zu hören.
+- **Online-Stimmen einrichten:** Google-Cloud-Konto → Projekt anlegen → Abrechnung aktivieren (mind. 1 Mio. Zeichen pro Monat gratis) → „Cloud Text-to-Speech API“ aktivieren → API-Schlüssel erstellen und auf die eigene Seite (`https://<name>.github.io/*`) und die Text-to-Speech-API einschränken → in PLM einfügen. Der Schlüssel bleibt auf dem Gerät.
 - **Aussprache prüfen** braucht unter iOS eingeschaltetes Diktieren (*Einstellungen → Allgemein → Tastatur → Diktierfunktion*) und einmal die Mikrofon-Erlaubnis.
 - Alle Daten liegen auf dem Gerät (plus im eigenen Gist, wenn Sync an ist). Ab und zu *Einstellungen → Backup sichern*.
 

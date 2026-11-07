@@ -139,8 +139,16 @@ document.addEventListener("click", (ev) => {
     case "speak-table": { const c = cardById(top.p), L = c && langOf(c.lang); if (!c) break; const t = L.tenses.find((x) => x.n === arg) || {}, labels = tenseLabels(L, t); speak(c.tables[arg].map((f, i) => (t.given ? f : `${(labels[i] || "").split("/")[0]} ${f}`)).join(", "), c.lang); break; }
     case "say": speak(arg, studyLang(), { btn: a }); break;
     case "say-slow": speak(arg, studyLang(), { slow: true, btn: a }); break;
+    case "th-say-slow": speak(arg, a.dataset.p || viewLangCode(), { slow: true, btn: a }); break;
+    case "pblang": state.pbCat = "intro"; go("pblang", arg); break;
+    case "pb-cat": state.pbCat = arg; render(); break;
+    case "pb-add": pbAddCard(arg); break;
+    case "pb-ai": aiPbGen(arg); break;
+    case "pb-del": pbSaveCustom(pbCustom().filter((x) => x.code !== arg)); toast(T("Gelöscht")); goBack(); break;
+    case "say-card": { const c = cardById(arg); if (c) speak(c.tg, c.lang, { btn: a }); break; }
+    case "say-input": { const v = $("cTg").value.trim(); if (v) speak(v, $("cLang").value, { slow: arg === "slow", btn: a }); else toast(T("Erst ein Wort eintragen")); break; }
     case "voice-test": speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][0] : (cardsOf(arg)[0] || {}).tg || langName(arg), arg, { btn: a }); break;
-    case "voice-try": { const sel = $("fs-voice"), L = langOf(arg); if (L && sel) { const old = L.voice; L.voice = sel.value; speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][1] : (cardsOf(arg)[0] || {}).tg || lname(L), arg, { btn: a }); L.voice = old; } break; }
+    case "voice-try": { const sel = $("fs-voice"), csel = $("fs-cvoice"), L = langOf(arg); if (L && sel) { const old = L.voice, oldC = L.cvoice; L.voice = sel.value; if (csel) L.cvoice = csel.value; speak(VOICE_SAMPLE[arg] ? VOICE_SAMPLE[arg][1] : (cardsOf(arg)[0] || {}).tg || lname(L), arg, { btn: a }); L.voice = old; L.cvoice = oldC; } break; }
     case "mic": micStart(arg); break;
     case "pack-load": { const r = loadPack(top.p, arg); render(); packToast(r); break; }
     case "pack-remove": {
@@ -173,6 +181,10 @@ document.addEventListener("click", (ev) => {
     case "ui-lang": if (arg !== UI) { state.settings.ui = arg; touchSettings(); saveNow(); lsSet("plm.ui", arg); location.reload(); } break;
     case "ai-save": { const k = (($("aiKey") || {}).value || "").trim(); if (!/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(k)) { toast(T("Das sieht nicht wie ein Claude-API-Schlüssel aus (beginnt mit sk-ant-)")); break; } lsSet(KEYS.ai, JSON.stringify({ ...aiCfg(), key: k })); render(); aiTest(); break; }
     case "ai-test": aiTest(); break;
+    case "tts-save": { const k = (($("ttsKey") || {}).value || "").trim(); if (!/^AIza[\w-]{30,}$/.test(k)) { toast(T("Das sieht nicht wie ein Google-API-Schlüssel aus (beginnt mit AIza)")); break; } vpUnlock(); ttsSave({ key: k, on: true, err: "" }); render(); ttsTest(); break; }
+    case "tts-test": vpUnlock(); ttsTest(); break;
+    case "tts-off": if (state.armed !== "tts-off") { state.armed = "tts-off"; render(); break; } state.armed = null; ttsSave({ key: "", err: "" }); lsSet(TTS_VOICES, "[]"); ttsList = null; render(); toast(T("Schlüssel entfernt")); break;
+    case "tts-clear": if (state.armed !== "tts-clear") { state.armed = "tts-clear"; render(); break; } state.armed = null; ttsClearClips().then(() => { render(); toast(T("Aufnahmen gelöscht")); }); break;
     case "ai-off": if (state.armed !== "ai-off") { state.armed = "ai-off"; render(); break; } state.armed = null; lsSet(KEYS.ai, "{}"); render(); toast(T("Schlüssel entfernt")); break;
     case "sync-line": syncNow(true); break;
     case "wipe": {
@@ -231,6 +243,7 @@ document.addEventListener("change", (ev) => {
     else if (id === "setRoll") S.roll = Number(t.value);
     else if (id === "setIntro") S.intro = t.checked;
     else if (id === "setSpeak") S.autoSpeak = t.checked;
+    else if (id === "setTts") { ttsSave({ on: t.checked }); if (t.checked) vpUnlock(); render(); toast(T("Gespeichert")); return; }
     else if (id === "setRate") { S.rate = Number(t.value); speak(langs()[0] && langs()[0].code === "it" ? "Piacere!" : "Nice to meet you!", langs()[0] ? langs()[0].code : "en"); }
     else if (id === "setBadge") { setBadgeSetting(t.checked); return; }
     else if (id === "setOpen") { lsSet(KEYS.open, t.value); toast(T("Gespeichert")); return; }
@@ -244,6 +257,7 @@ document.addEventListener("change", (ev) => {
 });
 let qTimer = 0;
 let conjTimer = 0;
+let pbNameTimer = 0;
 document.addEventListener("input", (ev) => {
   const t = ev.target;
   if (t.id === "q") {
@@ -253,6 +267,8 @@ document.addEventListener("input", (ev) => {
   if (t.id === "impText" && state.imp) state.imp.text = t.value;
   if (t.id === "cTg" && state.cType === "verb") $("cIscWrap").hidden = !/ire$/.test(normAns(t.value));
   if (t.id === "conjIn") { clearTimeout(conjTimer); conjTimer = setTimeout(updateConjSug, 60); }
+  if (t.id === "pbQ") { state.pbQ = t.value; clearTimeout(qTimer); qTimer = setTimeout(() => { const r = $("pbList"); if (r) r.innerHTML = pbListHTML(); }, 80); }
+  if (t.id === "pbName") { lsSet("plm.pbName", t.value.trim()); clearTimeout(pbNameTimer); pbNameTimer = setTimeout(() => { const host = document.querySelector(".pblist"), p = pbFind(topView().p); if (host && p) host.innerHTML = pbListBody(p, state.pbCat || "intro"); }, 250); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target && e.target.id === "q") e.target.blur(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeSheetsAnimated(); });
