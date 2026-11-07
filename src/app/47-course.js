@@ -244,7 +244,7 @@ function lessonSub(l) {
 function viewCourse(v) {
   const code = typeof v.p === "string" ? v.p : (v.p || {}).lang, L = langOf(code);
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
-  const head = `${backBar()}<h1 class="vtitle" style="color:${L.color}">${T("Kurs")}</h1><p class="meta">${esc(lname(L))} · ${T("Schritt für Schritt von A1 bis B2")}</p>`;
+  const head = `${backBar()}<h1 class="vtitle" style="color:${L.color}">${T("Kurs")}</h1><p class="meta">${esc(lname(L))} · ${T("Schritt für Schritt von A1 bis B2")}</p>${v.root ? kursPills(code) : ""}`;
   if (!needCourse(code)) return `${head}<p class="hint">${T("Kurs wird geladen …")}</p>`;
   const lvs = courseLevels(code), any = lvs.some((x) => x.lessons.length);
   const sel = state.courseLevel && state.courseLevel[code] || (nextLesson(code) || {}).level || "A1";

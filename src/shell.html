@@ -42,6 +42,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListe
 <div class="app" id="app"><main class="view" id="view"></main></div>
 <div class="under" id="under" aria-hidden="true" hidden></div>
 
+<nav class="tabbar" id="tabbar" aria-label="Bereiche"></nav>
 <button class="fab" id="addBtn" hidden><span aria-hidden="true">+</span>Karte</button>
 <div class="backdrop" id="backdrop" hidden></div>
 
@@ -49,6 +50,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListe
   <form id="cardForm" novalidate>
     <div class="grip" aria-hidden="true"></div>
     <div class="sheethead"><h2 id="cardTitle">Neue Karte</h2><button type="button" class="mbtn" data-close aria-label="Schließen">✕</button></div>
+    <div class="dirtybar" id="cDirty" role="alertdialog" aria-labelledby="cDirtyT" hidden><span id="cDirtyT">Änderungen nicht gespeichert</span><div class="btnrow"><button type="button" class="btn primary" data-action="card-dirty-save">Speichern</button><button type="button" class="btn danger" data-action="card-dirty-drop">Verwerfen</button><button type="button" class="btn" data-action="card-dirty-keep">Weiter bearbeiten</button></div></div>
     <div class="seg three" role="group" aria-label="Art der Karte">
       <button type="button" id="ctWord" aria-pressed="true">Vokabel</button>
       <button type="button" id="ctVerb" aria-pressed="false">Verb</button>
@@ -63,7 +65,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListe
     <div class="newcat" id="cNewTopic" hidden><input id="cNewTopicName" maxlength="40" placeholder="Neues Thema, z. B. Reisen" aria-label="Neues Thema"><button type="button" class="btn" id="cNewTopicAdd">OK</button></div>
     <div class="field">
       <label class="label" for="cTg" id="cTgLabel">Italienisch</label>
-      <input id="cTg" class="bigin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="200">
+      <div class="inrow"><input id="cTg" class="bigin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="200"><button type="button" class="th-say" id="cSay" data-action="say-input" aria-label="Anhören"></button><button type="button" class="th-say" id="cSaySlow" data-action="say-input" data-arg="slow" aria-label="Langsam anhören"></button></div>
       <span class="hint" id="cTgHint"></span>
     </div>
     <div class="field"><label class="label" for="cDe" id="cDeLabel">Deutsch</label><input id="cDe" autocomplete="off" maxlength="200"></div>

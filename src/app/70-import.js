@@ -256,7 +256,7 @@ function impCommit() {
   state.cards = state.cards.concat(add); reindex(); save();
   const code = I.lang; state.imp2 = null;
   toast(T("{0} in „{1}“ angelegt", [plural(add.length, T("Karte"), T("Karten")), deck]));
-  state.stack = [{ v: "hub" }, { v: "lang", p: code }];
+  goHome(); state.tab = "cards"; state.stacks.cards = state.stack = [{ v: "library" }, { v: "lang", p: code }];
   go("deck", { lang: code, deck });
 }
 
@@ -331,7 +331,7 @@ function impRun() {
   const code = imp.lang, deck = imp.deck;
   state.imp = null;
   toast(`${plural(recs.length, T("Karte"), T("Karten"))} importiert`);
-  state.stack = [{ v: "hub" }, { v: "lang", p: code }];
+  goHome(); state.tab = "cards"; state.stacks.cards = state.stack = [{ v: "library" }, { v: "lang", p: code }];
   go("deck", { lang: code, deck });
 }
 VIEWS.import = viewImport;

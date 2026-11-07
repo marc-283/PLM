@@ -56,7 +56,15 @@ document.addEventListener("click", (ev) => {
   if (act.startsWith("talk") && talkAction(act, arg, a)) return;
   switch (act) {
     case "back": goBack(); break;
-    case "course-any": { const ls = langs(); if (!ls.length) break; if (ls.length === 1) { go("course", ls[0].code); break; } pickLang(T("Kurs"), (code) => go("course", code)); break; }
+    case "tab": closeSheets(); stopSpeak(); selectTab(arg); break;
+    case "card-dirty-save": $("cDirty").hidden = true; saveCard(false); break;
+    case "card-dirty-drop": closeSheetsAnimated(true); break;
+    case "card-dirty-keep": $("cDirty").hidden = true; break;
+    case "kurs-lang": top.p = { ...(top.p || {}), lang: arg }; lsSet("plm.lastLang", arg); render(); break;
+    case "w-seg": top.p = { ...(top.p || {}), seg: arg, verb: "" }; render(); window.scrollTo(0, 0); break;
+    case "course-any": selectTab("course"); break;
+    case "next-lesson": openIn("course", "lesson", { lang: a.dataset.p, id: arg }, { lang: a.dataset.p }); break;
+    case "starter-any": pickLang(T("Starter-Pakete"), (code) => go("starter", code)); break;
     case "course": go("course", arg); break;
     case "course-level": state.courseLevel = { ...(state.courseLevel || {}), [a.dataset.p]: arg }; render(); break;
     case "lesson": { const code = a.dataset.p || viewLangCode(); if (top.v === "lesson") { top.p = { lang: code, id: arg }; state.showAll = false; render(); window.scrollTo(0, 0); } else go("lesson", { lang: code, id: arg }); break; }
@@ -69,7 +77,7 @@ document.addEventListener("click", (ev) => {
     case "course-ai": openAiLesson(a.dataset.p, arg); break;
     case "lesson-del": { const k = "lesson:" + arg; if (state.armed !== k) { state.armed = k; render(); break; } state.armed = null; const code = a.dataset.p; state.course.x[code] = customLessons(code).filter((l) => l.id !== arg); delete state.course.p[arg]; state.course.d[arg] = nowTs(); save(); goBack(); toast(T("Lektion gelöscht")); break; }
     case "ai-job-cancel": state.aiJob = null; $("study").hidden = true; document.body.style.overflow = ""; break;
-    case "nav": go(arg, parseP(a)); break;
+    case "nav": if (arg === "settings" && state.tab !== "more") selectTab("more", { reset: true }); else if (arg === "phrasebook" && top.v !== "wissen") selectTab("know", { p: { seg: "pb" } }); else go(arg, parseP(a)); break;
     case "lang": go("lang", arg); break;
     case "deck": go("deck", { lang: top.p, deck: arg }); break;
     case "topic": state.listFilter = "all"; go("cards", { lang: top.p.lang, deck: top.p.deck, topic: arg }); break;
@@ -101,10 +109,10 @@ document.addEventListener("click", (ev) => {
     case "build-any": openBuild(null); break;
     case "drill": openDrill(arg); break;
     case "drill-any": openDrill(null); break;
-    case "theory-any": { const ls = theoryLangs(); if (!ls.length) { toast(T("Für deine Sprachen gibt es noch keine Theorie")); break; } const cur = ls.find((l) => l.code === curLangCode()) || ls[0]; go("theory", cur.code); break; }
+    case "theory-any": { const ls = theoryLangs(); if (!ls.length) { toast(T("Für deine Sprachen gibt es noch keine Theorie")); break; } const cur = ls.find((l) => l.code === curLangCode()) || ls[0]; selectTab("know", { p: { seg: "th", lang: cur.code } }); break; }
     case "newwords-any": pickLang(T("Neue Wörter"), (code) => go("newwords", code)); break;
     case "th-say": speak(arg, a.dataset.p || viewLangCode(), { btn: a }); break;
-    case "th-lang": { if (top.v === "theory") top.p = arg; else if (top.p && typeof top.p === "object") top.p = { lang: arg }; render(); break; }
+    case "th-lang": { if (top.v === "theory") top.p = arg; else if (top.v === "wissen") top.p = { ...top.p, lang: arg, verb: "" }; else if (top.p && typeof top.p === "object") top.p = { lang: arg }; lsSet("plm.lastLang", arg); render(); break; }
     case "th-goto": top.p = { ...top.p, id: arg }; render(); window.scrollTo(0, 0); break;
     case "th-verb": top.p = { ...(top.p || {}), verb: arg }; render(); window.scrollTo(0, 0); break;
     case "conj-card": addVerbCard(viewLangCode(), arg); break;
@@ -190,7 +198,7 @@ document.addEventListener("click", (ev) => {
     case "wipe": {
       if (state.armed !== "wipe") { state.armed = "wipe"; render(); break; }
       const ts = nowTs(); for (const c of state.cards) state.tomb[c.id] = ts;
-      state.armed = null; state.cards = []; state.stats = {}; state.tests = {}; reindex(); saveNow(); syncSoon(500); state.stack = [{ v: "hub" }]; render(); toast(T("Alles gelöscht")); break;
+      state.armed = null; state.cards = []; state.stats = {}; state.tests = {}; reindex(); saveNow(); syncSoon(500); goHome(); render(); toast(T("Alles gelöscht")); break;
     }
     /* study */
     case "study-close": closeStudy(); break;
@@ -273,7 +281,7 @@ document.addEventListener("input", (ev) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target && e.target.id === "q") e.target.blur(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeSheetsAnimated(); });
 
-$("backdrop").addEventListener("click", closeSheetsAnimated);
+$("backdrop").addEventListener("click", () => closeSheetsAnimated());
 $("addBtn").addEventListener("click", () => openCard(null));
 $("ctWord").addEventListener("click", () => { readTables(); state.cType = "word"; syncCardForm(); });
 $("ctVerb").addEventListener("click", () => { readTables(); state.cType = "verb"; syncCardForm(); });
@@ -389,7 +397,7 @@ document.addEventListener("touchstart", (e) => {
   if (!splashDone && !sp.hidden) { gest = { ...base, kind: "splashUp" }; return; }
   if (!splashDone || state.sel) return;
   if (state.stack.length >= 2 && t.clientX <= 32) { gest = { ...base, kind: "back" }; return; }
-  if (state.stack.length === 1 && window.scrollY <= 0) gest = { ...base, kind: "pull" };
+  if (state.stack.length === 1 && state.tab === "today" && window.scrollY <= 0 && !e.target.closest("#tabbar")) gest = { ...base, kind: "pull" };
 }, { passive: true });
 document.addEventListener("touchmove", (e) => {
   const g = gest; if (!g) return;
@@ -427,7 +435,7 @@ function gestEnd(cancel) {
   else if (g.kind === "splashUp") { splashPaint(-g.d); splashSettle(!(!cancel && (g.d > H * 0.2 || (v > 0.5 && g.d > 40)))); }
   else if (g.kind === "sheet") {
     const sh = g.sheet; sh.classList.remove("dragging");
-    if (!cancel && (g.d > Math.min(160, sh.offsetHeight * 0.3) || (v > 0.5 && g.d > 40))) dismissSheet(sh, g.d);
+    if (!cancel && (g.d > Math.min(160, sh.offsetHeight * 0.3) || (v > 0.5 && g.d > 40)) && sheetMayClose(sh)) dismissSheet(sh, g.d);
     else { sh.style.transition = `transform .24s ${easeOut}`; sh.style.transform = "translate3d(0,0,0)"; $("backdrop").style.transition = "opacity .24s"; $("backdrop").style.opacity = "1"; setTimeout(() => { sh.style.transition = ""; }, 260); }
   }
 }

@@ -5,8 +5,8 @@ const ICON_SPEAK_BIG = '<svg viewBox="0 0 24 24" width="30" height="30" aria-hid
 const ICON_SLOW = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 16.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 16.5h2.2a1.8 1.8 0 0 0 0-3.6H17" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 16.5h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 16.5v2M14 16.5v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="19.5" cy="11" r="1" fill="currentColor"/></svg>';
 const ICON_MIC = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="8.5" y="3" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 const VIEW_LABEL = { hub: T("Menü"), lang: T("Sprache"), deck: T("Projekt"), cards: T("Karten"), verbs: T("Verben"), verb: T("Verb"), search: T("Suche"), stats: T("Statistik"), settings: T("Einstellungen"), import: T("Import"), review: T("Prüfen"), starter: T("Starter") };
-const backLabel = (prev) => (prev.v === "lang" ? langName(prev.p) : prev.v === "deck" ? dn(prev.p.deck) : VIEW_LABEL[prev.v] || T("Zurück"));
-const backBar = () => { const prev = state.stack[state.stack.length - 2]; return `<button class="backbtn" data-action="back"><span aria-hidden="true">‹</span>${esc(prev ? backLabel(prev) : T("Menü"))}</button>`; };
+const backLabel = (prev) => (prev.v === "lang" ? langName(prev.p) : prev.v === "deck" ? dn(prev.p.deck) : prev.v === "wissen" ? L10((W_SEGS.find((x) => x[0] === (prev.p || {}).seg) || W_SEGS[0])[1]) : prev.v === "settings" && state.stack[0] === prev && state.tab === "more" ? T("Mehr") : VIEW_LABEL[prev.v] || T("Zurück"));
+const backBar = () => { const prev = state.stack[state.stack.length - 2]; return prev ? `<button class="backbtn" data-action="back"><span aria-hidden="true">‹</span>${esc(backLabel(prev))}</button>` : ""; };
 const badgeTxt = (txt, color) => `<span class="badge" style="color:${color};background:${color}24" aria-hidden="true">${esc(txt)}</span>`;
 function navRow(action, arg, title, sub, val, badgeHTML, extra) {
   return `<button class="row${badgeHTML ? "" : " nobadge"}" data-action="${action}" data-arg="${esc(arg)}"${extra || ""}>
@@ -32,10 +32,13 @@ function cardRow(c) {
   const title = c.type === "cloze" ? parseCloze(c.tg).text : c.tg;
   const sub = [c.de, c.type === "word" && c.pos && c.pos !== "s" ? POS[c.pos] : "", dn(c.topic)].filter(Boolean).join(" · ");
   const dt = stt === "new" || stt === "susp" ? "" : dueText(c);
-  return `<button class="row nochev" data-action="card" data-arg="${esc(c.id)}"${state.sel ? ` aria-pressed="${on}"` : ""}>
+  const row = `<button class="row nochev" data-action="card" data-arg="${esc(c.id)}"${state.sel ? ` aria-pressed="${on}"` : ""}>
     ${state.sel ? `<span class="checkc${on ? " on" : ""}" aria-hidden="true">${on ? "✓" : ""}</span>` : badgeTxt((stripArt(c.tg) || "?").slice(0, 2), L ? L.color : "#8E8E96")}
     <span class="main"><span class="t1">${esc(title)}${tags}</span><span class="t2">${esc(sub)}</span></span>
     <span class="val">${dt ? `<small>${esc(dt)}</small>` : ""}</span></button>`;
+  /* 🔊 next to every card: hear it any time, without starting a session */
+  if (state.sel || !canSpeak()) return row;
+  return `<div class="crow">${row}<button type="button" class="csay" data-action="say-card" data-arg="${esc(c.id)}" aria-label="${T("Anhören")}">${ICON_SPEAK}</button></div>`;
 }
 function selToolbar() {
   if (state.sel) return `<div class="seltools"><button class="more" data-action="sel-all">${T("Alle auswählen")}</button><button class="more" data-action="sel-cancel">${T("Abbrechen")}</button></div>`;
@@ -112,9 +115,9 @@ function viewHub() {
   const n = state.cards.length;
   const week = histArr(null, 7, "all").reduce((a, b) => a + b, 0);
   let big;
-  if (!n) big = `<button class="addbig" data-action="starter-first"><span aria-hidden="true">★</span>${T("Starter-Wortschatz laden")}</button>`;
-  else if (all.total) big = `<button class="addbig" data-action="learn"><span aria-hidden="true">▶</span>${T("Lernen")} <small>${T("{0} {1} · ca. {2} Min.", [num(all.total),noun(all.total, "Karte", "Karten"), minutesFor(all)])}</small></button>`;
-  else big = `<button class="addbig done" data-action="practice"><span aria-hidden="true">✓</span>${T("Alles erledigt")} <small>${T("· Üben")}</small></button>`;
+  if (!n) big = `<button class="addbig hubgo" data-action="starter-first"><span class="hg-t"><span aria-hidden="true">★</span>${T("Starter")}</span><small>${T("Wortschatz laden")}</small></button>`;
+  else if (all.total) big = `<button class="addbig hubgo" data-action="learn"><span class="hg-t"><span aria-hidden="true">▶</span>${T("Lernen")}</span><small>${T("{0} {1} · ca. {2} Min.", [num(all.total), noun(all.total, "Karte", "Karten"), minutesFor(all)])}</small></button>`;
+  else big = `<button class="addbig hubgo done" data-action="practice"><span class="hg-t"><span aria-hidden="true">✓</span>${T("Erledigt")}</span><small>${T("Tippen zum Üben")}</small></button>`;
   const tiles = langs().map((L) => {
     const d = dueInfo({ lang: L.code }), cs = cardsOf(L.code), mm = countByState(L.code), act = cs.length - mm.susp;
     return `<button class="tile" data-action="lang" data-arg="${esc(L.code)}">
@@ -124,25 +127,22 @@ function viewHub() {
       ${spark(histArr(L.code, 14, "all"), L.color)}<span class="chev" aria-hidden="true">›</span></button>`;
   }).join("");
   const verbs = state.cards.filter((c) => c.type === "verb").length;
-  const sentences = n ? sentenceBank(null).length : 0;
+  const sentences = n ? sentenceBank(null).length : 0, fresh = n ? state.cards.filter((c) => !c.susp && !isLearned(c)).length : 0;
   return `
     <header class="hubhead">
       <div class="brand"><h1 class="wordmark">P<b>L</b>M</h1><span class="label">Personal Language Management</span></div>
-      <button class="mbtn" data-action="nav" data-arg="settings" aria-label="${T("Einstellungen")}">⚙</button>
     </header>
-    ${big}
-    <div class="hubrow"><button class="searchbar hubsearch" data-action="nav" data-arg="search">${ICON_SEARCH}<span>${T("Karten suchen")}</span></button><button class="sqbtn" data-action="add" aria-label="${T("Neue Karte")}">+</button></div>
+    <div class="mainbtns">${big}<button class="addbig hubadd" data-action="add"><span aria-hidden="true">+</span>${T("Karte")}</button></div>
     ${n && !syncOn() && (lastBackupDays() == null ? n >= 30 && Date.now() - Math.min(...state.cards.map((c) => c.created)) > 7 * 864e5 : lastBackupDays() > 14) ? `<button class="notice" data-action="export-json">${T("Letztes Backup: {0} · Jetzt sichern ›", [esc(lastBackupText())])}</button>` : ""}
-    <nav class="tiles" aria-label="${T("Sprachen")}">${tiles}<button class="tile dash" data-action="add-lang"><span class="tile-l"><span class="tile-t" style="font-size:20px;color:var(--muted)">${T("+ Sprache")}</span><span class="tile-s">${T("Spanisch, Französisch, Portugiesisch …")}</span></span><span></span><span class="chev" aria-hidden="true">›</span></button></nav>
-    <button class="coursetile" data-action="course-any"><span class="tile-l"><span class="tile-t">${T("Kurs")}</span><span class="tile-s">${esc(hubCourseLine())}</span></span><span class="lvchips" aria-hidden="true">${LEVELS.map((x) => `<i>${x}</i>`).join("")}</span><span class="chev" aria-hidden="true">›</span></button>
+    ${hubNextUp()}
+    <nav class="tiles" aria-label="${T("Sprachen")}">${tiles}</nav>
+    <section class="hubpractice" aria-labelledby="hPr"><div class="sechead"><h2 class="sectitle" id="hPr">${T("Üben")}</h2></div>
     <div class="minitiles">
       <button class="mtile" data-action="build-any"><span class="tile-t">${T("Sätze bauen")}</span>${sentences ? `<span class="tile-v">${num(sentences)}</span><span class="tile-s">${T("Sätze aus deinen Wörtern")}</span>` : `<span class="tile-s">${T("Sätze bilden und korrigieren lassen")}</span>`}</button>
       <button class="mtile" data-action="drill-any"><span class="tile-t">${T("Konjugation")}</span>${verbs ? `<span class="tile-v">${num(verbs)}</span><span class="tile-s">${T("Verben – Formen üben")}</span>` : `<span class="tile-s">${T("Verbformen trainieren")}</span>`}</button>
-      <button class="mtile" data-action="import-any"><span class="tile-t">${T("Importieren")}</span><span class="tile-s">${T("Foto, PDF oder Liste in Karten verwandeln")}</span></button>
-      <button class="mtile" data-action="theory-any"><span class="tile-t">${T("Theorie")}</span><span class="tile-s">${T("Grammatik, Zeitformen, Artikel – mit Übungen")}</span></button>
-      <button class="mtile" data-action="newwords-any"><span class="tile-t">${T("Neue Wörter")}</span>${n ? `<span class="tile-v">${num(state.cards.filter((c) => !c.susp && !isLearned(c)).length)}</span>` : ""}<span class="tile-s">${T("Noch nicht gelernt – lesen und anhören")}</span></button>
+      <button class="mtile" data-action="newwords-any"><span class="tile-t">${T("Neue Wörter")}</span>${n ? `<span class="tile-v">${num(fresh)}</span>` : ""}<span class="tile-s">${T("Noch nicht gelernt – lesen und anhören")}</span></button>
       <button class="mtile" data-action="nav" data-arg="stats"><span class="tile-t">${T("Statistik")}</span><span class="tile-v">${num(m.known)}</span><span class="tile-s">${T("Karten sicher gelernt")}</span></button>
-    </div>
+    </div></section>
     <section class="accounts" aria-label="${T("Heute")}">
       <span class="label">${T("Heute gelernt")}</span>
       <div class="acc-total">${bigNum(td.r + td.p,noun(td.r + td.p, "Karte", "Karten"))}</div>
@@ -154,6 +154,21 @@ function viewHub() {
       <div class="ytd"><span class="label">${T("Diese Woche")}</span><b>${num(week)}</b><span class="label">${T("Karten")}</span></div>
       ${syncOn() ? `<button class="syncline" data-action="sync-now" id="syncLine">${esc(syncStatusText())}</button>` : ""}
     </section>`;
+}
+/* "Als Nächstes": the course lesson you are in the middle of – or the first one */
+function hubNextUp() {
+  const cur = curLangCodeBase(), ls = langs().filter((L) => hasCourse(L.code)).sort((x, y) => (y.code === cur) - (x.code === cur));
+  if (!ls.length) return "";
+  /* course files load on demand – fetch them quietly once so the next lesson can be shown */
+  if (!hubNextUp.asked) { hubNextUp.asked = true; Promise.all(ls.filter((L) => !COURSE[L.code] && COURSE_BUILTIN.includes(L.code)).map((L) => loadCourse(L.code).catch(() => null))).then((r) => { if (r.some(Boolean) && topView().v === "hub" && !state.study && !state.quiz && !state.talk && !sheetOpen()) render(); }); }
+  let pick = null;
+  for (const L of ls) { if (!COURSE[L.code]) continue; const nx = nextLesson(L.code); if (nx && lessonStarted(nx)) { pick = { L, nx, busy: true }; break; } if (nx && !pick) pick = { L, nx, busy: false }; }
+  if (!pick) {
+    const L = langOf(curLangCodeBase()) && hasCourse(curLangCodeBase()) ? langOf(curLangCodeBase()) : ls[0];
+    return `<button class="coursetile nextup" data-action="course-any"><span class="tile-l"><span class="label">${T("Als Nächstes · Kurs")}</span><span class="tile-t">${T("Kurs {0}", [esc(lname(L))])}</span><span class="tile-s">${esc(hubCourseLine())}</span></span><span class="lvchips" aria-hidden="true">${LEVELS.map((x) => `<i>${x}</i>`).join("")}</span><span class="chev" aria-hidden="true">›</span></button>`;
+  }
+  const { L, nx, busy } = pick;
+  return `<button class="coursetile nextup" data-action="next-lesson" data-arg="${esc(nx.id)}" data-p="${esc(L.code)}"><span class="tile-l"><span class="label">${T("Als Nächstes · Kurs {0} {1}", [esc(lname(L)), nx.level])}</span><span class="tile-t">${esc(L10(nx.t))}</span><span class="tile-s">${busy ? T("Lektion {0} · weiter, wo du aufgehört hast", [nx.n]) : T("Lektion {0} · Wörter, Grammatik, eigene Sätze, Gespräch", [nx.n])}</span></span><span class="nx-play" aria-hidden="true">▶</span></button>`;
 }
 
 function hubCourseLine() {
@@ -202,6 +217,7 @@ function viewLang(v) {
     <section class="sec" aria-labelledby="hPrac">
       <div class="sechead"><h2 class="sectitle" id="hPrac">${T("Üben")}</h2></div>
       ${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}
+      ${pbFind(L.code) ? navRow("pblang", L.code, T("Sprachführer"), T("Vorstellen, Basics, Beleidigungen – schnell nachschlagen und anhören"), "", badgeTxt("💬", L.color)) : ""}
       ${theoryLangs().some((x) => x.code === L.code) ? navRow("nav", "theory", T("Theorie & Grammatik"), L.code === "it" ? T("Artikel, Zeitformen, Konjugation – mit Übungen") : L.code === "en" ? T("Zeitformen, if-Sätze, Artikel – mit Übungen") : T("Grammatik aus dem Kurs und Verben in allen Zeitformen"), "", badgeTxt("§", L.color), lp) : ""}
       ${cs.length ? navRow("nav", "newwords", T("Neue Wörter ansehen"), T("Wörter, die noch nicht gelernt sind – lesen und anhören"), (() => { const k = newCardsOf(L.code).length; return k ? `<small>${num(k)}</small>` : ""; })(), badgeTxt("Aa", L.color), lp) : ""}
       ${navRow("build", L.code, T("Sätze bauen"), sb ? T("{0} – aus Bausteinen oder frei tippen, mit Korrektur", [plural(sb, T("Satz"), T("Sätze"))]) : T("Sätze entstehen aus Beispielsätzen und Satzkarten"), "", badgeTxt("✎", L.color))}
@@ -391,7 +407,8 @@ function render() {
   if (state.enter) { void root.offsetWidth; root.classList.add("enter"); state.enter = false; }
   if (focusId && root.contains($(focusId))) $(focusId).focus({ preventScroll: true });
   charts.forEach((c) => drawChart($(c.id), c));
-  $("addBtn").hidden = !["lang", "deck", "cards", "verbs"].includes(top.v) || !!state.sel;
+  $("addBtn").hidden = !["lang", "deck", "cards", "verbs", "library"].includes(top.v) || !!state.sel;
+  paintTabbar();
   const bar = $("selbar");
   bar.hidden = !state.sel;
   if (state.sel) {

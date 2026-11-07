@@ -10,7 +10,14 @@ const DEEP_VIEWS = ["stats", "search", "settings", "course"];
 const deepP = (v) => (v === "course" ? ((nextLesson && langs().find((L) => COURSE[L.code] && nextLesson(L.code) && lessonStarted(nextLesson(L.code)))) || langOf(curLangCode()) || langs()[0] || {}).code : undefined);
 if (deep === "learn" || deep === "add" || DEEP_VIEWS.includes(deep)) { $("splash").hidden = true; splashDone = true; deepHandled = true; }
 else if (openMode() !== "splash") { $("splash").hidden = true; splashDone = true; }
-if (DEEP_VIEWS.includes(deep)) state.stack.push({ v: deep, p: deepP(deep) });
+/* #settings → tab Mehr, #course → tab Kurs, #search → tab Karten, #stats → Statistik under Mehr */
+function deepOpen(h) {
+  if (h === "settings") selectTab("more", { reset: true });
+  else if (h === "course") selectTab("course", { p: { lang: deepP(h) } });
+  else if (h === "search") openIn("cards", "search");
+  else if (h === "stats") openIn("more", "stats");
+}
+if (DEEP_VIEWS.includes(deep)) deepOpen(deep);
 render();
 if (deep === "learn") { if (!startLearn({})) render(); }
 if (deep === "add") openCard(null);
@@ -22,10 +29,10 @@ addEventListener("hashchange", () => {
   const h = (location.hash || "").replace(/^#/, "").toLowerCase();
   if (!h) return;
   if (!splashDone) hideSplash();
-  if (h === "learn") startLearn({}); else if (h === "add") openCard(null); else if (DEEP_VIEWS.includes(h)) { if (state.study) closeStudy(); if (state.talk) closeTalk(); state.stack = [{ v: "hub" }]; go(h, deepP(h)); }
+  if (h === "learn") startLearn({}); else if (h === "add") openCard(null); else if (DEEP_VIEWS.includes(h)) { if (state.study) closeStudy(); if (state.talk) closeTalk(); deepOpen(h); }
   try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
 });
 let lastDay = today();
 document.addEventListener("visibilitychange", () => { if (!document.hidden && today() !== lastDay) { lastDay = today(); if (!state.study) render(); } });
 /* test hook (only when plm.debug is set) */
-try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, lessonQuizQs, courseLevels, slowChunks, speak, speakText, silentWav, get vp() { return VP; }, ttsCfg, ttsVoice, gVoices, ttsClipCount, voiceQual, pickVoice }; } catch { /* ignore */ }
+try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, lessonQuizQs, courseLevels, slowChunks, speak, speakText, selectTab, openIn, silentWav, get vp() { return VP; }, ttsCfg, ttsVoice, gVoices, ttsClipCount, voiceQual, pickVoice }; } catch { /* ignore */ }

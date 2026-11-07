@@ -6,7 +6,7 @@ function sheetOpen() { return SHEETS.map((id) => $(id)).find((el) => el && !el.h
 function closeSheets() {
   SHEETS.forEach((id) => { const el = $(id); if (el) { el.hidden = true; el.style.transform = ""; el.style.transition = ""; el.style.animation = ""; el.classList.remove("dragging"); } });
   $("backdrop").hidden = true; $("backdrop").style.opacity = ""; $("backdrop").style.transition = "";
-  state.editing = null; state.armed = state.armed && state.armed.startsWith("card") ? null : state.armed;
+  state.editing = null; state.armed = state.armed && state.armed.startsWith("card") ? null : state.armed; state.cSig = null;
 }
 function dismissSheet(sh, fromY) {
   const b = $("backdrop"), H = sh.offsetHeight || window.innerHeight;
@@ -18,7 +18,7 @@ function dismissSheet(sh, fromY) {
   const tok = ++sheetTok;
   setTimeout(() => { if (tok === sheetTok) closeSheets(); }, 240);
 }
-function closeSheetsAnimated() { const sh = sheetOpen(); if (sh) dismissSheet(sh, 0); else closeSheets(); }
+function closeSheetsAnimated(force) { const sh = sheetOpen(); if (sh && !force && !sheetMayClose(sh)) return; if (sh) dismissSheet(sh, 0); else closeSheets(); }
 
 let toastTimer;
 /* action: { label, fn } for a button, or a number = how long the message stays (ms) */
@@ -32,13 +32,13 @@ function toast(msg, action) {
 }
 
 /* ---------- Card editor ---------- */
+function curLangCodeBase() { const last = lsGet("plm.lastLang"); return (last && langOf(last) ? last : null) || (langs()[0] && langs()[0].code); }
 function curLangCode() {
   const top = state.stack[state.stack.length - 1];
-  if (["lang", "verbs", "import", "starter"].includes(top.v)) return top.p;
-  if (top.v === "cards" || top.v === "deck") return top.p.lang;
+  if (["lang", "verbs", "import", "starter", "course", "theory", "newwords"].includes(top.v) && typeof top.p === "string") return top.p;
+  if (["cards", "deck", "kurs", "wissen", "conj", "chapter", "lesson"].includes(top.v) && top.p && top.p.lang && langOf(top.p.lang)) return top.p.lang;
   if (top.v === "search" && state.q.lang !== "all") return state.q.lang;
-  const last = lsGet("plm.lastLang");
-  return (last && langOf(last) ? last : null) || (langs()[0] && langs()[0].code);
+  return curLangCodeBase();
 }
 function curDeck(code) {
   const top = state.stack[state.stack.length - 1];
@@ -76,8 +76,19 @@ function openCard(card, preset) {
   $("cInfo").textContent = card ? T("{0}{1} · {2} Wiederholungen · angelegt {3}", [STATE_TXT[st], st !== "new" && st !== "susp" ? ` ${T("· nächste Wiederholung {0}", [dueText(card)])}` : "", Object.values(card.srs).reduce((a, s) => a + s.reps, 0), dateFmt.format(new Date(card.created))]) : "";
   $("cErr").textContent = "";
   syncCardForm();
+  $("cDirty").hidden = true; state.cSig = cardSig();
   showSheet("cardSheet");
   if (!card) setTimeout(() => $("cTg").focus(), 80);
+}
+/* Unsaved changes: closing the card editor asks first (Save · Discard · Keep editing) */
+const cardSig = () => JSON.stringify(["cTg", "cDe", "cEx", "cExDe", "cNote"].map((id) => ($(id) || {}).value || ""));
+const cardDirty = () => !$("cardSheet").hidden && state.cSig != null && cardSig() !== state.cSig;
+function sheetMayClose(sh) {
+  if (!sh || sh.id !== "cardSheet" || !cardDirty()) return true;
+  const bar = $("cDirty"); bar.hidden = false; sh.scrollTop = 0;
+  bar.classList.remove("shake"); void bar.offsetWidth; bar.classList.add("shake");
+  if (document.activeElement && sh.contains(document.activeElement)) document.activeElement.blur();
+  return false;
 }
 function fillDecks(code, sel) {
   const ds = decksOf(code).map((d) => d.name);
@@ -296,7 +307,7 @@ function openLangSettings(code) {
       if (v.addTense && !L.tenses.some((t) => t.n === v.addTense)) { L.tenses.push({ n: v.addTense }); L.active.push(v.addTense); }
       touchSettings(); render(); toast(T("Gespeichert"));
     },
-    onDelete: () => { state.settings.langs = langs().filter((x) => x.code !== code); deleteCards(state.cards.filter((c) => c.lang === code).map((c) => c.id)); touchSettings(); state.stack = [{ v: "hub" }]; render(); toast(T("{0} gelöscht", [lname(L)])); },
+    onDelete: () => { state.settings.langs = langs().filter((x) => x.code !== code); deleteCards(state.cards.filter((c) => c.lang === code).map((c) => c.id)); touchSettings(); goHome(); render(); toast(T("{0} gelöscht", [lname(L)])); },
     deleteLabel: T("Sprache löschen"), deleteArmed: n ? T("Mit {0} löschen?", [plural(n, T("Karte"), T("Karten"))]) : T("Wirklich löschen?")
   });
 }

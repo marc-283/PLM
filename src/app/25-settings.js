@@ -12,8 +12,10 @@ const maskKey = (k) => (k.length > 14 ? `${k.slice(0, 10)}…${k.slice(-4)}` : "
 function viewSettings() {
   const S = state.settings, sel = (id, cur, opts) => `<select class="psel" id="${id}" data-action="setting">${opts.map(([v, t]) => `<option value="${esc(v)}"${String(cur) === String(v) ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
   const badgeOk = !!navigator.setAppBadge, ai = aiCfg(), sy = syncCfg();
+  const m = countByState(null);
   return `${backBar()}
-    <h1 class="vtitle">${T("Einstellungen")}</h1>
+    <h1 class="vtitle">${isTabRoot() ? T("Mehr") : T("Einstellungen")}</h1>
+    ${isTabRoot() ? `<section class="sec">${navRow("nav", "stats", T("Statistik"), T("{0} Karten sicher gelernt · Serie, Verlauf, Tests", [num(m.known)]), "", badgeTxt("▤", "#3FA9FF"))}${syncOn() ? navRow("sync-now", "", T("Jetzt synchronisieren"), syncStatusText(), "", badgeTxt("⟳", "#30D97F")) : ""}${navRow("export-json", "", T("Backup sichern"), T("Letztes Backup: {0}", [esc(lastBackupText())]), "", badgeTxt("⇩", "#FFE83A"))}</section>` : ""}
     <section class="card"><h2>${UI === "en" ? "App language" : "App-Sprache"}</h2>
       <div class="seg" role="group" aria-label="${UI === "en" ? "App language" : "App-Sprache"}"><button type="button" data-action="ui-lang" data-arg="de" aria-pressed="${UI === "de"}">Deutsch</button><button type="button" data-action="ui-lang" data-arg="en" aria-pressed="${UI === "en"}">English</button></div>
       <p class="hint">${T("Menüs, Hinweise und Theorie. Deine Karten bleiben, wie sie sind.")}</p></section>

@@ -557,3 +557,40 @@ details.more[open] summary { margin-bottom: 12px; }
 .pbfoot { margin-top: 16px; }
 .warnline { border-left: 3px solid var(--accent); padding: 2px 0 2px 11px; }
 .steps code { font-size: 13px; overflow-wrap: anywhere; background: var(--raised); color: var(--ink); padding: 1px 5px; border-radius: 6px; }
+
+/* v1.6: tab bar */
+:root { --tabh: 58px; }
+.tabbar { position: fixed; z-index: 7; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr); background: rgba(10, 10, 12, 0.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding: 4px max(6px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
+.tabbar button { position: relative; border: 0; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 50px; font: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; min-width: 0; }
+.tabbar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabbar svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar circle { fill: currentColor; stroke: none; }
+.tabbar button.on { color: var(--accent); }
+body:not(.notabs) .app { padding-bottom: calc(var(--tabh) + 40px + env(safe-area-inset-bottom, 0px)); }
+body:not(.notabs) .fab { bottom: calc(var(--tabh) + 14px + env(safe-area-inset-bottom, 0px)); }
+body:not(.notabs) .toast { bottom: calc(var(--tabh) + 76px + env(safe-area-inset-bottom, 0px)); }
+body:not(.notabs) .sticky-act { bottom: calc(var(--tabh) + 10px + env(safe-area-inset-bottom, 0px)); }
+body.swiping .tabbar { pointer-events: none; }
+
+/* v1.6: Heute */
+.mainbtns { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
+.mainbtns .addbig { margin: 0; min-height: 86px; }
+.hubgo { flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; text-align: left; }
+.hubgo .hg-t { display: inline-flex; align-items: center; gap: 10px; font-size: 26px; }
+.hubgo small { font-size: 14px; }
+.hubadd { background: var(--surface); color: var(--ink); border: 1px solid var(--line); justify-content: center; font-size: 24px; }
+.hubadd span { color: var(--accent); font-size: 26px; }
+.nextup .label { color: var(--accent); opacity: 0.85; }
+.nextup .tile-l { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nextup .nx-play { width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 18px; padding-left: 3px; }
+.nextup { grid-template-columns: minmax(0, 1fr) auto; }
+.hubpractice { display: flex; flex-direction: column; gap: 10px; }
+.row.addrow .t1 { color: var(--accent); }
+.wseg { margin-bottom: -8px; }
+
+/* v1.6: unsaved card */
+.dirtybar { position: sticky; top: 0; z-index: 2; margin: 0 0 14px; padding: 12px; border-radius: 14px; background: var(--raised); border: 1px solid var(--accent); display: flex; flex-direction: column; gap: 10px; font-weight: 700; }
+.dirtybar .btnrow { flex-wrap: wrap; }
+.dirtybar .btn { flex: 1 1 auto; }
+.dirtybar.shake { animation: shake 0.35s; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
