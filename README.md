@@ -56,6 +56,7 @@ Ein Foto kostet meist unter 1 Cent, ein PDF mit 10 Seiten einige Cent. Der Schl�
 ## Hinweise
 
 - **Stimmen:** Bessere Stimmen unter iOS *Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Italienisch* laden (z. B. „Alice (Erweitert)“). Die Stimme pro Sprache wählst du in den Spracheinstellungen von PLM.
+- **Lautsprecher im Stumm-Modus:** Das iPhone schaltet Vorlesen aus Web-Apps stumm, wenn der Stumm-Schalter (bzw. Aktionstaste / „Stummmodus“) an ist – mit Kopfhörern war es trotzdem zu hören. PLM spielt deshalb beim Vorlesen kurz einen stillen Ton ab, der den Lautsprecher freigibt (*Einstellungen → Aussprache → Auch im Stumm-Modus über den Lautsprecher*, standardmäßig an). Musik aus einer anderen App wird dabei angehalten. Bleibt es trotzdem still: Stumm-Modus kurz ausschalten und die Lautstärke hochdrehen, während PLM spricht.
 - **Aussprache prüfen** braucht unter iOS eingeschaltetes Diktieren (*Einstellungen → Allgemein → Tastatur → Diktierfunktion*) und einmal die Mikrofon-Erlaubnis.
 - Alle Daten liegen auf dem Gerät (plus im eigenen Gist, wenn Sync an ist). Ab und zu *Einstellungen → Backup sichern*.
 
