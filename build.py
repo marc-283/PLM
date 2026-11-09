@@ -2,11 +2,32 @@
 """Builds the deployable app (index.html, sw.js, manifest.webmanifest) from src/."""
 import hashlib, json, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 def read(p): return open(os.path.join(ROOT, p), encoding="utf-8").read()
 def js_dir(d): return "\n".join(read(os.path.join(d, f)) for f in sorted(os.listdir(os.path.join(ROOT, d))) if f.endswith(".js"))
+import re, shutil
+# data packs: src/pack/<name>/*.js → data/<name>.js – loaded when needed, cached by the service worker
+PACKS = sorted(d for d in os.listdir(os.path.join(ROOT, "src/pack")) if os.path.isdir(os.path.join(ROOT, "src/pack", d)))
+shutil.rmtree(os.path.join(ROOT, "data"), ignore_errors=True)
+os.makedirs(os.path.join(ROOT, "data"))
+starter_index, pb_index = {}, []
+for name in PACKS:
+    parts = js_dir(os.path.join("src/pack", name))
+    for code, pid, pname in re.findall(r'^STARTER\.(\w+)\.push\(\{ id: "([^"]+)", name: "([^"]+)"', parts, re.M): starter_index.setdefault(code, []).append({"id": pid, "name": pname})
+    pb_index += [list(m) for m in re.findall(r'^pb\("(\w+)", "([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)"', parts, re.M)]
+    open(os.path.join(ROOT, "data", name + ".js"), "w", encoding="utf-8").write(f"""/* PLM data: {name} (generated from src/pack/{name}/ by build.py) */
+(() => {{
+{parts}
+}})();
+packReg("{name}");
+""")
+index = f"""/* written by build.py: which data files exist, the starter packs and the phrasebook languages they contain */
+const PLM_PACKS = {json.dumps(PACKS)};
+const STARTER_INDEX = {json.dumps(starter_index, ensure_ascii=False)};
+const PB_INDEX = {json.dumps(pb_index, ensure_ascii=False)};
+"""
 html = read("src/shell.html")
-for k, v in {"{{CSS}}": read("src/app.css"), "{{CORE}}": read("src/core.js"), "{{DATA}}": js_dir("src/data"), "{{APP}}": js_dir("src/app"), "{{VERSION}}": VERSION, "{{I18N}}": json.dumps(json.load(open(os.path.join(ROOT, "src/i18n-en.json"), encoding="utf-8")), ensure_ascii=False)}.items():
+for k, v in {"{{CSS}}": read("src/app.css"), "{{CORE}}": read("src/core.js"), "{{DATA}}": index + js_dir("src/data"), "{{APP}}": js_dir("src/app"), "{{VERSION}}": VERSION, "{{I18N}}": json.dumps(json.load(open(os.path.join(ROOT, "src/i18n-en.json"), encoding="utf-8")), ensure_ascii=False)}.items():
     html = html.replace(k, v)
 open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(html)
 manifest = {
@@ -34,7 +55,7 @@ courseReg("{code}", C);
     open(os.path.join(ROOT, "course", code + ".js"), "w", encoding="utf-8").write(out)
 # course files are loaded when a course is opened, but cached right away so they work offline
 course = sorted("course/" + f for f in os.listdir(os.path.join(ROOT, "course")) if f.endswith(".js")) if os.path.isdir(os.path.join(ROOT, "course")) else []
-files = ["index.html", "manifest.webmanifest"] + sorted("icons/" + f for f in os.listdir(os.path.join(ROOT, "icons"))) + sorted("fonts/" + f for f in os.listdir(os.path.join(ROOT, "fonts"))) + course
+files = ["index.html", "manifest.webmanifest"] + sorted("icons/" + f for f in os.listdir(os.path.join(ROOT, "icons"))) + sorted("fonts/" + f for f in os.listdir(os.path.join(ROOT, "fonts"))) + course + ["data/" + n + ".js" for n in PACKS]
 h = hashlib.sha256()
 for f in files: h.update(open(os.path.join(ROOT, f), "rb").read())
 cache = f"plm-{VERSION}-{h.hexdigest()[:8]}"
@@ -66,4 +87,4 @@ self.addEventListener("fetch", (e) => {{
 }});
 '''
 open(os.path.join(ROOT, "sw.js"), "w", encoding="utf-8").write(sw)
-print("built", cache, rt, f"{len(html)//1024} KB")
+print("built", cache, rt, f"index.html {len(html.encode('utf-8'))//1024} KB, {len(PACKS)} data files")
