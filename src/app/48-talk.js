@@ -7,7 +7,7 @@ const slotHint = (k) => ({ name: T("dein Name"), city: T("deine Stadt"), country
 function startTalk(code, id, mode) {
   const l = lessonById(code, id), tk = l && lessonTalk(l);
   if (!tk) return;
-  if (mode === "ai" && !aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)")); return; }
+  if (mode === "ai" && !aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Mehr › KI-Assistent)")); return; }
   const mine = mode === "swap" ? "a" : "me";
   state.talk = { code, id, mode, tk, lines: tk.lines, mine, i: 0, log: [], slots: {}, res: null, input: lsGet("plm.talkInput") === "tiles" ? "tiles" : "type", hint: 0, done: false, ok: 0, n: 0, hideText: false, auto: mode === "listen", ai: mode === "ai" ? { msgs: [], busy: false } : null };
   $("study").hidden = false; document.body.style.overflow = "hidden";

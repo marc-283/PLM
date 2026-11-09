@@ -2,7 +2,7 @@
 const L10 = (o) => (o == null ? "" : typeof o === "string" ? o : UI === "en" ? o.en : o.de);
 const stripTags = (h) => String(h).replace(/<[^>]+>/g, "");
 const THEORY_SECS = [["words", TB("Wörter & Grammatik", "Words & grammar")], ["verbs", TB("Verben & Zeitformen", "Verbs & tenses")], ["phrases", TB("Wendungen & Stolperfallen", "Phrases & pitfalls")]];
-const theoryLangs = () => langs().filter((L) => (THEORY[L.code] && THEORY[L.code].length) || canConj(L.code) || (typeof courseOf === "function" && courseOf(L.code)));
+const theoryLangs = () => langs().filter((L) => PLM_PACKS.includes("theory-" + L.code) || canConj(L.code) || (typeof courseOf === "function" && courseOf(L.code)));
 const chapterOf = (code, id) => (THEORY[code] || []).find((c) => c.id === id) || null;
 const sayBtn = (text, code, big) => (canSpeak() ? `<button type="button" class="th-say${big ? " big" : ""}" data-action="th-say" data-arg="${esc(text)}" data-p="${esc(code)}" aria-label="${T("Anhören")}">${ICON_SPEAK}</button>` : "");
 
@@ -50,11 +50,7 @@ const newCardsOf = (code) => state.cards.filter((c) => c.lang === code && !c.sus
 function viewTheory(v) {
   const code = v.p, L = langOf(code), chs = THEORY[code] || [];
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
-  const nw = newCardsOf(code).length;
-  const tools = `<section class="sec">
-      ${canConj(code) ? navRow("nav", "conj", T("Verb nachschlagen"), code === "en" ? T("Stammformen und Zeitformen – z. B. go, went, gone") : T("Jedes Verb in allen wichtigen Zeitformen – auch mit Übersetzung suchen"), "", badgeTxt("⇄", L.color), ` data-p="${esc(JSON.stringify({ lang: code }))}"`) : ""}
-      ${navRow("nav", "newwords", T("Neue Wörter ansehen"), nw ? T("{0} noch nicht gelernt – in Ruhe durchlesen und anhören", [num(nw)]) : T("Alle Wörter sind schon im Lernen"), nw ? `<small>${num(nw)}</small>` : "", badgeTxt("Aa", L.color), ` data-p="${esc(code)}"`)}
-    </section>`;
+  if (!needData(theoryData(code))) return loadingHTML(T("Theorie"));
   const secs = THEORY_SECS.map(([k, title]) => {
     const list = chs.filter((c) => c.sec === k);
     if (!list.length) return "";
@@ -72,12 +68,14 @@ function viewTheory(v) {
     <h1 class="vtitle" style="color:${L.color}">${T("Theorie")}</h1>
     <p class="meta">${esc(lname(L))} · ${T("Grammatik zum Nachlesen, mit Beispielen zum Anhören und Übungen")}</p>
     ${theoryPills(code, "theory")}
-    ${chs.length ? tools + secs : tools}${cg}
+    ${secs}${cg}
     ${!chs.length && !cg ? `<p class="hint">${T("Für diese Sprache gibt es noch keine Theorie.")}</p>` : ""}`;
 }
 function gramTitle(l) { const h = (l.gram || []).find((b) => b[0] === "h"); return h ? stripTags(L10(h[1])) : L10(l.t); }
 function viewChapter(v) {
-  const { lang: code, id } = v.p || {}, L = langOf(code), ch = chapterOf(code, id);
+  const { lang: code, id } = v.p || {}, L = langOf(code);
+  if (L && !needData(theoryData(code))) return loadingHTML("");
+  const ch = chapterOf(code, id);
   if (!L || !ch) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   const list = THEORY[code], i = list.indexOf(ch), prev = list[i - 1], next = list[i + 1];
   const nav = (c, lbl) => (c ? `<button class="btn grow th-navbtn" data-action="th-goto" data-arg="${esc(c.id)}"><small>${lbl}</small>${esc(L10(c.title))}</button>` : "");
@@ -97,6 +95,8 @@ function viewConj(v) {
   const p = v.p || {}, code = p.lang || "it", L = langOf(code);
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   if (!canConj(code)) return `${backBar()}<h1 class="vtitle">${T("Verb nachschlagen")}</h1><p class="hint">${T("Für {0} gibt es noch keine automatische Konjugation. Eigene Verbkarten mit Formen kannst du unter Konjugation anlegen.", [esc(lname(L))])}</p>`;
+  if (!needData(verbData(code))) return loadingHTML(T("Verb nachschlagen"));
+  prepFormIndex(code);
   const typed = (p.verb || "").trim();
   let body = "";
   if (typed) {

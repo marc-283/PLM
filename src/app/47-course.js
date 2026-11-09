@@ -245,7 +245,7 @@ function viewCourse(v) {
   const code = typeof v.p === "string" ? v.p : (v.p || {}).lang, L = langOf(code);
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   const head = `${backBar()}<h1 class="vtitle" style="color:${L.color}">${T("Kurs")}</h1><p class="meta">${esc(lname(L))} · ${T("Schritt für Schritt von A1 bis B2")}</p>${v.root ? kursPills(code) : ""}`;
-  if (!needCourse(code)) return `${head}<p class="hint">${T("Kurs wird geladen …")}</p>`;
+  if (![needCourse(code), needData(verbData(code))].every(Boolean)) return `${head}<p class="hint">${T("Kurs wird geladen …")}</p>`;
   const lvs = courseLevels(code), any = lvs.some((x) => x.lessons.length);
   const sel = state.courseLevel && state.courseLevel[code] || (nextLesson(code) || {}).level || "A1";
   const lv = lvs.find((x) => x.id === sel) || lvs[0], st = levelStats(code, lv), nx = lv.lessons.find((l) => !lessonDone(l));
@@ -253,7 +253,7 @@ function viewCourse(v) {
   const test = state.course.lv[`${code}|${lv.id}`];
   const aiRow = aiOn() ? navRow("course-ai", lv.id, T("+ Neue Lektion mit KI"), T("Der KI-Assistent schreibt eine weitere {0}-Lektion zu einem Thema deiner Wahl", [lv.id]), "", badgeTxt("✦", L.color), ` data-p="${esc(code)}"`) : "";
   if (!any) return `${head}
-    <section class="empty"><strong>${T("Für {0} gibt es noch keinen fertigen Kurs", [esc(lname(L))])}</strong><span>${aiOn() ? T("Lass dir vom KI-Assistenten Lektionen erstellen – mit Wörtern, Grammatik, Übungen und einem Gespräch zum Mitspielen.") : T("Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kannst du dir Lektionen für jede Sprache erstellen lassen.")}</span></section>
+    <section class="empty"><strong>${T("Für {0} gibt es noch keinen fertigen Kurs", [esc(lname(L))])}</strong><span>${aiOn() ? T("Lass dir vom KI-Assistenten Lektionen erstellen – mit Wörtern, Grammatik, Übungen und einem Gespräch zum Mitspielen.") : T("Mit dem KI-Assistenten (Mehr › KI-Assistent) kannst du dir Lektionen für jede Sprache erstellen lassen.")}</span></section>
     ${pills}${aiRow ? `<section class="sec">${aiRow}</section>` : ""}`;
   return `${head}${pills}
     <section class="hero lvhero"><span class="label">${esc(lv.id)} · ${esc(L10(lv.t))}</span>
@@ -272,7 +272,7 @@ function wordRow(code, x) {
 function viewLesson(v) {
   const { lang: code, id } = v.p || {}, L = langOf(code);
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
-  if (!needCourse(code)) return `${backBar()}<p class="hint">${T("Kurs wird geladen …")}</p>`;
+  if (![needCourse(code), needData(theoryData(code))].every(Boolean)) return `${backBar()}<p class="hint">${T("Kurs wird geladen …")}</p>`;
   const l = lessonById(code, id);
   if (!l) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   const s = lessonSteps(l), p = lp(l.id), W = lessonWords(l), P = lessonPhrases(l), tk = lessonTalk(l);
@@ -309,7 +309,7 @@ function viewLesson(v) {
 /* grammar of a lesson as a theory chapter */
 function viewLessonGram(v) {
   const { lang: code, id } = v.p || {}, L = langOf(code);
-  if (!L || !needCourse(code)) return `${backBar()}<p class="hint">${T("Kurs wird geladen …")}</p>`;
+  if (!L || ![needCourse(code), needData(theoryData(code))].every(Boolean)) return `${backBar()}<p class="hint">${T("Kurs wird geladen …")}</p>`;
   const l = lessonById(code, id);
   if (!l) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   return `${backBar()}
@@ -363,7 +363,7 @@ function aiToLesson(code, level, j) {
 }
 function openAiLesson(code, level) {
   const L = langOf(code); if (!L) return;
-  if (!aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)")); return; }
+  if (!aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Mehr › KI-Assistent)")); return; }
   const done = courseLevels(code).find((x) => x.id === level).lessons.map((l) => L10(l.t));
   openForm({ title: T("Neue {0}-Lektion", [level]), hint: T("Der KI-Assistent schreibt eine Lektion für {0} auf Niveau {1}: Wörter mit Beispielsätzen, Grammatik, Übungen und ein Gespräch zum Mitspielen. Kostet meist 1–3 Cent.", [lname(L), level]), saveLabel: T("Erstellen"),
     fields: [{ k: "topic", label: T("Thema (optional)"), type: "text", ph: T("z. B. Arzttermin, Bewerbungsgespräch, Fußball") }],

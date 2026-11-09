@@ -156,7 +156,7 @@ async function syncNow(manual) {
     setSync({ last: Date.now(), error: "" });
     if (manual) toast(state.cards.length !== before ? T("Synchronisiert · {0}{1} Karten", [state.cards.length - before > 0 ? "+" : "", state.cards.length - before]) : T("Synchronisiert"));
   } catch (e) {
-    setSync({ error: (e && e.message) || "fehlgeschlagen" });
+    setSync({ error: (e && e.message) || T("fehlgeschlagen") });
     if (manual) toast((e && e.message) || T("Sync fehlgeschlagen"));
   } finally {
     syncing = false;

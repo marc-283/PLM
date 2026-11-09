@@ -140,6 +140,7 @@ function renderTables(L) {
   }).join("") + `<p class="hint">${T("Welche Zeiten abgefragt werden, legst du pro Sprache fest (Konjugation).")}</p>`;
 }
 function autoFill() {
+  if (!hasData(verbData($("cLang").value))) { ensureData(verbData($("cLang").value)).then((ok) => (ok ? autoFill() : toast(T("Daten konnten nicht geladen werden – bist du online?")))); return; }
   readTables();
   const code = $("cLang").value, inf = $("cTg").value.trim();
   if (!inf) { $("cErr").textContent = T("Trag zuerst den Infinitiv ein."); return; }

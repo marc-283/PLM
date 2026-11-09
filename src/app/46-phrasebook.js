@@ -40,10 +40,11 @@ function pbListHTML() {
   const raw = (state.pbQ || "").trim();
   if (!list.length) out += `<p class="hint" style="margin:14px 0">${T("„{0}“ ist noch nicht dabei.", [esc(raw)])}</p>`;
   if (raw && aiOn()) out += `<button class="btn primary" style="width:100%;margin-top:12px" data-action="pb-ai" data-arg="${esc(raw)}">${T("✦ „{0}“ mit KI erstellen", [esc(raw)])}</button>`;
-  else if (!list.length) out += `<p class="hint">${T("Mit dem KI-Assistenten (Einstellungen › KI-Assistent) kann PLM jede weitere Sprache erstellen.")}</p>`;
+  else if (!list.length) out += `<p class="hint">${T("Mit dem KI-Assistenten (Mehr › KI-Assistent) kann PLM jede weitere Sprache erstellen.")}</p>`;
   return out;
 }
 function viewPhrasebook() {
+  if (!needData(["phrasebook"])) return loadingHTML(T("Sprachführer"));
   return `${backBar()}
     <h1 class="vtitle">${T("Sprachführer")}</h1>
     <p class="meta">${T("{0} Sprachen · Vorstellen, Basics, Liebe, Beleidigungen – mit Aussprache zum Anhören", [num(pbAll().length)])}</p>
@@ -64,6 +65,7 @@ function pbListBody(p, cat) {
   return items.map(row).join("") || `<p class="hint">${T("Für diesen Bereich gibt es hier noch nichts.")}</p>`;
 }
 function viewPbLang(v) {
+  if (!needData(["phrasebook"])) return loadingHTML("");
   const p = pbFind(v.p);
   if (!p) return `${backBar()}<h1 class="vtitle">${T("Nicht gefunden")}</h1>`;
   const cat = PB_CATS.some((c) => c.id === state.pbCat) ? state.pbCat : "intro";
@@ -96,7 +98,7 @@ const AI_PB_SCHEMA = { type: "object", additionalProperties: false, required: ["
     intro: { type: "array", items: PB_ITEM }, basics: { type: "array", items: PB_ITEM }, love: { type: "array", items: PB_ITEM },
     insults: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "pron", "german", "english", "level", "note"], properties: { text: { type: "string" }, pron: { type: "string" }, german: { type: "string" }, english: { type: "string" }, level: { type: "integer" }, note: { type: "string" } } } } } };
 async function aiPbGen(query) {
-  if (!aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Einstellungen › KI-Assistent)")); return; }
+  if (!aiOn()) { toast(T("Dafür brauchst du den KI-Assistenten (Mehr › KI-Assistent)")); return; }
   const job = { n: 0 }; state.aiJob = job;
   const paint = () => { if (state.aiJob !== job) return; $("studyIn").innerHTML = `<div class="st-top"><button class="mbtn" data-action="ai-job-cancel" aria-label="${T("Abbrechen")}">✕</button><div class="st-prog"><span class="indet"></span></div><span></span><span></span></div>
     <div class="st-done"><span class="label">${T("Sprachführer")}</span><h1 class="vtitle">${T("KI schreibt „{0}“ …", [esc(query)])}</h1><p class="hint">${job.n ? T("{0} Zeichen erhalten", [num(job.n)]) : T("Das dauert etwa eine halbe Minute.")}</p></div>`; };

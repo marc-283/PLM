@@ -5,6 +5,7 @@ const KEYS = {
 };
 const POS = { n: T("Nomen"), v: T("Verb"), adj: T("Adjektiv"), adv: T("Adverb"), ph: T("Ausdruck"), s: T("Satz"), x: T("Sonstiges") };
 const MODES = [["flip", T("Umdrehen")], ["type", T("Tippen")], ["choice", T("Auswahl")]];
+const GOALS = [5, 10, 15, 20, 30, 45, 60]; // daily goal in minutes
 const TTS_LIST = [["en-GB", T("Englisch (UK)")], ["en-US", T("Englisch (USA)")], ["it-IT", T("Italienisch")], ["es-ES", T("Spanisch (Spanien)")], ["es-MX", T("Spanisch (Mexiko)")], ["fr-FR", T("Französisch")], ["pt-PT", T("Portugiesisch (Portugal)")], ["pt-BR", T("Portugiesisch (Brasilien)")], ["nl-NL", T("Niederländisch")], ["sv-SE", T("Schwedisch")], ["da-DK", T("Dänisch")], ["nb-NO", T("Norwegisch")], ["pl-PL", T("Polnisch")], ["tr-TR", T("Türkisch")], ["ru-RU", T("Russisch")], ["el-GR", T("Griechisch")], ["ja-JP", T("Japanisch")], ["zh-CN", T("Chinesisch")], ["ko-KR", T("Koreanisch")], ["ar-SA", T("Arabisch")]];
 const LANG_COLORS = ["#3FA9FF", "#2EE6D6", "#FF8A3D", "#C77DFF", "#30D97F", "#FF5FA8", "#F5C04A", "#8E8BFF", "#FFB4A2", "#7FD1FF"];
 const MEANING_LANGS = { en: T("Englisch"), it: T("Italienisch"), es: T("Spanisch"), fr: T("Französisch") };
@@ -100,13 +101,14 @@ function normSettings(s) {
     intro: s.intro !== false, autoSpeak: s.autoSpeak !== false,
     rate: [0.8, 0.9, 1, 1.1].includes(s.rate) ? s.rate : 0.9,
     remind: /^\d{2}:\d{2}$/.test(s.remind || "") ? s.remind : "19:00",
+    goal: GOALS.includes(s.goal) ? s.goal : 10,
     badge: !!s.badge,
     ui: s.ui === "en" || s.ui === "de" ? s.ui : UI,
     updatedAt: Number.isFinite(s.updatedAt) ? s.updatedAt : 0
   };
 }
 const PACK_NAMES = {};
-for (const packs of Object.values(STARTER)) for (const p of packs) PACK_NAMES[p.id] = p.name;
+for (const packs of Object.values(STARTER_INDEX)) for (const p of packs) PACK_NAMES[p.id] = p.name;
 function normSrs(v) {
   if (!v || typeof v !== "object" || !Number.isFinite(v.s) || !Number.isFinite(v.due)) return null;
   const o = { st: v.st === "lrn" ? "lrn" : "rev", s: v.s, d: Number.isFinite(v.d) ? v.d : 5, ld: Number.isFinite(v.ld) ? v.ld : 0, ivl: Number.isFinite(v.ivl) ? v.ivl : 0, due: v.due, reps: v.reps | 0, lapses: v.lapses | 0, lg: v.lg | 0 };
@@ -156,7 +158,7 @@ const langOf = (code) => langs().find((l) => l.code === code) || null;
 /* built-in project and topic names (starter packs) are shown in the app language; the stored name stays */
 const dn = (name) => (name ? T(name) : name);
 const lname = (L) => (L ? T(L.name) : "");
-const langName = (code) => { const L = langOf(code); if (L) return lname(L); const p = typeof pbFind === "function" ? pbFind(code) : null; return p ? (UI === "en" ? p.en : p.de) : code; };
+const langName = (code) => { const L = langOf(code); if (L) return lname(L); const p = typeof pbFind === "function" ? pbFind(code) : null; if (p) return UI === "en" ? p.en : p.de; const x = PB_INDEX.find((r) => r[0] === code); return x ? (UI === "en" ? x[4] : x[3]) : code; };
 const cardsOf = (code) => state.cards.filter((c) => c.lang === code);
 const hasGenderedNouns = (L) => L && ["it", "es", "fr", "pt"].includes(L.code);
 const meaningName = (c) => (c.ml ? MEANING_LANGS[c.ml] : T("Deutsch"));
@@ -297,6 +299,7 @@ function buildQueue(o) {
   if (o.countOnly) return { lrn: learn.length, rev: revs.length, nw: newList.length, due: learn.length + revs.length, total: learn.length + revs.length + newList.length, moreNew: Object.values(news).reduce((a, l) => a + l.length, 0) - newList.length };
   shuffle(revs);
   if (Object.keys(news).length > 1) shuffle(newList);
+  if (o.plan) return learn.concat(revs, newList); // day plan: reviews first, then the new cards
   const out = learn.slice(), gap = newList.length ? Math.max(1, Math.floor(revs.length / newList.length)) : 0;
   let ni = 0;
   revs.forEach((r, i) => { out.push(r); if (gap && (i + 1) % gap === 0 && ni < newList.length) out.push(newList[ni++]); });
@@ -454,7 +457,7 @@ function deviceSpeak(clean, code, o) {
     if (v) u.voice = v;
     return u;
   };
-  if (!pickVoice(code) && voices.length && !noVoiceWarned.has(code) && !o.quiet) { noVoiceWarned.add(code); toast(T("Keine {0}-Stimme auf diesem Gerät – siehe Einstellungen › Aussprache", [langName(code)])); }
+  if (!pickVoice(code) && voices.length && !noVoiceWarned.has(code) && !o.quiet) { noVoiceWarned.add(code); toast(T("Keine {0}-Stimme auf diesem Gerät – siehe Mehr › Aussprache & Stimmen", [langName(code)])); }
   let started = false, ended = false, watch = 0, list = [];
   const done = () => { if (ended) return; ended = true; clearTimeout(watch); speakMark(o.btn, false); if (speakBtn === o.btn) speakBtn = null; if (o.onend) o.onend(); };
   const build = () => {

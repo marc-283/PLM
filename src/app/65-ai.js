@@ -2,7 +2,7 @@
 /* Streams the answer (server-sent events): keeps the connection busy, so Safari never cuts long PDF jobs off, and shows progress */
 async function aiCall({ system, content, messages, schema, maxTokens, effort, model, onText }) {
   const cfg = aiCfg();
-  if (!cfg.key) throw new Error(T("Kein KI-Schlüssel hinterlegt (Einstellungen › KI-Assistent)"));
+  if (!cfg.key) throw new Error(T("Kein KI-Schlüssel hinterlegt (Mehr › KI-Assistent)"));
   if (navigator.onLine === false) throw new Error(T("Offline – die KI braucht eine Internetverbindung"));
   const body = { model: model || cfg.model, max_tokens: maxTokens || 16000, stream: true, system, messages: messages || [{ role: "user", content }], output_config: { effort: effort || "low", ...(schema ? { format: { type: "json_schema", schema } } : {}) } };
   let r;

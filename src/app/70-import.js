@@ -187,7 +187,7 @@ function viewImport(v) {
       <p>${T("Fotografiere eine Vokabelliste, ein Glossar oder eine Buchseite – oder lade ein PDF aus deinem Kurs. Du prüfst alles, bevor es Karten werden.")}</p>
       ${ai ? `<div class="seg" role="group" aria-label="${T("Auswertung")}"><button type="button" data-action="imp-ai" data-arg="1" aria-pressed="${useAi}">${T("Mit KI")}</button><button type="button" data-action="imp-ai" data-arg="0" aria-pressed="${!useAi}">${T("Auf dem Gerät")}</button></div>
         <p class="hint">${useAi ? T("Die KI ordnet in Themen, übersetzt ins Deutsche, ergänzt Beispielsätze und baut Lückensätze und Verbtabellen.") : T("Kostenlos und offline: erkennt Listen und zweispaltige Tabellen. Übersetzungen nur, wenn sie im Material stehen.")}</p>`
-        : `<p class="hint">${T("Auf dem Gerät erkennt PLM Listen und zweispaltige Tabellen. Für Buchseiten mit Übungen, deutsche Übersetzungen und automatische Themen:")} <button class="more" data-action="nav" data-arg="settings">${T("KI-Assistent einrichten ›")}</button></p>`}
+        : `<p class="hint">${T("Auf dem Gerät erkennt PLM Listen und zweispaltige Tabellen. Für Buchseiten mit Übungen, deutsche Übersetzungen und automatische Themen:")} <button class="more" data-action="set-open" data-arg="ai">${T("KI-Assistent einrichten ›")}</button></p>`}
       <div class="btnrow"><label class="btn primary filebtn grow">${T("📷 Foto aufnehmen / wählen")}<input type="file" id="impPhoto" accept="image/*" multiple></label><label class="btn filebtn grow">${T("PDF wählen")}<input type="file" id="impPdf" accept="application/pdf,.pdf"></label></div></section>
     ${listImportHTML(code)}`;
 }
@@ -330,7 +330,7 @@ function impRun() {
   state.cards = state.cards.concat(recs.map((r) => r.c)); reindex(); save();
   const code = imp.lang, deck = imp.deck;
   state.imp = null;
-  toast(`${plural(recs.length, T("Karte"), T("Karten"))} importiert`);
+  toast(T("{0} importiert", [plural(recs.length, T("Karte"), T("Karten"))]));
   goHome(); state.tab = "cards"; state.stacks.cards = state.stack = [{ v: "library" }, { v: "lang", p: code }];
   go("deck", { lang: code, deck });
 }

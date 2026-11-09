@@ -4,8 +4,8 @@ const ICON_SPEAK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden=
 const ICON_SPEAK_BIG = '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M3.5 9h4l5.5-4.5v15L7.5 15h-4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.2 5.8a8.8 8.8 0 0 1 0 12.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 const ICON_SLOW = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 16.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 16.5h2.2a1.8 1.8 0 0 0 0-3.6H17" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 16.5h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 16.5v2M14 16.5v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="19.5" cy="11" r="1" fill="currentColor"/></svg>';
 const ICON_MIC = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="8.5" y="3" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-const VIEW_LABEL = { hub: T("Menü"), lang: T("Sprache"), deck: T("Projekt"), cards: T("Karten"), verbs: T("Verben"), verb: T("Verb"), search: T("Suche"), stats: T("Statistik"), settings: T("Einstellungen"), import: T("Import"), review: T("Prüfen"), starter: T("Starter") };
-const backLabel = (prev) => (prev.v === "lang" ? langName(prev.p) : prev.v === "deck" ? dn(prev.p.deck) : prev.v === "wissen" ? L10((W_SEGS.find((x) => x[0] === (prev.p || {}).seg) || W_SEGS[0])[1]) : prev.v === "settings" && state.stack[0] === prev && state.tab === "more" ? T("Mehr") : VIEW_LABEL[prev.v] || T("Zurück"));
+const VIEW_LABEL = { hub: T("Menü"), lang: T("Sprache"), deck: T("Projekt"), cards: T("Karten"), verbs: T("Verben"), verb: T("Verb"), search: T("Suche"), stats: T("Statistik"), settings: T("Mehr"), import: T("Import"), review: T("Prüfen"), starter: T("Starter") };
+const backLabel = (prev) => (prev.v === "lang" ? langName(prev.p) : prev.v === "deck" ? dn(prev.p.deck) : prev.v === "wissen" ? L10((W_SEGS.find((x) => x[0] === (prev.p || {}).seg) || W_SEGS[0])[1]) : prev.v === "set" ? setTitle(prev.p) : VIEW_LABEL[prev.v] || T("Zurück"));
 const backBar = () => { const prev = state.stack[state.stack.length - 2]; return prev ? `<button class="backbtn" data-action="back"><span aria-hidden="true">‹</span>${esc(backLabel(prev))}</button>` : ""; };
 const badgeTxt = (txt, color) => `<span class="badge" style="color:${color};background:${color}24" aria-hidden="true">${esc(txt)}</span>`;
 function navRow(action, arg, title, sub, val, badgeHTML, extra) {
@@ -14,12 +14,6 @@ function navRow(action, arg, title, sub, val, badgeHTML, extra) {
     <span class="val">${val || ""}</span><span class="chev" aria-hidden="true">›</span></button>`;
 }
 function bigNum(n, unit) { return `<span>${num(n)}</span>${unit ? `<span class="dec"> ${esc(unit)}</span>` : ""}`; }
-function spark(vals, color) {
-  if (vals.length < 2 || vals.every((v) => v === 0)) return "";
-  const max = Math.max(...vals) || 1, W = 84, Hs = 30, n = vals.length;
-  const pts = vals.map((v, i) => `${(i * W / (n - 1)).toFixed(1)},${(Hs - 3 - (v / max) * (Hs - 6)).toFixed(1)}`).join(" ");
-  return `<svg class="spark" viewBox="0 0 ${W} ${Hs}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" style="fill:none;stroke:${color};stroke-width:2;stroke-linejoin:round;stroke-linecap:round"/></svg>`;
-}
 function stateBar(m) {
   const tot = m.new + m.learn + m.known + m.hard || 1;
   return `<div class="bar" aria-hidden="true"><span style="width:${m.known / tot * 100}%;background:var(--pos)"></span><span style="width:${m.learn / tot * 100}%;background:#3FA9FF"></span><span style="width:${m.hard / tot * 100}%;background:var(--neg)"></span></div>`;
@@ -110,72 +104,6 @@ function chartBlock(id, code, mode, days) {
 }
 
 /* ================= Views ================= */
-function viewHub() {
-  const all = dueInfo(), td = dayTotals(today()), stk = streakInfo(), m = countByState(null);
-  const n = state.cards.length;
-  const week = histArr(null, 7, "all").reduce((a, b) => a + b, 0);
-  let big;
-  if (!n) big = `<button class="addbig hubgo" data-action="starter-first"><span class="hg-t"><span aria-hidden="true">★</span>${T("Starter")}</span><small>${T("Wortschatz laden")}</small></button>`;
-  else if (all.total) big = `<button class="addbig hubgo" data-action="learn"><span class="hg-t"><span aria-hidden="true">▶</span>${T("Lernen")}</span><small>${T("{0} {1} · ca. {2} Min.", [num(all.total), noun(all.total, "Karte", "Karten"), minutesFor(all)])}</small></button>`;
-  else big = `<button class="addbig hubgo done" data-action="practice"><span class="hg-t"><span aria-hidden="true">✓</span>${T("Erledigt")}</span><small>${T("Tippen zum Üben")}</small></button>`;
-  const tiles = langs().map((L) => {
-    const d = dueInfo({ lang: L.code }), cs = cardsOf(L.code), mm = countByState(L.code), act = cs.length - mm.susp;
-    return `<button class="tile" data-action="lang" data-arg="${esc(L.code)}">
-      <span class="tile-l"><span class="tile-t" style="color:${L.color}">${esc(lname(L))}</span>
-        <span class="tile-v">${cs.length ? (d.due ? T("{0} fällig{1}", [num(d.due), d.nw ? ` <span class="tile-s">${T("· {0} neu", [num(d.nw)])}</span>` : ""]) : d.nw ? T("{0} neue Karten", [num(d.nw)]) : T("Für heute erledigt ✓")) : `<span class="tile-s">${T("Noch keine Karten – tippen zum Starten")}</span>`}</span>
-        ${cs.length ? `<span class="tile-s">${T("{0} · {1} % sicher", [plural(cs.length, T("Karte"), T("Karten")), act ? Math.round(mm.known / act * 100) : 0])}</span>` : ""}</span>
-      ${spark(histArr(L.code, 14, "all"), L.color)}<span class="chev" aria-hidden="true">›</span></button>`;
-  }).join("");
-  const verbs = state.cards.filter((c) => c.type === "verb").length;
-  const sentences = n ? sentenceBank(null).length : 0, fresh = n ? state.cards.filter((c) => !c.susp && !isLearned(c)).length : 0;
-  return `
-    <header class="hubhead">
-      <div class="brand"><h1 class="wordmark">P<b>L</b>M</h1><span class="label">Personal Language Management</span></div>
-    </header>
-    <div class="mainbtns">${big}<button class="addbig hubadd" data-action="add"><span aria-hidden="true">+</span>${T("Karte")}</button></div>
-    ${n && !syncOn() && (lastBackupDays() == null ? n >= 30 && Date.now() - Math.min(...state.cards.map((c) => c.created)) > 7 * 864e5 : lastBackupDays() > 14) ? `<button class="notice" data-action="export-json">${T("Letztes Backup: {0} · Jetzt sichern ›", [esc(lastBackupText())])}</button>` : ""}
-    ${hubNextUp()}
-    <nav class="tiles" aria-label="${T("Sprachen")}">${tiles}</nav>
-    <section class="hubpractice" aria-labelledby="hPr"><div class="sechead"><h2 class="sectitle" id="hPr">${T("Üben")}</h2></div>
-    <div class="minitiles">
-      <button class="mtile" data-action="build-any"><span class="tile-t">${T("Sätze bauen")}</span>${sentences ? `<span class="tile-v">${num(sentences)}</span><span class="tile-s">${T("Sätze aus deinen Wörtern")}</span>` : `<span class="tile-s">${T("Sätze bilden und korrigieren lassen")}</span>`}</button>
-      <button class="mtile" data-action="drill-any"><span class="tile-t">${T("Konjugation")}</span>${verbs ? `<span class="tile-v">${num(verbs)}</span><span class="tile-s">${T("Verben – Formen üben")}</span>` : `<span class="tile-s">${T("Verbformen trainieren")}</span>`}</button>
-      <button class="mtile" data-action="newwords-any"><span class="tile-t">${T("Neue Wörter")}</span>${n ? `<span class="tile-v">${num(fresh)}</span>` : ""}<span class="tile-s">${T("Noch nicht gelernt – lesen und anhören")}</span></button>
-      <button class="mtile" data-action="nav" data-arg="stats"><span class="tile-t">${T("Statistik")}</span><span class="tile-v">${num(m.known)}</span><span class="tile-s">${T("Karten sicher gelernt")}</span></button>
-    </div></section>
-    <section class="accounts" aria-label="${T("Heute")}">
-      <span class="label">${T("Heute gelernt")}</span>
-      <div class="acc-total">${bigNum(td.r + td.p,noun(td.r + td.p, "Karte", "Karten"))}</div>
-      <div class="acc-split">
-        <div class="acc"><span class="label">${T("Serie")}</span><b>${stk.cur ? `🔥 ${num(stk.cur)} ${noun(stk.cur, "Tag", "Tage")}` : "–"}</b></div>
-        <div class="acc"><span class="label">${T("Gewusst")}</span><b>${td.r ? Math.round(td.ok / td.r * 100) + " %" : "–"}</b></div>
-        <div class="acc"><span class="label">${T("Zeit")}</span><b>${td.s ? Math.max(1, Math.round(td.s / 60)) + ` ${T("Min.")}` : "–"}</b></div>
-      </div>
-      <div class="ytd"><span class="label">${T("Diese Woche")}</span><b>${num(week)}</b><span class="label">${T("Karten")}</span></div>
-      ${syncOn() ? `<button class="syncline" data-action="sync-now" id="syncLine">${esc(syncStatusText())}</button>` : ""}
-    </section>`;
-}
-/* "Als Nächstes": the course lesson you are in the middle of – or the first one */
-function hubNextUp() {
-  const cur = curLangCodeBase(), ls = langs().filter((L) => hasCourse(L.code)).sort((x, y) => (y.code === cur) - (x.code === cur));
-  if (!ls.length) return "";
-  /* course files load on demand – fetch them quietly once so the next lesson can be shown */
-  if (!hubNextUp.asked) { hubNextUp.asked = true; Promise.all(ls.filter((L) => !COURSE[L.code] && COURSE_BUILTIN.includes(L.code)).map((L) => loadCourse(L.code).catch(() => null))).then((r) => { if (r.some(Boolean) && topView().v === "hub" && !state.study && !state.quiz && !state.talk && !sheetOpen()) render(); }); }
-  let pick = null;
-  for (const L of ls) { if (!COURSE[L.code]) continue; const nx = nextLesson(L.code); if (nx && lessonStarted(nx)) { pick = { L, nx, busy: true }; break; } if (nx && !pick) pick = { L, nx, busy: false }; }
-  if (!pick) {
-    const L = langOf(curLangCodeBase()) && hasCourse(curLangCodeBase()) ? langOf(curLangCodeBase()) : ls[0];
-    return `<button class="coursetile nextup" data-action="course-any"><span class="tile-l"><span class="label">${T("Als Nächstes · Kurs")}</span><span class="tile-t">${T("Kurs {0}", [esc(lname(L))])}</span><span class="tile-s">${esc(hubCourseLine())}</span></span><span class="lvchips" aria-hidden="true">${LEVELS.map((x) => `<i>${x}</i>`).join("")}</span><span class="chev" aria-hidden="true">›</span></button>`;
-  }
-  const { L, nx, busy } = pick;
-  return `<button class="coursetile nextup" data-action="next-lesson" data-arg="${esc(nx.id)}" data-p="${esc(L.code)}"><span class="tile-l"><span class="label">${T("Als Nächstes · Kurs {0} {1}", [esc(lname(L)), nx.level])}</span><span class="tile-t">${esc(L10(nx.t))}</span><span class="tile-s">${busy ? T("Lektion {0} · weiter, wo du aufgehört hast", [nx.n]) : T("Lektion {0} · Wörter, Grammatik, eigene Sätze, Gespräch", [nx.n])}</span></span><span class="nx-play" aria-hidden="true">▶</span></button>`;
-}
-
-function hubCourseLine() {
-  const ls = langs().filter((L) => hasCourse(L.code));
-  for (const L of ls) { if (!COURSE[L.code]) continue; const nx = nextLesson(L.code); if (nx && lessonStarted(nx)) return T("{0}: weiter mit {1} · {2}", [lname(L), nx.level, L10(nx.t)]); }
-  return T("Schritt für Schritt von A1 bis B2: Wörter, Grammatik, eigene Sätze, Gespräche");
-}
 function deckRows(L) {
   return decksOf(L.code).map((d) => {
     const dd = dueInfo({ lang: L.code, deck: d.name }), m = countByState({ lang: L.code, deck: d.name });
@@ -189,13 +117,19 @@ function viewLang(v) {
   if (!L) return `${backBar()}<h1 class="vtitle">${T("Sprache nicht gefunden")}</h1>`;
   const cs = cardsOf(L.code), d = dueInfo({ lang: L.code }), m = countByState(L.code);
   const head = `${backBar()}<h1 class="vtitle" style="color:${L.color}">${esc(lname(L))}</h1>`;
-  const packs = STARTER[L.code] || [];
+  const packs = STARTER_INDEX[L.code] || [];
   const lp = ` data-p="${esc(L.code)}"`;
+  const more = `<section class="sec" aria-labelledby="hMore">
+      <div class="sechead"><h2 class="sectitle" id="hMore">${T("Mehr")}</h2></div>
+      ${navRow("nav", "import", T("Importieren"), T("Foto, PDF aus dem Kurs oder Liste (Quizlet, Anki, Excel)"), "", "", lp)}
+      ${packs.length ? navRow("nav", "starter", T("Starter-Pakete"), packs.map((p) => dn(p.name)).join(", "), "", "", lp) : ""}
+      ${navRow("lang-settings", L.code, T("Spracheinstellungen"), T("{0} neue pro Tag · {1}", [L.newPerDay, L.dirs === "both" ? T("beide Richtungen") : L.dirs === "f" ? T("nur Deutsch → {0}", [lname(L)]) : T("nur {0} → Deutsch", [lname(L)])]))}
+    </section>`;
   if (!cs.length) return `${head}
     <section class="empty">${T("<strong>Noch keine Karten</strong>")}<span>${packs.length ? T("Lade ein Starter-Paket, fotografiere eine Vokabelliste, lade ein PDF aus deinem Kurs hoch oder leg eigene Karten an.") : T("Fotografiere eine Vokabelliste, lade ein PDF hoch, importiere eine Liste oder leg eigene Karten an.")}</span>
-      <div class="btnrow">${packs.length ? `<button class="btn primary" data-action="nav" data-arg="starter"${lp}>${T("Starter-Pakete")}</button>` : ""}<button class="btn" data-action="nav" data-arg="import"${lp}>${T("Foto / PDF / Liste")}</button><button class="btn" data-action="add">${T("+ Karte")}</button></div></section>
-    <section class="sec">${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}${navRow("lang-settings", L.code, T("Spracheinstellungen"), T("Neue Karten pro Tag, Richtung, Zeiten, Stimme"))}</section>`;
-  const verbs = cs.filter((c) => c.type === "verb").length, sb = sentenceBank(L.code).length;
+      <div class="btnrow">${packs.length ? `<button class="btn primary" data-action="nav" data-arg="starter"${lp}>${T("Starter-Pakete")}</button>` : ""}<button class="btn" data-action="nav" data-arg="import"${lp}>${T("Foto / PDF / Liste")}</button></div></section>
+    ${more}`;
+  const verbs = cs.filter((c) => c.type === "verb").length, sb = sentenceBank(L.code).length, nw = newCardsOf(L.code).length;
   return `${head}
     <section class="hero">
       <span class="label">${T("Heute dran")}</span>
@@ -203,34 +137,24 @@ function viewLang(v) {
       <div class="herosub">${d.total ? T("{0} · {1} neu · ca. {2} Min.", [plural(d.due, T("Wiederholung"), T("Wiederholungen")), num(d.nw), minutesFor(d)]) : d.moreNew ? T("Für heute erledigt · {0} neue Karten warten", [num(d.moreNew)]) : T("Für heute erledigt")}</div>
     </section>
     <div class="btnrow">${d.total ? `<button class="btn primary grow" data-action="learn" data-arg="${esc(L.code)}">${T("▶ Lernen")}</button>` : d.moreNew ? `<button class="btn primary grow" data-action="learn-more" data-arg="${esc(L.code)}">${T("+ 10 neue Karten")}</button>` : ""}<button class="btn${d.total || d.moreNew ? "" : " grow"}" data-action="practice" data-arg="${esc(L.code)}">${T("Üben")}</button></div>
-    ${modePills()}
-    ${chartBlock("chLang", L.code, state.chart, 30)}
+    <section class="sec" aria-labelledby="hDecks">
+      <div class="sechead"><h2 class="sectitle" id="hDecks">${T("Projekte")}</h2><button class="more" data-action="cards" data-arg="">${T("Alle Karten ›")}</button></div>
+      ${deckRows(L)}
+    </section>
     <section class="stats" aria-label="${T("Kartenstand")}">
       <div class="stat"><span class="label">${T("Neu")}</span><span class="v">${num(m.new)}</span></div>
       <div class="stat"><span class="label">${T("Im Lernen")}</span><span class="v" style="color:#3FA9FF">${num(m.learn + m.hard)}</span></div>
       <div class="stat"><span class="label">${T("Sicher")}</span><span class="v pos">${num(m.known)}</span></div>
     </section>
-    <section class="sec" aria-labelledby="hDecks">
-      <div class="sechead"><h2 class="sectitle" id="hDecks">${T("Projekte")}</h2><button class="more" data-action="cards" data-arg="">${T("Alle Karten ›")}</button></div>
-      ${deckRows(L)}
-    </section>
     <section class="sec" aria-labelledby="hPrac">
       <div class="sechead"><h2 class="sectitle" id="hPrac">${T("Üben")}</h2></div>
-      ${navRow("course", L.code, T("Kurs A1 – B2"), courseSummary(L.code), "", badgeTxt("A1", L.color))}
-      ${pbFind(L.code) ? navRow("pblang", L.code, T("Sprachführer"), T("Vorstellen, Basics, Beleidigungen – schnell nachschlagen und anhören"), "", badgeTxt("💬", L.color)) : ""}
-      ${theoryLangs().some((x) => x.code === L.code) ? navRow("nav", "theory", T("Theorie & Grammatik"), L.code === "it" ? T("Artikel, Zeitformen, Konjugation – mit Übungen") : L.code === "en" ? T("Zeitformen, if-Sätze, Artikel – mit Übungen") : T("Grammatik aus dem Kurs und Verben in allen Zeitformen"), "", badgeTxt("§", L.color), lp) : ""}
-      ${cs.length ? navRow("nav", "newwords", T("Neue Wörter ansehen"), T("Wörter, die noch nicht gelernt sind – lesen und anhören"), (() => { const k = newCardsOf(L.code).length; return k ? `<small>${num(k)}</small>` : ""; })(), badgeTxt("Aa", L.color), lp) : ""}
       ${navRow("build", L.code, T("Sätze bauen"), sb ? T("{0} – aus Bausteinen oder frei tippen, mit Korrektur", [plural(sb, T("Satz"), T("Sätze"))]) : T("Sätze entstehen aus Beispielsätzen und Satzkarten"), "", badgeTxt("✎", L.color))}
       ${navRow("nav", "verbs", T("Konjugation"), verbs ? T("{0} · aktiv: {1}", [plural(verbs, T("Verb"), T("Verben")), L.active.join(", ") || T("keine Zeit")]) : T("Noch keine Verben – leg eins an"), "", badgeTxt("V", L.color), lp)}
       ${verbs ? navRow("drill", L.code, T("Formen schnell üben"), T("Zufällige Personen und Zeiten"), "", badgeTxt("⚡", L.color)) : ""}
       ${m.hard ? navRow("cards-hard", L.code, T("Schwierige Karten ({0})", [m.hard]), T("Oft vergessen – gezielt üben oder Eselsbrücke ergänzen"), "", badgeTxt("!", "#FF4F45")) : ""}
+      ${navRow("nav", "newwords", T("Neue Wörter ansehen"), nw ? T("Wörter, die noch nicht gelernt sind – lesen und anhören") : T("Alle Wörter sind schon im Lernen"), nw ? `<small>${num(nw)}</small>` : "", badgeTxt("Aa", L.color), lp)}
     </section>
-    <section class="sec" aria-labelledby="hMore">
-      <div class="sechead"><h2 class="sectitle" id="hMore">${T("Mehr")}</h2></div>
-      ${navRow("nav", "import", T("Importieren"), T("Foto, PDF aus dem Kurs oder Liste (Quizlet, Anki, Excel)"), "", "", lp)}
-      ${packs.length ? navRow("nav", "starter", T("Starter-Pakete"), packs.map((p) => dn(p.name)).join(", "), "", "", lp) : ""}
-      ${navRow("lang-settings", L.code, T("Spracheinstellungen"), T("{0} neue pro Tag · {1}", [L.newPerDay, L.dirs === "both" ? T("beide Richtungen") : L.dirs === "f" ? T("nur Deutsch → {0}", [lname(L)]) : T("nur {0} → Deutsch", [lname(L)])]))}
-    </section>`;
+    ${more}`;
 }
 
 function lastTest(code, deck) {
@@ -290,7 +214,7 @@ function viewCards(v) {
   return `${backBar()}
     <h1 class="vtitle">${esc(title)}</h1>
     <p class="meta">${esc([lname(L), p.topic != null ? dn(p.deck) : ""].filter(Boolean).join(" · "))} · ${plural(list.length, T("Karte"), T("Karten"))}</p>
-    <div class="btnrow">${scoped && dd.total ? `<button class="btn primary grow" data-action="learn-scope">${T("▶ Lernen ({0})", [num(dd.total)])}</button>` : ""}<button class="btn${scoped && dd.total ? "" : " grow"}" data-action="practice-scope">${T("Diese Karten üben")}</button><button class="btn" data-action="add">${T("+ Karte")}</button></div>
+    <div class="btnrow">${scoped && dd.total ? `<button class="btn primary grow" data-action="learn-scope">${T("▶ Lernen ({0})", [num(dd.total)])}</button>` : ""}<button class="btn${scoped && dd.total ? "" : " grow"}" data-action="practice-scope">${T("Diese Karten üben")}</button></div>
     <div class="pills" role="group" aria-label="${T("Filter")}">${[["all", T("Alle")], ["new", T("Neu")], ["learn", T("Lernen")], ["known", T("Sicher")], ["hard", T("Schwierig")], ["susp", T("Pausiert")]].filter(([k]) => k === "all" || counts[k] || filt === k).map(([k, t]) => `<button data-action="listfilter" data-arg="${k}" aria-pressed="${filt === k}">${t} ${counts[k]}</button>`).join("")}</div>
     ${shown.length ? selToolbar() : ""}
     <section class="sec" aria-label="${T("Karten")}">${cap.map(cardRow).join("") || `<p class="hint" style="padding:12px 0">${T("Keine Karten in dieser Auswahl.")}</p>`}</section>
@@ -358,29 +282,32 @@ function viewSearch() {
 }
 
 function viewStats() {
-  const days = state.statRange, stk = streakInfo(), m = countByState(null);
-  const hist = histArr(null, days, "all"), total = hist.reduce((a, b) => a + b, 0);
+  const days = state.statRange, stk = streakInfo(), code = state.statLang && langOf(state.statLang) ? state.statLang : null, m = countByState(code);
+  const hist = histArr(code, days, "all"), total = hist.reduce((a, b) => a + b, 0);
   let secs = 0, rv = 0, ok = 0, nw = 0;
-  for (let i = 0; i < days; i++) { const d = dayTotals(today() - i); secs += d.s; rv += d.r; ok += d.ok; nw += d.n; }
-  const perLang = langs().map((L) => { const mm = countByState(L.code), n = mm.new + mm.learn + mm.known + mm.hard; return n + mm.susp ? `<div class="row nochev" style="grid-template-columns:auto minmax(0,1fr) auto">${badgeTxt(lname(L).slice(0, 2), L.color)}<span class="main"><span class="t1">${esc(lname(L))}</span><span class="t2">${T("{0} sicher · {1} im Lernen · {2} neu", [num(mm.known), num(mm.learn + mm.hard), num(mm.new)])}</span>${stateBar(mm)}</span><span class="val">${num(n)}</span></div>` : ""; }).join("");
-  const tests = Object.entries(state.tests).flatMap(([k, list]) => (list || []).map((t) => ({ ...t, k }))).sort((a, b) => b.at - a.at).slice(0, 5);
+  for (let i = 0; i < days; i++) { const d = dayTotals(today() - i, code); secs += d.s; rv += d.r; ok += d.ok; nw += d.n; }
+  const perLang = langs().filter((L) => !code || L.code === code).map((L) => { const mm = countByState(L.code), n = mm.new + mm.learn + mm.known + mm.hard; return n + mm.susp ? `<div class="row nochev" style="grid-template-columns:auto minmax(0,1fr) auto">${badgeTxt(lname(L).slice(0, 2), L.color)}<span class="main"><span class="t1">${esc(lname(L))}</span><span class="t2">${T("{0} sicher · {1} im Lernen · {2} neu", [num(mm.known), num(mm.learn + mm.hard), num(mm.new)])}</span>${stateBar(mm)}</span><span class="val">${num(n)}</span></div>` : ""; }).join("");
+  const tests = Object.entries(state.tests).filter(([k]) => !code || k.split("|")[0] === code).flatMap(([k, list]) => (list || []).map((t) => ({ ...t, k }))).sort((a, b) => b.at - a.at).slice(0, 5);
+  const langPills = langs().length > 1 ? `<div class="pills" role="group" aria-label="${T("Sprache")}">${[["", T("Alle")]].concat(langs().map((L) => [L.code, lname(L)])).map(([k, t]) => `<button data-action="statlang" data-arg="${esc(k)}" aria-pressed="${(code || "") === k}">${esc(t)}</button>`).join("")}</div>` : "";
   return `${backBar()}
     <h1 class="vtitle">${T("Statistik")}</h1>
+    ${langPills}
     <div class="pills" role="group" aria-label="${T("Zeitraum")}">${[[30, T("30 Tage")], [90, T("90 Tage")], [365, T("1 Jahr")]].map(([k, t]) => `<button data-action="statrange" data-arg="${k}" aria-pressed="${days === k}">${t}</button>`).join("")}</div>
     <section class="hero"><span class="label">${T("Gelernte Karten")}</span><div class="heroval">${bigNum(total)}</div>
       <div class="herosub">${T("Ø {0} pro Tag · {1} % gewusst · {2} neue Karten · {3}", [(Math.round(total / days * 10) / 10).toLocaleString(LOC), rv ? Math.round(ok / rv * 100) : 0, num(nw), secs >= 3600 ? T("{0} Std. {1} Min.", [Math.floor(secs / 3600), Math.round(secs % 3600 / 60)]) : T("{0} Min.", [Math.round(secs / 60)])])}</div></section>
-    ${chartBlock("chStats", null, state.chart, Math.min(days, 90))}
+    ${chartBlock("chStats", code, state.chart, Math.min(days, 90))}
     <section class="stats" aria-label="${T("Serie")}">
       <div class="stat"><span class="label">${T("Serie")}</span><span class="v">${stk.cur ? "🔥 " + num(stk.cur) : "0"}</span></div>
       <div class="stat"><span class="label">${T("Rekord")}</span><span class="v">${num(stk.best)} ${noun(stk.best, "Tag", "Tage")}</span></div>
       <div class="stat"><span class="label">${T("Lerntage")}</span><span class="v">${num(stk.days)}</span></div>
     </section>
-    <section class="sec" aria-labelledby="hPL"><div class="sechead"><h2 class="sectitle" id="hPL">${T("Sprachen")}</h2><span class="hint">${T("{0} sicher", [num(m.known)])}</span></div>${perLang || `<p class="hint">${T("Noch keine Karten.")}</p>`}
+    <section class="sec" aria-labelledby="hPL"><div class="sechead"><h2 class="sectitle" id="hPL">${code ? T("Kartenstand") : T("Sprachen")}</h2><span class="hint">${T("{0} sicher", [num(m.known)])}</span></div>${perLang || `<p class="hint">${T("Noch keine Karten.")}</p>`}
       <div class="legend" style="margin-top:10px"><span><i style="background:var(--pos)"></i>${T("Sicher (Abstand ≥ 3 Wochen)")}</span><span><i style="background:#3FA9FF"></i>${T("Im Lernen")}</span><span><i style="background:var(--neg)"></i>${T("Schwierig")}</span></div></section>
-    ${tests.length ? `<section class="sec" aria-labelledby="hTests"><div class="sechead"><h2 class="sectitle" id="hTests">${T("Tests")}</h2></div>${tests.map((t) => { const [code, deck] = t.k.split("|"); return `<div class="row nochev nobadge"><span class="main"><span class="t1">${esc(dn(deck))}</span><span class="t2">${esc(langName(code))} · ${esc(dateFmt.format(new Date(t.at)))} · ${plural(t.n, T("Frage"), T("Fragen"))}</span></span><span class="val ${t.s >= 75 ? "pos" : t.s < 60 ? "neg" : ""}">${t.s} %</span></div>`; }).join("")}</section>` : ""}`;
+    ${tests.length ? `<section class="sec" aria-labelledby="hTests"><div class="sechead"><h2 class="sectitle" id="hTests">${T("Tests")}</h2></div>${tests.map((t) => { const [tc, deck] = t.k.split("|"); return `<div class="row nochev nobadge"><span class="main"><span class="t1">${esc(dn(deck))}</span><span class="t2">${esc(langName(tc))} · ${esc(dateFmt.format(new Date(t.at)))} · ${plural(t.n, T("Frage"), T("Fragen"))}</span></span><span class="val ${t.s >= 75 ? "pos" : t.s < 60 ? "neg" : ""}">${t.s} %</span></div>`; }).join("")}</section>` : ""}`;
 }
 
 function viewStarter(v) {
+  if (langOf(v.p) && !needData(starterData(v.p))) return loadingHTML(T("Starter-Pakete"));
   const L = langOf(v.p), packs = (L && STARTER[L.code]) || [];
   return `${backBar()}
     <h1 class="vtitle">${T("Starter-Pakete")}</h1>
@@ -407,7 +334,7 @@ function render() {
   if (state.enter) { void root.offsetWidth; root.classList.add("enter"); state.enter = false; }
   if (focusId && root.contains($(focusId))) $(focusId).focus({ preventScroll: true });
   charts.forEach((c) => drawChart($(c.id), c));
-  $("addBtn").hidden = !["lang", "deck", "cards", "verbs", "library"].includes(top.v) || !!state.sel;
+  $("addBtn").hidden = state.tab !== "cards" || !["lang", "deck", "cards", "verbs", "library"].includes(top.v) || !!state.sel; // + Karte: only in the Karten tab
   paintTabbar();
   const bar = $("selbar");
   bar.hidden = !state.sel;

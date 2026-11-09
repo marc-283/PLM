@@ -504,7 +504,8 @@ function doneHTML(S) {
   let more = "", extra = "";
   if (S.kind === "learn") {
     const d = buildQueue({ ...S.o, countOnly: true });
-    more = d.total ? `<button class="btn primary" data-action="study-again">${T("Weiter lernen ({0})", [num(d.total)])}</button>` : d.moreNew ? `<button class="btn primary" data-action="study-more">${T("+ 10 neue Karten")}</button>` : "";
+    const P = !d.total && S.o.plan ? dayPlan() : null; // day plan: the course step comes next
+    more = d.total ? `<button class="btn primary" data-action="study-again">${T("Weiter lernen ({0})", [num(d.total)])}</button>` : P && P.next === "course" ? `<button class="btn primary" data-action="plan-next">${T("Weiter: Lektion {0} · {1}", [lessonTag(P.course.next), STEP_NAME[P.course.step]])}</button>` : d.moreNew ? `<button class="btn primary" data-action="study-more">${T("+ 10 neue Karten")}</button>` : "";
   } else more = `<button class="btn primary" data-action="study-repeat">${S.kind === "test" ? T("Neuer Test") : T("Noch eine Runde")}</button>`;
   if (S.wrongIds.size && S.kind !== "learn") more += `<button class="btn" data-action="study-mistakes">${T("Fehler üben ({0})", [S.wrongIds.size])}</button>`;
   if (S.kind === "test") {

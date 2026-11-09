@@ -27,6 +27,7 @@ function enIrregular() {
 /* Entries: { inf, de, en, o (flags), past, pp, rank, key } – first line wins, order ≈ frequency */
 function lexOf(code) {
   if (LEX_CACHE[code]) return LEX_CACHE[code];
+  if (!hasData(verbData(code))) { ensureData(verbData(code)); return []; } // pages wait for it – see needData()
   const out = [], seen = new Set();
   const push = (e) => { const key = bareAns(normAns(e.inf)); if (!key || seen.has(key)) return; seen.add(key); out.push({ ...e, key, rank: out.length }); };
   for (const line of String(VERBS[code] || "").split("\n")) {
@@ -157,18 +158,46 @@ const formKeys = (f) => {
   for (const alt of s.split(/\s*\/\s*|,\s*/)) { const a = alt.trim(); if (!a) continue; out.add(a); const w = a.split(" "); if (w.length > 1) out.add(w[w.length - 1]); }
   return [...out];
 };
-function formIndex(code) {
-  if (FORM_INDEX[code]) return FORM_INDEX[code];
-  const idx = new Map();
-  for (const e of lexOf(code)) {
-    let r = null; try { r = verbTables(code, e.inf); } catch { r = null; }
-    if (!r) continue;
-    for (const [tn, forms] of Object.entries(r)) {
-      if (tn.startsWith("_") || !Array.isArray(forms)) continue;
-      forms.forEach((f, i) => { if (!f) return; for (const k of formKeys(f)) if (k.length >= 2 && k !== e.key && !idx.has(k)) idx.set(k, { inf: e.inf, tense: tn, i, form: f }); });
-    }
+/* Index conjugated form → infinitive ("bevo" → bere). It is prepared in small pieces while the browser is idle once
+   the verb lookup opens, so typing never stalls; until it is ready the suggestions use infinitive and meaning only. */
+const formJobs = {};
+const idleCb = window.requestIdleCallback ? (fn) => requestIdleCallback(fn, { timeout: 400 })
+  : (fn) => setTimeout(() => { const t0 = performance.now(); fn({ timeRemaining: () => Math.max(0, 6 - (performance.now() - t0)) }); }, 16);
+function formAdd(job, e) {
+  let r = null; try { r = verbTables(job.code, e.inf); } catch { r = null; }
+  if (!r) return;
+  for (const [tn, forms] of Object.entries(r)) {
+    if (tn.startsWith("_") || !Array.isArray(forms)) continue;
+    forms.forEach((f, i) => { if (!f) return; for (const k of formKeys(f)) if (k.length >= 2 && k !== e.key && !job.idx.has(k)) job.idx.set(k, { inf: e.inf, tense: tn, i, form: f }); });
   }
-  return (FORM_INDEX[code] = idx);
+}
+function formJob(code) {
+  if (FORM_INDEX[code] || !canConj(code) || !hasData(verbData(code))) return null;
+  return formJobs[code] || (formJobs[code] = { code, idx: new Map(), list: lexOf(code), i: 0 });
+}
+function formDone(job) { FORM_INDEX[job.code] = job.idx; delete formJobs[job.code]; }
+function prepFormIndex(code) {
+  const job = formJob(code);
+  if (!job || job.running) return;
+  job.running = true;
+  const step = (dl) => {
+    if (FORM_INDEX[code]) return;
+    let n = 0;
+    while (job.i < job.list.length && (n++ < 6 || dl.timeRemaining() > 1.5)) formAdd(job, job.list[job.i++]);
+    if (job.i < job.list.length) idleCb(step);
+    else { formDone(job); updateConjSug(); }
+  };
+  idleCb(step);
+}
+/* the index if it is ready (now = finish it right away, for an explicit search); otherwise null */
+function formIndex(code, now) {
+  if (FORM_INDEX[code]) return FORM_INDEX[code];
+  const job = formJob(code);
+  if (!job) return null;
+  if (!now) { prepFormIndex(code); return null; }
+  while (job.i < job.list.length) formAdd(job, job.list[job.i++]);
+  formDone(job);
+  return FORM_INDEX[code];
 }
 function verbCandidates(code) {
   const list = lexOf(code).slice();
@@ -191,8 +220,9 @@ function verbSuggest(code, q0, max) {
       if (words.some((w) => w && w.startsWith(q)) || (q.includes(" ") && mean.split(/\s*;\s*/).some((m) => m.startsWith(q)))) put(e, 2.5, "meaning");
     }
   }
-  if (q.length >= 2 && canConj(code)) {
-    const idx = formIndex(code), byInf = new Map(cands.map((e) => [e.inf, e]));
+  const idx = q.length >= 2 && canConj(code) ? formIndex(code) : null;
+  if (idx) {
+    const byInf = new Map(cands.map((e) => [e.inf, e]));
     for (const [k, v] of idx) {
       const e = byInf.get(v.inf); if (!e) continue;
       if (k === q) put(e, 0.5, { form: v.form, tense: v.tense, i: v.i });
@@ -229,6 +259,7 @@ function resolveVerb(code, text) {
   if (!q) return null;
   const e = lexEntry(code, q) || (ownVerbCard(code, q) ? { inf: ownVerbCard(code, q).tg } : null);
   if (e) return { inf: e.inf };
-  if (canConj(code)) { const hit = formIndex(code).get(bareAns(q)); if (hit) return { inf: hit.inf, from: hit }; }
+  const idx = canConj(code) ? formIndex(code, true) : null;
+  if (idx) { const hit = idx.get(bareAns(q)); if (hit) return { inf: hit.inf, from: hit }; }
   return verbTables(code, q) ? { inf: q } : null;
 }

@@ -30,6 +30,8 @@ function pickLang(title, cb) {
 }
 
 function openStarterFirst() {
+  const need = [...new Set(langs().flatMap((L) => (STARTER_INDEX[L.code] ? starterData(L.code) : [])))];
+  if (!hasData(need)) { toast(T("wird geladen …")); ensureData(need).then((ok) => (ok ? openStarterFirst() : toast(T("Daten konnten nicht geladen werden – bist du online?")))); return; }
   const opts = [];
   for (const L of langs()) for (const p of STARTER[L.code] || []) opts.push([`${L.code}:${p.id}`, `${lname(L)}: ${dn(p.name)}`]);
   if (!opts.length) { go("lang", langs()[0].code); return; }
@@ -41,7 +43,7 @@ function openStarterFirst() {
 }
 function packToast(r) {
   const parts = [];
-  if (r.added) parts.push(`${plural(r.added, T("Karte"), T("Karten"))} geladen`);
+  if (r.added) parts.push(T("{0} geladen", [plural(r.added, T("Karte"), T("Karten"))]));
   if (r.adopted) parts.push(T("{0} aus anderen Projekten übernommen", [num(r.adopted)]));
   if (r.skipped) parts.push(T("{0} schon vorhanden", [num(r.skipped)]));
   toast(parts.join(" · ") || T("Alle Karten waren schon da"));
@@ -63,6 +65,9 @@ document.addEventListener("click", (ev) => {
     case "kurs-lang": top.p = { ...(top.p || {}), lang: arg }; lsSet("plm.lastLang", arg); render(); break;
     case "w-seg": top.p = { ...(top.p || {}), seg: arg, verb: "" }; render(); window.scrollTo(0, 0); break;
     case "course-any": selectTab("course"); break;
+    case "plan-go": planGo(); break;
+    case "plan-next": closeStudy(); planGo(); break;
+    case "hard-any": startPractice({ lang: null, sel: "hard", count: 20 }); break;
     case "next-lesson": openIn("course", "lesson", { lang: a.dataset.p, id: arg }, { lang: a.dataset.p }); break;
     case "starter-any": pickLang(T("Starter-Pakete"), (code) => go("starter", code)); break;
     case "course": go("course", arg); break;
@@ -79,6 +84,8 @@ document.addEventListener("click", (ev) => {
     case "ai-job-cancel": state.aiJob = null; $("study").hidden = true; document.body.style.overflow = ""; break;
     case "nav": if (arg === "settings" && state.tab !== "more") selectTab("more", { reset: true }); else if (arg === "phrasebook" && top.v !== "wissen") selectTab("know", { p: { seg: "pb" } }); else go(arg, parseP(a)); break;
     case "lang": go("lang", arg); break;
+    case "set": go("set", arg); break;
+    case "set-open": closeSheets(); selectTab("more", { reset: true }); go("set", arg); break;
     case "deck": go("deck", { lang: top.p, deck: arg }); break;
     case "topic": state.listFilter = "all"; go("cards", { lang: top.p.lang, deck: top.p.deck, topic: arg }); break;
     case "deck-cards": state.listFilter = "all"; go("cards", { lang: top.p.lang, deck: top.p.deck }); break;
@@ -137,6 +144,7 @@ document.addEventListener("click", (ev) => {
     case "mode": state.settings.mode = arg; save(false); render(); break;
     case "chartmode": state.chart = arg; render(); break;
     case "statrange": state.statRange = Number(arg); render(); break;
+    case "statlang": state.statLang = arg || null; render(); break;
     case "listfilter": state.listFilter = arg; state.showAll = false; render(); break;
     case "show-all": state.showAll = true; render(); break;
     case "sel-start": state.sel = { ids: new Set(), armed: false }; render(); break;
@@ -249,6 +257,7 @@ document.addEventListener("change", (ev) => {
     if (id === "setRet") S.ret = Number(t.value);
     else if (id === "setMax") S.maxReviews = Number(t.value);
     else if (id === "setRoll") S.roll = Number(t.value);
+    else if (id === "setGoal") S.goal = Number(t.value);
     else if (id === "setIntro") S.intro = t.checked;
     else if (id === "setSpeak") S.autoSpeak = t.checked;
     else if (id === "setTts") { ttsSave({ on: t.checked }); if (t.checked) vpUnlock(); render(); toast(T("Gespeichert")); return; }
@@ -325,7 +334,7 @@ $("selSusp").addEventListener("click", () => {
   if (!state.sel || !state.sel.ids.size) return;
   const list = state.cards.filter((c) => state.sel.ids.has(c.id)), allSusp = list.every((c) => c.susp), ts = nowTs();
   list.forEach((c) => { if (allSusp) delete c.susp; else c.susp = true; c.updated = ts; });
-  save(); state.sel = null; render(); toast(allSusp ? `${plural(list.length, T("Karte"), T("Karten"))} fortgesetzt` : `${plural(list.length, T("Karte"), T("Karten"))} pausiert`);
+  save(); state.sel = null; render(); toast(T(allSusp ? "{0} fortgesetzt" : "{0} pausiert", [plural(list.length, T("Karte"), T("Karten"))]));
 });
 $("selDelete").addEventListener("click", () => {
   if (!state.sel || !state.sel.ids.size) return;

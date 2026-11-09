@@ -1,5 +1,7 @@
 /* Runs last, after every file has defined its functions and constants */
 /* ================= Start ================= */
+/* „Wenn PLM öffnet“: new installs open the menu; an existing install keeps the start screen it had so far */
+if (!lsGet(KEYS.open)) lsSet(KEYS.open, lsGet(KEYS.settings) ? "splash" : "menu");
 translateStatic(document.body);
 loadAll();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch { /* not supported */ }
@@ -24,6 +26,7 @@ if (deep === "add") openCard(null);
 if (splashDone && !deepHandled) afterSplash();
 try { if (deep) history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
 updateBadge();
+preloadData();
 if (syncOn()) syncSoon(1200);
 addEventListener("hashchange", () => {
   const h = (location.hash || "").replace(/^#/, "").toLowerCase();
@@ -35,4 +38,4 @@ addEventListener("hashchange", () => {
 let lastDay = today();
 document.addEventListener("visibilitychange", () => { if (!document.hidden && today() !== lastDay) { lastDay = today(); if (!state.study) render(); } });
 /* test hook (only when plm.debug is set) */
-try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, lessonQuizQs, courseLevels, slowChunks, speak, speakText, selectTab, openIn, silentWav, get vp() { return VP; }, ttsCfg, ttsVoice, gVoices, ttsClipCount, voiceQual, pickVoice }; } catch { /* ignore */ }
+try { if (localStorage.getItem("plm.debug")) window.__plm = { get state() { return state; }, render, mergeData, syncNow, saveNow, verbTables, verbSuggest, lexOf, resolveVerb, go, loadPack, packCards, addLang, STARTER, COURSE, loadCourse, loadData, ensureData, hasData, formIndex, dayPlan, planLesson, lessonQuizQs, courseLevels, slowChunks, speak, speakText, selectTab, openIn, silentWav, get vp() { return VP; }, ttsCfg, ttsVoice, gVoices, ttsClipCount, voiceQual, pickVoice }; } catch { /* ignore */ }
