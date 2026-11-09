@@ -5,7 +5,9 @@ const ctx = { console };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(root, "src/core.js"), "utf8") + "\n;globalThis.ENG={itConj,esConj,frConj,enConj,ES_TENSES,FR_TENSES,IT_TENSES};", ctx);
 vm.runInContext("globalThis.TB = (de, en) => ({ de, en }); globalThis.COURSES = {}; globalThis.courseReg = (c, d) => { COURSES[c] = d; };", ctx);
-for (const f of ["20-theory-it.js", "21-theory-en.js"]) vm.runInContext(fs.readFileSync(path.join(root, "src/data", f), "utf8").replace(/^const TB = .*$/m, "").replace(/^const THEORY = /m, "globalThis.THEORY = "), ctx);
+/* grammar chapters: the containers from src/data/05-base.js, filled by the built data files */
+vm.runInContext("globalThis.packReg = () => {};\n" + fs.readFileSync(path.join(root, "src/data/05-base.js"), "utf8").replace(/^const TB = .*$/m, "") + "\n" +
+  ["theory-it", "theory-en"].map((n) => fs.readFileSync(path.join(root, "data", n + ".js"), "utf8")).join("\n") + "\n;globalThis.THEORY = THEORY;", ctx);
 const QUIZ_IDS = ["it-art-def", "it-art-indef", "it-art-mix", "it-plural", "it-presente-reg", "it-presente-irr", "it-aux", "it-pp", "it-imperfetto", "it-pp-imp", "it-futuro", "it-condizionale", "it-imperativo", "it-prep", "en-tense", "en-ppps", "en-cond", "en-art", "en-modal", "en-mistakes", "en-irr"];
 const POS = ["", "n", "v", "adj", "adv", "ph", "s", "x"];
 const BLOCKS = ["p", "h", "tip", "table", "ex", "conj", "quiz"];
